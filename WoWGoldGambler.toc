@@ -1,0 +1,12 @@
+## Interface: 90002
+## Title: WowGoldGambler
+## Author: Ormannishe
+## Version: v0.1
+## Notes: May the Blizzard RNG be ever in your favor.
+## SavedVariables: WowGoldGamblerDB
+## OptionalDeps: Ace3
+## X-Embeds: Ace3
+
+embeds.xml
+
+WowGoldGambler.lua

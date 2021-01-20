@@ -161,32 +161,32 @@ function WoWGoldGambler:ChangeChannel(info)
     self:Print("New chat channel is " .. self.db.global.game.chatChannel)
 end
 
-function WoWGoldGambler:CHAT_MSG_PARTY(text, playerName, channelName)
+function WoWGoldGambler:CHAT_MSG_PARTY(channelName, text, playerName)
     -- Listens to the PARTY channel for player registration
     self:Print("Recieved Party Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
-function WoWGoldGambler:CHAT_MSG_PARTY_LEADER(text, playerName, channelName)
+function WoWGoldGambler:CHAT_MSG_PARTY_LEADER(channelName, text, playerName)
     -- Listens to the PARTY channel for player registration from the party leader
     self:Print("Recieved Party Leader Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
-function WoWGoldGambler:CHAT_MSG_RAID(text, playerName, channelName)
+function WoWGoldGambler:CHAT_MSG_RAID(channelName, text, playerName)
     -- Listens to the RAID channel for player registration
     self:Print("Recieved Raid Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
-function WoWGoldGambler:CHAT_MSG_RAID_LEADER(text, playerName, channelName)
+function WoWGoldGambler:CHAT_MSG_RAID_LEADER(channelName, text, playerName)
     -- Listens to the RAID channel for player registration from the raid leader
     self:Print("Recieved Raid Leader Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
-function WoWGoldGambler:CHAT_MSG_GUILD(text, playerName, channelName)
+function WoWGoldGambler:CHAT_MSG_GUILD(channelName, text, playerName)
     -- Listens to the GUILD channel for player registration
     self:Print("Recieved Guild Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
-function WoWGoldGambler:CHAT_MSG_SYSTEM()
+function WoWGoldGambler:CHAT_MSG_SYSTEM(channelName, text, playerName)
     -- Listens to system events in the chat to keep track of user rolls
-    self:Print("Recieved Roll!")
+    self:Print("Recieved System Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end

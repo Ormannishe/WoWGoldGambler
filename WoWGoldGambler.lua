@@ -23,15 +23,13 @@ local chatChannels = [
 local defaults = {
     global = {
         game = {
-            state = gameStates[1],
             mode = gameModes[1],
             wager = 1000,
-            chatChannel = chatChannels[1],
-            players = [],
-        }
+            chatChannel = chatChannels[1]
+        },
         stats = {
 
-        } 
+        }
     }
 }
 
@@ -40,11 +38,11 @@ local options = {
     handler = WoWGoldGambler,
     type = 'group',
     args = {
-        startround = {
-            name = "Start Round",
-            desc = "Start a new round",
+        startgame = {
+            name = "Start Game",
+            desc = "Start a new game",
             type = "execute",
-            func = "StartRound"
+            func = "StartGame"
         },
         rollme = {
             name = "Roll Me",
@@ -55,8 +53,16 @@ local options = {
     },
 }
 
+-- Stores all session-related game data. Not to be stored in the DB
+local game = {
+    state = gameStates[1],
+    dealer = nil,
+    players = []
+}
+
 function WoWGoldGambler:OnInitialize()
     -- Called when the addon is loaded
+    self:Print("Initializing WoWGoldGambler...")
     self.db = LibStub("AceDB-3.0"):New("WoWGoldGamblerDB", defaults, true)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("WoWGoldGambler", options, {"wowgoldgambler", "wgg"})
     self:Print("WoWGoldGambler Initialized!")
@@ -64,19 +70,8 @@ end
 
 function WoWGoldGambler:OnEnable()
     -- Called when the addon is enabled
-    self.db.global.game.dealer = UnitName("player")
-    self:RegisterEvent("CHAT_MSG_SYSTEM")
-
-    if (self.db.global.game.chatChannel == "PARTY") then
-        self:RegisterEvent("CHAT_MSG_PARTY")
-        self:RegisterEvent("CHAT_MSG_PARTY_LEADER")
-    elseif (self.db.global.game.chatChannel == "RAID") then
-        self:RegisterEvent("CHAT_MSG_RAID")
-        self:RegisterEvent("CHAT_MSG_RAID_LEADER")
-    elseif (self.db.global.game.chatChannel == "GUILD") then
-        self:RegisterEvent("CHAT_MSG_GUILD")
-    end
-
+    self:Print("Enabling WoWGoldGambler...")
+    game.dealer = UnitName("player")
     self:Print("WoWGoldGambler Enabled!")
 end
 
@@ -110,18 +105,30 @@ function WoWGoldGambler:CHAT_MSG_RAID_LEADER()
     self:Print("Recieved Raid Leader Message")
 end
 
-function WoWGoldGambler:CHAT_MSG_GUILD()
+function WoWGoldGambler:CHAT_MSG_GUILD(text, playerName, channelName)
     -- Called when a message is recieved in the GUILD channel
-    self:Print("Recieved Guild Message")
+    self:Print("Recieved Guild Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
-function WoWGoldGambler:StartRound(info)
+function WoWGoldGambler:StartGame(info)
     -- Called when the startround option is called
-    self:Print("Round is starting!")
+    self:Print(game.dealer .. " is starting a new game...")
+
+    if (self.db.global.game.chatChannel == "PARTY") then
+        self:RegisterEvent("CHAT_MSG_PARTY")
+        self:RegisterEvent("CHAT_MSG_PARTY_LEADER")
+    elseif (self.db.global.game.chatChannel == "RAID") then
+        self:RegisterEvent("CHAT_MSG_RAID")
+        self:RegisterEvent("CHAT_MSG_RAID_LEADER")
+    elseif (self.db.global.game.chatChannel == "GUILD") then
+        self:RegisterEvent("CHAT_MSG_GUILD")
+    end
+
+    self:RegisterEvent("CHAT_MSG_SYSTEM")
 end
 
 function WoWGoldGambler:RollMe(info)
     -- Called when the rollme option is called
     self:Print("Rolling " .. self.global.game.wager .. "!")
-    RandomRoll(1, game.wager)
+    RandomRoll(1, self.global.game.wager)
 end

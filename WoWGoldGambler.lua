@@ -158,7 +158,7 @@ function WoWGoldGambler:ChangeChannel(info)
         self.db.global.game.chatChannel = "SAY"
     end
 
-    self:Print("New chat channel is " + self.db.global.game.chatChannel)
+    self:Print("New chat channel is " .. self.db.global.game.chatChannel)
 end
 
 function WoWGoldGambler:CHAT_MSG_PARTY()

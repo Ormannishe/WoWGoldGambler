@@ -203,8 +203,8 @@ function handleChatMessage(channelName, text, playerName)
 
         -- If the player is not already entered, create a new player entry for them
         local newPlayer = {
-            name = playerName
-            realm = playerRealm
+            name = playerName,
+            realm = playerRealm,
             roll = nil
         }
 

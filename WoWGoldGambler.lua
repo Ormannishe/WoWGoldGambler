@@ -162,32 +162,27 @@ end
 
 function WoWGoldGambler:CHAT_MSG_PARTY(channelName, text, playerName)
     -- Listens to the PARTY channel for player registration
-    handleChatMessage(channelName, text, playerName)
-    self:Print(session.players)
+    self:handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_PARTY_LEADER(channelName, text, playerName)
     -- Listens to the PARTY channel for player registration from the party leader
-    handleChatMessage(channelName, text, playerName)
-    self:Print(session.players)
+    self:handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_RAID(channelName, text, playerName)
     -- Listens to the RAID channel for player registration
-    handleChatMessage(channelName, text, playerName)
-    self:Print(session.players)
+    self:handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_RAID_LEADER(channelName, text, playerName)
     -- Listens to the RAID channel for player registration from the raid leader
-    handleChatMessage(channelName, text, playerName)
-    self:Print(session.players)
+    self:handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_GUILD(channelName, text, playerName)
     -- Listens to the GUILD channel for player registration
-    handleChatMessage(channelName, text, playerName)
-    self:Print(session.players)
+    self:handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_SYSTEM(channelName, text)

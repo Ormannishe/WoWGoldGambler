@@ -1,24 +1,24 @@
 WoWGoldGambler = LibStub("AceAddon-3.0"):NewAddon("WoWGoldGambler", "AceConsole-3.0", "AceEvent-3.0")
 
 -- Global Vars --
-local gameStates = [
+local gameStates = {
     "Ready",
     "Registration",
     "InProgress"
-]
+}
 
-local gameModes = [
+local gameModes = {
     "Classic",
     "BigTwo",
     "Roulette",
     "PriceIsRight"
-]
+}
 
-local chatChannels = [
+local chatChannels = {
     "PARTY",
     "RAID",
     "GUILD"
-]
+}
 
 local defaults = {
     global = {
@@ -57,7 +57,7 @@ local options = {
 local game = {
     state = gameStates[1],
     dealer = nil,
-    players = []
+    players = {}
 }
 
 function WoWGoldGambler:OnInitialize()

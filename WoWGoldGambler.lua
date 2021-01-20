@@ -1,10 +1,10 @@
+-- GLOBAL VARS --
 WoWGoldGambler = LibStub("AceAddon-3.0"):NewAddon("WoWGoldGambler", "AceConsole-3.0", "AceEvent-3.0")
 
--- Global Vars --
 local gameStates = {
-    "Ready",
+    "Idle",
     "Registration",
-    "InProgress"
+    "Rolling"
 }
 
 local gameModes = {
@@ -15,10 +15,16 @@ local gameModes = {
 }
 
 local chatChannels = {
-    "SAY",
     "PARTY",
     "RAID",
     "GUILD"
+}
+
+-- Stores all session-related game data. Not to be stored in the DB
+local session = {
+    state = gameStates[1],
+    dealer = nil,
+    players = {}
 }
 
 local defaults = {
@@ -72,68 +78,21 @@ local options = {
     },
 }
 
--- Stores all session-related game data. Not to be stored in the DB
-local session = {
-    state = gameStates[1],
-    dealer = nil,
-    players = {}
-}
+-- HANDLERS --
 
 function WoWGoldGambler:OnInitialize()
     -- Called when the addon is loaded
-    self:Print("Initializing WoWGoldGambler...")
     self.db = LibStub("AceDB-3.0"):New("WoWGoldGamblerDB", defaults, true)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("WoWGoldGambler", options, {"wowgoldgambler", "wgg"})
-    self:Print("WoWGoldGambler Initialized!")
-end
-
-function WoWGoldGambler:OnEnable()
-    -- Called when the addon is enabled
-    self:Print("Enabling WoWGoldGambler...")
     session.dealer = UnitName("player")
-    self:Print("WoWGoldGambler Enabled!")
-end
-
-function WoWGoldGambler:OnDisable()
-    -- Called when the addon is disabled
-    self:Print("WoWGoldGambler Disabled!")
-end
-
-function WoWGoldGambler:CHAT_MSG_SYSTEM()
-    -- Called when a roll is done
-    self:Print("Recieved Roll!")
-end
-
-function WoWGoldGambler:CHAT_MSG_PARTY()
-    -- Called when a message is recieved in the PARTY channel
-    self:Print("Recieved Party Message")
-end
-
-function WoWGoldGambler:CHAT_MSG_PARTY_LEADER()
-    -- Called when a message is recieved in the PARTY channel from the party leader
-    self:Print("Recieved Party Leader Message")
-end
-
-function WoWGoldGambler:CHAT_MSG_RAID()
-    -- Called when a message is recieved in the RAID channel
-    self:Print("Recieved Raid Message")
-end
-
-function WoWGoldGambler:CHAT_MSG_RAID_LEADER()
-    -- Called when a message is recieved in the RAID channel from the raid leader
-    self:Print("Recieved Raid Leader Message")
-end
-
-function WoWGoldGambler:CHAT_MSG_GUILD(text, playerName, channelName)
-    -- Called when a message is recieved in the GUILD channel
-    self:Print("Recieved Guild Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
 function WoWGoldGambler:StartGame(info)
-    -- Called when the startgame option is called
-    self:Print("Session state is " .. session.state)
+    -- Starts a new game session for registration when there is no session in progress
+
     if (session.state == gameStates[1]) then
-        self:Print(session.dealer .. " is starting a new game...")
+        SendChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
+        SendChatMessage("GAME MODE - " .. self.db.global.game.mode .. " - WAGER - " .. self.db.global.game.wager, self.db.global.game.chatChannel)
 
         if (self.db.global.game.chatChannel == "PARTY") then
             self:RegisterEvent("CHAT_MSG_PARTY")
@@ -141,7 +100,7 @@ function WoWGoldGambler:StartGame(info)
         elseif (self.db.global.game.chatChannel == "RAID") then
             self:RegisterEvent("CHAT_MSG_RAID")
             self:RegisterEvent("CHAT_MSG_RAID_LEADER")
-        elseif (self.db.global.game.chatChannel == "GUILD") then
+        else
             self:RegisterEvent("CHAT_MSG_GUILD")
         end
 
@@ -150,42 +109,32 @@ function WoWGoldGambler:StartGame(info)
 end
 
 function WoWGoldGambler:StartRolls(info)
-    -- Called when the startrolls option is called
-    self:Print("Session state is " .. session.state)
+    -- Ends the registration phase of the currently running session and begins the rolling phase
     if (session.state == gameStates[2]) then
-        self:Print(session.dealer .. " is starting a new game...")
+        SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
 
-        if (self.db.global.game.chatChannel == "PARTY") then
-            self:UnregisterEvent("CHAT_MSG_PARTY")
-            self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
-        elseif (self.db.global.game.chatChannel == "RAID") then
-            self:UnregisterEvent("CHAT_MSG_RAID")
-            self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
-        elseif (self.db.global.game.chatChannel == "GUILD") then
-            self:UnregisterEvent("CHAT_MSG_GUILD")
-        end
+        self:UnregisterEvent("CHAT_MSG_PARTY")
+        self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
+        self:UnregisterEvent("CHAT_MSG_RAID")
+        self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
+        self:UnregisterEvent("CHAT_MSG_GUILD")
 
         self:RegisterEvent("CHAT_MSG_SYSTEM")
+
         session.state = gameStates[3]
     end
 end
 
 function WoWGoldGambler:EndGame(info)
-    -- Called when the endgame option is called
-    self:Print("Session state is " .. session.state)
+    -- Ends the currently running session
     if (session.state ~= gameStates[1]) then
-        self:Print("Game Ended!")
+        SendChatMessage("The game has been ended." , self.db.global.game.chatChannel)
 
-        if (self.db.global.game.chatChannel == "PARTY") then
-            self:UnregisterEvent("CHAT_MSG_PARTY")
-            self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
-        elseif (self.db.global.game.chatChannel == "RAID") then
-            self:UnregisterEvent("CHAT_MSG_RAID")
-            self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
-        elseif (self.db.global.game.chatChannel == "GUILD") then
-            self:UnregisterEvent("CHAT_MSG_GUILD")
-        end
-
+        self:UnregisterEvent("CHAT_MSG_PARTY")
+        self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
+        self:UnregisterEvent("CHAT_MSG_RAID")
+        self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
+        self:UnregisterEvent("CHAT_MSG_GUILD")
         self:UnregisterEvent("CHAT_MSG_SYSTEM")
 
         session.state = gameStates[1]
@@ -194,21 +143,49 @@ end
 
 function WoWGoldGambler:RollMe(info)
     -- Called when the rollme option is called
-    self:Print("Rolling " .. self.db.global.game.wager .. "!")
     RandomRoll(1, self.db.global.game.wager)
 end
 
 function WoWGoldGambler:ChangeChannel(info)
     -- Called when the changechannel option is called
-    if (self.db.game.chatChannel == "SAY") then
-        self.db.game.chatChannel = "PARTY"
-    elseif (self.db.game.chatChannel == "PARTY") then
-        self.db.game.chatChannel = "RAID"
-    elseif (self.db.game.chatChannel == "RAID") then
-        self.db.game.chatChannel = "GUILD"
+    if (self.db.global.game.chatChannel == "SAY") then
+        self.db.global.game.chatChannel = "PARTY"
+    elseif (self.db.global.game.chatChannel == "PARTY") then
+        self.db.global.game.chatChannel = "RAID"
+    elseif (self.db.global.game.chatChannel == "RAID") then
+        self.db.global.game.chatChannel = "GUILD"
     else
-        self.db.game.chatChannel = "SAY"
+        self.db.global.game.chatChannel = "SAY"
     end
 
-    self:Print("New chat channel is " + self.db.game.chatChannel)
+    self:Print("New chat channel is " + self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:CHAT_MSG_PARTY()
+    -- Listens to the PARTY channel for player registration
+    self:Print("Recieved Party Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)end
+
+function WoWGoldGambler:CHAT_MSG_PARTY_LEADER()
+    -- Listens to the PARTY channel for player registration from the party leader
+    self:Print("Recieved Party Leader Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+end
+
+function WoWGoldGambler:CHAT_MSG_RAID()
+    -- Listens to the RAID channel for player registration
+    self:Print("Recieved Raid Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+end
+
+function WoWGoldGambler:CHAT_MSG_RAID_LEADER()
+    -- Listens to the RAID channel for player registration from the raid leader
+    self:Print("Recieved Raid Leader Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+end
+
+function WoWGoldGambler:CHAT_MSG_GUILD(text, playerName, channelName)
+    -- Listens to the GUILD channel for player registration
+    self:Print("Recieved Guild Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+end
+
+function WoWGoldGambler:CHAT_MSG_SYSTEM()
+    -- Listens to system events in the chat to keep track of user rolls
+    self:Print("Recieved Roll!")
 end

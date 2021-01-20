@@ -195,7 +195,7 @@ function WoWGoldGambler:CHAT_MSG_SYSTEM(channelName, text)
     self:Print("Recieved System Message '" .. text .. "' in channel " .. channelName)
 end
 
-function handleChatMessage(channelName, text, playerName)
+function WoWGoldGambler:handleChatMessage(channelName, text, playerName)
     local playerName, playerRealm = strsplit("-", playerName)
 
     if (text == "1") then
@@ -221,5 +221,9 @@ function handleChatMessage(channelName, text, playerName)
                 tremove(session.players, i)
             end
         end
+    end
+
+    for i = 1, #session.players do
+        self.Print(session.players[i].name .. " - " .. session.players[i].realm)
     end
 end

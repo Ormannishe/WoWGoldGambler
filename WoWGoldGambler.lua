@@ -161,21 +161,22 @@ function WoWGoldGambler:ChangeChannel(info)
     self:Print("New chat channel is " .. self.db.global.game.chatChannel)
 end
 
-function WoWGoldGambler:CHAT_MSG_PARTY()
+function WoWGoldGambler:CHAT_MSG_PARTY(text, playerName, channelName)
     -- Listens to the PARTY channel for player registration
-    self:Print("Recieved Party Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)end
+    self:Print("Recieved Party Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+end
 
-function WoWGoldGambler:CHAT_MSG_PARTY_LEADER()
+function WoWGoldGambler:CHAT_MSG_PARTY_LEADER(text, playerName, channelName)
     -- Listens to the PARTY channel for player registration from the party leader
     self:Print("Recieved Party Leader Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
-function WoWGoldGambler:CHAT_MSG_RAID()
+function WoWGoldGambler:CHAT_MSG_RAID(text, playerName, channelName)
     -- Listens to the RAID channel for player registration
     self:Print("Recieved Raid Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end
 
-function WoWGoldGambler:CHAT_MSG_RAID_LEADER()
+function WoWGoldGambler:CHAT_MSG_RAID_LEADER(text, playerName, channelName)
     -- Listens to the RAID channel for player registration from the raid leader
     self:Print("Recieved Raid Leader Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
 end

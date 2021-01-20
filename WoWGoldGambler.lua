@@ -15,6 +15,7 @@ local gameModes = {
 }
 
 local chatChannels = {
+    "SAY",
     "PARTY",
     "RAID",
     "GUILD"
@@ -44,17 +45,35 @@ local options = {
             type = "execute",
             func = "StartGame"
         },
+        startrolls = {
+            name = "Start Rolls",
+            desc = "Start listening for player rolls",
+            type = "execute",
+            func = "StartRolls"
+        },
+        endgame = {
+            name = "End Game",
+            desc = "End the currently running game",
+            type = "execute",
+            func = "EndGame"
+        },
         rollme = {
             name = "Roll Me",
             desc = "Do a /roll <wager> for me",
             type = "execute",
             func = "RollMe"
+        },
+        changechannel = {
+            name = "Change Channel",
+            desc = "Change the chat channel to the next one in the list",
+            type = "execute",
+            func = "ChangeChannel"
         }
     },
 }
 
 -- Stores all session-related game data. Not to be stored in the DB
-local game = {
+local session = {
     state = gameStates[1],
     dealer = nil,
     players = {}
@@ -71,7 +90,7 @@ end
 function WoWGoldGambler:OnEnable()
     -- Called when the addon is enabled
     self:Print("Enabling WoWGoldGambler...")
-    game.dealer = UnitName("player")
+    session.dealer = UnitName("player")
     self:Print("WoWGoldGambler Enabled!")
 end
 
@@ -111,24 +130,85 @@ function WoWGoldGambler:CHAT_MSG_GUILD(text, playerName, channelName)
 end
 
 function WoWGoldGambler:StartGame(info)
-    -- Called when the startround option is called
-    self:Print(game.dealer .. " is starting a new game...")
+    -- Called when the startgame option is called
+    self:Print("Session state is " .. session.state)
+    if (session.state == gameStates[1]) then
+        self:Print(session.dealer .. " is starting a new game...")
 
-    if (self.db.global.game.chatChannel == "PARTY") then
-        self:RegisterEvent("CHAT_MSG_PARTY")
-        self:RegisterEvent("CHAT_MSG_PARTY_LEADER")
-    elseif (self.db.global.game.chatChannel == "RAID") then
-        self:RegisterEvent("CHAT_MSG_RAID")
-        self:RegisterEvent("CHAT_MSG_RAID_LEADER")
-    elseif (self.db.global.game.chatChannel == "GUILD") then
-        self:RegisterEvent("CHAT_MSG_GUILD")
+        if (self.db.global.game.chatChannel == "PARTY") then
+            self:RegisterEvent("CHAT_MSG_PARTY")
+            self:RegisterEvent("CHAT_MSG_PARTY_LEADER")
+        elseif (self.db.global.game.chatChannel == "RAID") then
+            self:RegisterEvent("CHAT_MSG_RAID")
+            self:RegisterEvent("CHAT_MSG_RAID_LEADER")
+        elseif (self.db.global.game.chatChannel == "GUILD") then
+            self:RegisterEvent("CHAT_MSG_GUILD")
+        end
+
+        session.state = gameStates[2]
     end
+end
 
-    self:RegisterEvent("CHAT_MSG_SYSTEM")
+function WoWGoldGambler:StartRolls(info)
+    -- Called when the startrolls option is called
+    self:Print("Session state is " .. session.state)
+    if (session.state == gameStates[2]) then
+        self:Print(session.dealer .. " is starting a new game...")
+
+        if (self.db.global.game.chatChannel == "PARTY") then
+            self:UnregisterEvent("CHAT_MSG_PARTY")
+            self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
+        elseif (self.db.global.game.chatChannel == "RAID") then
+            self:UnregisterEvent("CHAT_MSG_RAID")
+            self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
+        elseif (self.db.global.game.chatChannel == "GUILD") then
+            self:UnregisterEvent("CHAT_MSG_GUILD")
+        end
+
+        self:RegisterEvent("CHAT_MSG_SYSTEM")
+        session.state = gameStates[3]
+    end
+end
+
+function WoWGoldGambler:EndGame(info)
+    -- Called when the endgame option is called
+    self:Print("Session state is " .. session.state)
+    if (session.state ~= gameStates[1]) then
+        self:Print("Game Ended!")
+
+        if (self.db.global.game.chatChannel == "PARTY") then
+            self:UnregisterEvent("CHAT_MSG_PARTY")
+            self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
+        elseif (self.db.global.game.chatChannel == "RAID") then
+            self:UnregisterEvent("CHAT_MSG_RAID")
+            self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
+        elseif (self.db.global.game.chatChannel == "GUILD") then
+            self:UnregisterEvent("CHAT_MSG_GUILD")
+        end
+
+        self:UnregisterEvent("CHAT_MSG_SYSTEM")
+
+        session.state = gameStates[1]
+    end
 end
 
 function WoWGoldGambler:RollMe(info)
     -- Called when the rollme option is called
-    self:Print("Rolling " .. self.global.game.wager .. "!")
-    RandomRoll(1, self.global.game.wager)
+    self:Print("Rolling " .. self.db.global.game.wager .. "!")
+    RandomRoll(1, self.db.global.game.wager)
+end
+
+function WoWGoldGambler:ChangeChannel(info)
+    -- Called when the changechannel option is called
+    if (self.db.game.chatChannel == "SAY") then
+        self.db.game.chatChannel = "PARTY"
+    elseif (self.db.game.chatChannel == "PARTY") then
+        self.db.game.chatChannel = "RAID"
+    elseif (self.db.game.chatChannel == "RAID") then
+        self.db.game.chatChannel = "GUILD"
+    else
+        self.db.game.chatChannel = "SAY"
+    end
+
+    self:Print("New chat channel is " + self.db.game.chatChannel)
 end

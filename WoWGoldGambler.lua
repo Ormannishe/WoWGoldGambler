@@ -138,6 +138,7 @@ function WoWGoldGambler:EndGame(info)
         self:UnregisterEvent("CHAT_MSG_SYSTEM")
 
         session.state = gameStates[1]
+        session.players = {}
     end
 end
 
@@ -148,45 +149,74 @@ end
 
 function WoWGoldGambler:ChangeChannel(info)
     -- Called when the changechannel option is called
-    if (self.db.global.game.chatChannel == "SAY") then
+    if (self.db.global.game.chatChannel == "GUILD") then
         self.db.global.game.chatChannel = "PARTY"
     elseif (self.db.global.game.chatChannel == "PARTY") then
         self.db.global.game.chatChannel = "RAID"
-    elseif (self.db.global.game.chatChannel == "RAID") then
-        self.db.global.game.chatChannel = "GUILD"
     else
-        self.db.global.game.chatChannel = "SAY"
+        self.db.global.game.chatChannel = "GUILD"
     end
 
-    self:Print("New chat channel is " .. self.db.global.game.chatChannel)
+    self:Print("WoWGoldGambler: New chat channel is " .. self.db.global.game.chatChannel)
 end
 
 function WoWGoldGambler:CHAT_MSG_PARTY(channelName, text, playerName)
     -- Listens to the PARTY channel for player registration
-    self:Print("Recieved Party Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+    handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_PARTY_LEADER(channelName, text, playerName)
     -- Listens to the PARTY channel for player registration from the party leader
-    self:Print("Recieved Party Leader Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+    handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_RAID(channelName, text, playerName)
     -- Listens to the RAID channel for player registration
-    self:Print("Recieved Raid Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+    handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_RAID_LEADER(channelName, text, playerName)
     -- Listens to the RAID channel for player registration from the raid leader
-    self:Print("Recieved Raid Leader Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+    handleChatMessage(channelName, text, playerName)
 end
 
 function WoWGoldGambler:CHAT_MSG_GUILD(channelName, text, playerName)
     -- Listens to the GUILD channel for player registration
-    self:Print("Recieved Guild Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+    handleChatMessage(channelName, text, playerName)
 end
 
-function WoWGoldGambler:CHAT_MSG_SYSTEM(channelName, text, playerName)
+function WoWGoldGambler:CHAT_MSG_SYSTEM(channelName, text)
     -- Listens to system events in the chat to keep track of user rolls
-    self:Print("Recieved System Message '" .. text .. "' in channel " .. channelName .. " from " .. playerName)
+    self:Print("Recieved System Message '" .. text .. "' in channel " .. channelName)
+end
+
+function handleChatMessage(channelName, text, playerName)
+    local playerName, playerRealm = strsplit("-", playerName)
+
+    if (text == "1") then
+        -- Ignore entry if player is already entered
+        for i = 1, #session.players do
+            if (session.players[i].name == playerName and session.players[i].realm == playerRealm) then
+                return
+            end
+        end
+
+        -- If the player is not already entered, create a new player entry for them
+        local newPlayer = {
+            name = playerName
+            realm = playerRealm
+            roll = nil
+        }
+
+        tinsert(session.players, newPlayer)
+    elseif (text == "-1") then
+        -- Remove the player if they have previously entered
+        for i = 1, #session.players do
+            if (session.players[i].name == playerName and session.players[i].realm == playerRealm) then
+                tremove(session.players, i)
+            end
+        end
+    end
+
+    self:Print(session.players)
 end

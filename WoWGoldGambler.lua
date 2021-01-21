@@ -264,6 +264,7 @@ function WoWGoldGambler:checkPlayerRolls()
     for i = 1, #session.players do
         if (session.players[i].roll == nil) then
             tinsert(players, session.players[i].name)
+        end
     end
 
     return players

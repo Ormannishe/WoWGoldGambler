@@ -247,6 +247,7 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
         for i = 1, #session.players do
             if (session.players[i].name == playerName and session.players[i].roll == nil) then
                 session.players[i].roll = actualRoll
+            end
         end
     end
 

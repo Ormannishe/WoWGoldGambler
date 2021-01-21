@@ -154,7 +154,7 @@ function WoWGoldGambler:endGame(info)
     if (session.state ~= gameStates[1]) then
         -- Post results to the chat channel if there are any
         if (session.result ~= nil) then
-            SendChatMessage(result.losers[1].name .. " owes " .. result.winners[1].name .. " " .. result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
+            SendChatMessage(session.result.losers[1].name .. " owes " .. session.result.winners[1].name .. " " .. session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
         end
 
         -- Restore original IDLE state
@@ -251,23 +251,16 @@ function WoWGoldGambler:handleChatMessage(channelName, text, playerName)
             end
         end
     end
-
-    for i = 1, #session.players do
-        self.Print("DEBUG: " .. session.players[i].name .. " - " .. session.players[i].realm)
-    end
 end
 
 function WoWGoldGambler:handleSystemMessage(channelName, text)
     -- Parses system messages recieved by the Event Listener to find and record player rolls
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
-    self:Print("Recieved Roll - playerName: " .. playerName .. " actualRoll: " .. actualRoll .. " minRoll: " .. minRoll .. " maxRoll: " .. maxRoll)
 
     -- If a registered player made the wager roll and has not yet rolled, record the roll
     if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.db.global.game.wager) then
         for i = 1, #session.players do
-            self:Print(session.players[i].roll)
             if (session.players[i].name == playerName and session.players[i].roll == nil) then
-                self:Print("Got Here")
                 session.players[i].roll = tonumber(actualRoll)
             end
         end

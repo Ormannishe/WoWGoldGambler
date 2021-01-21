@@ -265,7 +265,9 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
     -- If a registered player made the wager roll and has not yet rolled, record the roll
     if (minRoll == 1 and maxRoll == self.db.global.game.wager) then
         for i = 1, #session.players do
+            self:Print(session.players[i].roll)
             if (session.players[i].name == playerName and session.players[i].roll == nil) then
+                self:Print("Got Here")
                 session.players[i].roll = actualRoll
             end
         end

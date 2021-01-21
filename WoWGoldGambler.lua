@@ -28,6 +28,7 @@ local session = {
     result = nil
 }
 
+-- Stores game-related data that should persist between sessions
 local defaults = {
     global = {
         game = {
@@ -48,33 +49,33 @@ local options = {
     args = {
         startgame = {
             name = "Start Game",
-            desc = "Start a new game",
+            desc = "Start the registration phase of a game session",
             type = "execute",
-            func = "StartGame"
+            func = "startGame"
         },
         startrolls = {
             name = "Start Rolls",
-            desc = "Start listening for player rolls",
+            desc = "Start the rolling phase of a game session",
             type = "execute",
-            func = "StartRolls"
+            func = "startRolls"
         },
         endgame = {
             name = "End Game",
-            desc = "End the currently running game",
+            desc = "End the currently running game session",
             type = "execute",
-            func = "EndGame"
+            func = "endGame"
         },
         changechannel = {
             name = "Change Channel",
             desc = "Change the chat channel to the next one in the list",
             type = "execute",
-            func = "ChangeChannel"
+            func = "changeChannel"
         },
         rollme = {
             name = "Roll Me",
-            desc = "Do a /roll <wager> for me",
+            desc = "Do a /roll <wager> for the dealer",
             type = "execute",
-            func = "RollMe"
+            func = "rollMe"
         }
     },
 }
@@ -82,7 +83,7 @@ local options = {
 -- Initialization --
 
 function WoWGoldGambler:OnInitialize()
-    -- Called when the addon is loaded
+    -- Sets up the DB and slash options when the addon is loaded
     self.db = LibStub("AceDB-3.0"):New("WoWGoldGamblerDB", defaults, true)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("WoWGoldGambler", options, {"wowgoldgambler", "wgg"})
     session.dealer = UnitName("player")
@@ -90,7 +91,7 @@ end
 
 -- Slash Command Handlers --
 
-function WoWGoldGambler:StartGame(info)
+function WoWGoldGambler:startGame(info)
     -- Starts a new game session for registration when there is no session in progress
     if (session.state == gameStates[1]) then
         SendChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
@@ -107,31 +108,45 @@ function WoWGoldGambler:StartGame(info)
         end
 
         session.state = gameStates[2]
+    else
+        self:Print("WoWGoldGambler: A game session has already been started!")
     end
 end
 
-function WoWGoldGambler:StartRolls(info)
+function WoWGoldGambler:startRolls(info)
     -- Ends the registration phase of the currently running session and begins the rolling phase
     if (session.state == gameStates[2]) then
+        -- At least two players are required to play
         if (#session.players > 1) then
             SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
 
+            -- Stop listening to chat messages
             self:UnregisterEvent("CHAT_MSG_PARTY")
             self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
             self:UnregisterEvent("CHAT_MSG_RAID")
             self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
             self:UnregisterEvent("CHAT_MSG_GUILD")
 
+            -- Start listening to system messages to recieve rolls
             self:RegisterEvent("CHAT_MSG_SYSTEM")
 
             session.state = gameStates[3]
         else
             SendChatMessage("Not enough players have registered to play!" , self.db.global.game.chatChannel)
         end
+    elseif (session.state == gameStates[3]) then
+        -- If the rolling phase has already started, post the names of the players who have yet to roll in the chat channel
+        local playersToRoll = self:checkPlayerRolls()
+
+        for i = 1, #playersToRoll do
+            SendChatMessage(playersToRoll[i] .. " still needs to roll!" , self.db.global.game.chatChannel)
+        end
+    else
+        self:Print("WoWGoldGambler: Player registration must be done before rolling can start!")
     end
 end
 
-function WoWGoldGambler:EndGame(info)
+function WoWGoldGambler:endGame(info)
     -- Ends the currently running session
     if (session.state ~= gameStates[1]) then
         -- Post results to the chat channel if there are any
@@ -139,7 +154,7 @@ function WoWGoldGambler:EndGame(info)
             SendChatMessage(result.losers[1].name .. " owes " .. result.winners[1].name .. " " .. result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
         end
 
-        -- Restore original idle state
+        -- Restore original IDLE state
         self:UnregisterEvent("CHAT_MSG_PARTY")
         self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
         self:UnregisterEvent("CHAT_MSG_RAID")
@@ -152,7 +167,7 @@ function WoWGoldGambler:EndGame(info)
     end
 end
 
-function WoWGoldGambler:ChangeChannel(info)
+function WoWGoldGambler:changeChannel(info)
     -- Increment the chat channel to be used by the addon
     if (self.db.global.game.chatChannel == chatChannels[1]) then
         self.db.global.game.chatChannel = chatChannels[2]
@@ -165,12 +180,12 @@ function WoWGoldGambler:ChangeChannel(info)
     self:Print("WoWGoldGambler: New chat channel is " .. self.db.global.game.chatChannel)
 end
 
-function WoWGoldGambler:RollMe(info)
-    -- Automatically performs the correct roll for the dealer
+function WoWGoldGambler:rollMe(info)
+    -- Automatically performs the wager roll for the dealer
     RandomRoll(1, self.db.global.game.wager)
 end
 
--- Event Handlers
+-- Event Handlers --
 
 function WoWGoldGambler:CHAT_MSG_PARTY(channelName, text, playerName)
     -- Listens to the PARTY channel for player registration
@@ -205,7 +220,7 @@ end
 -- Helper Functions --
 
 function WoWGoldGambler:handleChatMessage(channelName, text, playerName)
-    -- Parses chat messages recieved by one of the chat Event Listeners to find and record player registration
+    -- Parses chat messages recieved by one of the chat Event Listeners to record player registration
     local playerName, playerRealm = strsplit("-", playerName)
 
     if (text == "1") then
@@ -234,7 +249,7 @@ function WoWGoldGambler:handleChatMessage(channelName, text, playerName)
     end
 
     for i = 1, #session.players do
-        self.Print(session.players[i].name .. " - " .. session.players[i].realm)
+        self.Print("DEBUG: " .. session.players[i].name .. " - " .. session.players[i].realm)
     end
 end
 
@@ -242,7 +257,7 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
     -- Parses system messages recieved by the Event Listener to find and record player rolls
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
 
-    -- If a registered player made the correct roll and has not yet rolled, record the roll
+    -- If a registered player made the wager roll and has not yet rolled, record the roll
     if (minRoll == 1 and maxRoll == self.db.global.game.wager) then
         for i = 1, #session.players do
             if (session.players[i].name == playerName and session.players[i].roll == nil) then
@@ -254,7 +269,7 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
     -- If all registered players have rolled, calculate the results and end the session
     if (#self:checkPlayerRolls() == 0) then
         self:calculateResult()
-        self:EndGame()
+        self:endGame()
     end
 end
 

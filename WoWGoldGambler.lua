@@ -108,6 +108,9 @@ function WoWGoldGambler:startGame(info)
         end
 
         session.state = gameStates[2]
+
+        -- DEBUG
+        tinsert(session.players, {name = "Tester", realm = "Tester", roll = 500})
     else
         self:Print("WoWGoldGambler: A game session has already been started!")
     end
@@ -214,6 +217,7 @@ end
 
 function WoWGoldGambler:CHAT_MSG_SYSTEM(channelName, text)
     -- Listens to system events in the chat to keep track of user rolls
+    self:Print("Recieved system message: " .. text)
     self:handleSystemMessage(channelName, text)
 end
 
@@ -256,6 +260,7 @@ end
 function WoWGoldGambler:handleSystemMessage(channelName, text)
     -- Parses system messages recieved by the Event Listener to find and record player rolls
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
+    self:Print("Recieved Roll - playerName: " .. playerName .. " actualRoll: " .. actualRoll .. " minRoll: " .. minRoll .. " maxRoll: " .. maxRoll)
 
     -- If a registered player made the wager roll and has not yet rolled, record the roll
     if (minRoll == 1 and maxRoll == self.db.global.game.wager) then

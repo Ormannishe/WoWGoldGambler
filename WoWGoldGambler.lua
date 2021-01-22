@@ -412,10 +412,8 @@ function WoWGoldGambler:endGame(info)
     -- Posts the result of the game session to the chat channel and updates stats before terminating the game session
     self:Print("WoWGoldGambler: Game is ending...")  
     if (session.result ~= nil) then
-        self:Print("WoWGoldGambler: Session is not nil...")  
         for i = 1, #session.result.losers do
-            self:Print("WoWGoldGambler: Loser owes" .. session.result.amountOwed)  
-            SendChatMessage(session.result.losers[1].name .. " owes " .. self:makeNameString(session.result.winners) .. " " .. session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
+            SendChatMessage(session.result.losers[i].name .. " owes " .. self:makeNameString(session.result.winners) .. " " .. session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
         end
         -- TODO: Updates stats
     end
@@ -436,13 +434,16 @@ end
 -- Helper Functions -- 
 
 function WoWGoldGambler:makeNameString(players)
-    local nameString = ""
+    -- Given a list of players, returns a string of all player names concatenated together with commas and "and"
+    local nameString = players[1].name
 
-    for i = 1, #players do
-        if (i == #players) then
-            nameString = nameString .. " and " .. players[i].name
-        else
-            nameString = nameString .. ", " .. players[i].name
+    if (#players > 1) then
+        for i = 2, #players do
+            if (i == #players) then
+                nameString = nameString .. " and " .. players[i].name
+            else
+                nameString = nameString .. ", " .. players[i].name
+            end
         end
     end
 

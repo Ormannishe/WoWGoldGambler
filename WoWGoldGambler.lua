@@ -163,6 +163,7 @@ end
 function WoWGoldGambler:cancelGame(info)
     -- Terminates the currently running game session, voiding out any result
     if (session.state ~= gameStates[1]) then
+        SendChatMessage("Game session has been canceled by " .. session.dealer , self.db.global.game.chatChannel)
         session.result = nil
         self:endGame()
     end
@@ -320,7 +321,7 @@ function WoWGoldGambler:calculateResult()
     }
 
     if (self.db.global.game.mode == gameModes[1]) then
-        result = calculateClassicResult()
+        self:calculateClassicResult()
     elseif (self.db.global.game.mode == gameModes[2]) then
         -- BigTwo
     elseif (self.db.global.game.mode == gameModes[3]) then
@@ -476,6 +477,4 @@ function WoWGoldGambler:calculateClassicResult()
     end
 
     session.result.amountOwed = session.result.winners[1].roll - session.result.losers[1].roll
-
-    return result
 end

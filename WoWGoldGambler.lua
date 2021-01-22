@@ -369,13 +369,13 @@ function WoWGoldGambler:resolveTie()
         if (session.result.tieBreakers[i].roll < tieLosers[1].roll) then
             tieLosers = {session.result.tieBreakers[i]}
         -- New winner
-        else if (session.result.tieBreakers[i].roll > tieWinners[1].roll) then
+        elseif (session.result.tieBreakers[i].roll > tieWinners[1].roll) then
             tieWinners = {session.result.tieBreakers[i]}
         -- Tied loser
-        else if (session.result.tieBreakers[i].roll == tieLosers[1].roll) then
+        elseif (session.result.tieBreakers[i].roll == tieLosers[1].roll) then
             tinsert(tieLosers, session.result.tieBreakers[i])
         -- Tied winner
-        else if (session.result.tieBreakers[i].roll == tieWinners[1].roll) then
+        elseif (session.result.tieBreakers[i].roll == tieWinners[1].roll) then
             tinsert(tieWinners, session.result.tieBreakers[i])
         end
     end
@@ -451,18 +451,18 @@ function WoWGoldGambler:calculateClassicResult()
         if (session.players[i].roll < session.result.losers[1].roll) then
             session.result.losers = {session.players[i]}
         -- New winner
-        else if (session.players[i].roll > session.result.winners[1].roll) then
+        elseif (session.players[i].roll > session.result.winners[1].roll) then
             session.result.winners = {session.players[i]}
         -- Tied loser
-        else if (session.players[i].roll == session.result.losers[1].roll) then
+        elseif (session.players[i].roll == session.result.losers[1].roll) then
             tinsert(session.result.losers, session.players[i])
         -- Tied winner
-        else if (session.players[i].roll == session.result.winners[1].roll) then
+        elseif (session.players[i].roll == session.result.winners[1].roll) then
             tinsert(session.result.winners, session.players[i])
         end
     end
 
-    session.result.amountOwed = session.result.winners[i].roll - session.result.losers[i].roll
+    session.result.amountOwed = session.result.winners[1].roll - session.result.losers[1].roll
 
     return result
 end

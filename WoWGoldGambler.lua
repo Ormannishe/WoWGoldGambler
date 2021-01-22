@@ -428,14 +428,14 @@ end
 
 -- Helper Functions -- 
 
-function WoWGoldGambler:makeNameString(names)
+function WoWGoldGambler:makeNameString(players)
     local nameString = ""
 
-    for i = 1, #names do
-        if (i == #names) then
-            nameString = nameString .. " and " .. names[i]
+    for i = 1, #players do
+        if (i == #players) then
+            nameString = nameString .. " and " .. players[i].name
         else
-            nameString = nameString .. ", " .. names[i]
+            nameString = nameString .. ", " .. players[i].name
         end
     end
 

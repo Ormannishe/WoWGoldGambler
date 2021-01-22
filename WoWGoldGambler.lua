@@ -361,6 +361,7 @@ function WoWGoldGambler:resolveTie()
     for i = 1, #session.result.tieBreakers do
         if (session.result.tieBreakers[i].roll == nil) then
             return
+        end
     end
 
     -- Determine which tied players had the highest and lowest rolls

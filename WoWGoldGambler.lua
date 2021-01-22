@@ -261,6 +261,7 @@ function WoWGoldGambler:handleChatMessage(channelName, text, playerName)
             end
 
             -- If the player is not already entered, create a new player entry for them
+            self:Print("WoWGoldGambler: Registered player " .. playerName)  
             local newPlayer = {
                 name = playerName,
                 realm = playerRealm,
@@ -288,6 +289,7 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
         if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.db.global.game.wager) then
             for i = 1, #session.players do
                 if (session.players[i].name == playerName and session.players[i].roll == 0) then
+                    self:Print("WoWGoldGambler: Recieved roll " .. actualRoll .. " from player " .. playerName)  
                     session.players[i].roll = tonumber(actualRoll)
                 end
             end
@@ -295,6 +297,7 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
 
         -- If all registered players have rolled, calculate the result
         if (#self:checkPlayerRolls() == 0) then
+            self:Print("WoWGoldGambler: All players have rolled!")  
             self:calculateResult()
         end
     elseif (session.state == gameStates[4]) then
@@ -314,6 +317,7 @@ end
 
 function WoWGoldGambler:calculateResult()
     -- Calculates the winners and losers of a session and the amount owed
+    self:Print("WoWGoldGambler: Calculating game results...")  
     session.result = {
         winners = {},
         losers = {},
@@ -405,7 +409,8 @@ function WoWGoldGambler:resolveTie()
 end
 
 function WoWGoldGambler:endGame(info)
-    -- Posts the result of the game session to the chat channel and updates stats before terminating the game session    
+    -- Posts the result of the game session to the chat channel and updates stats before terminating the game session
+    self:Print("WoWGoldGambler: Game is ending...")  
     if (session.result ~= nil) then
         for i = 1, #session.result.losers do
             SendChatMessage(session.result.losers[1].name .. " owes " .. self:makeNameString(session.result.winners) .. " " .. session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)

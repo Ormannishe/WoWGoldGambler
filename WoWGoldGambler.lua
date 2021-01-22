@@ -111,7 +111,7 @@ function WoWGoldGambler:startGame(info)
         elseif (self.db.global.game.chatChannel == "RAID") then
             self:RegisterEvent("CHAT_MSG_RAID")
             self:RegisterEvent("CHAT_MSG_RAID_LEADER")
-        elseif (self.db.global.gameModes.chatChannel == "SAY") then -- DEBUG: REMOVE ME
+        elseif (self.db.global.game.chatChannel == "SAY") then -- DEBUG: REMOVE ME
             self:RegisterEvent("CHAT_MSG_SAY")
         else
             self:RegisterEvent("CHAT_MSG_GUILD")

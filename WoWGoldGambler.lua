@@ -341,7 +341,7 @@ function WoWGoldGambler:detectTie()
     -- If a tie is not detected, the game is ended
     if (#session.result.winners > 1 and self.db.global.game.mode ~= gameModes[3]) then
         -- High End Tie Breaker
-        SendChatMessage("High end tie breaker! " .. makeNameString(session.result.winners) .. " /roll 100 now!", self.db.global.game.chatChannel)
+        SendChatMessage("High end tie breaker! " .. self:makeNameString(session.result.winners) .. " /roll 100 now!", self.db.global.game.chatChannel)
         session.state = gameStates[4]
         session.result.tieBreakers = {}
 
@@ -351,7 +351,7 @@ function WoWGoldGambler:detectTie()
         end
     elseif (#session.result.losers > 1 and self.db.global.game.mode ~= gameModes[3]) then
         -- Low End Tie Breaker
-        SendChatMessage("Low end tie breaker! " .. makeNameString(session.result.losers) .. " /roll 100 now!", self.db.global.game.chatChannel)
+        SendChatMessage("Low end tie breaker! " .. self:makeNameString(session.result.losers) .. " /roll 100 now!", self.db.global.game.chatChannel)
         session.state = gameStates[4]
         session.result.tieBreakers = {}
         
@@ -408,7 +408,7 @@ function WoWGoldGambler:endGame(info)
     -- Posts the result of the game session to the chat channel and updates stats before terminating the game session    
     if (session.result ~= nil) then
         for i = 1, #session.result.losers do
-            SendChatMessage(session.result.losers[1].name .. " owes " .. makeNameString(session.result.winners) .. " " .. session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
+            SendChatMessage(session.result.losers[1].name .. " owes " .. self:makeNameString(session.result.winners) .. " " .. session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
         end
         -- TODO: Updates stats
     end

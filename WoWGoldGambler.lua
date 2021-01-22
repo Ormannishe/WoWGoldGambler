@@ -18,7 +18,8 @@ local gameModes = {
 local chatChannels = {
     "PARTY",
     "RAID",
-    "GUILD"
+    "GUILD",
+    "SAY" -- DEBUG: REMOVE ME
 }
 
 -- Stores all session-related game data. Not to be stored in the DB
@@ -116,8 +117,8 @@ function WoWGoldGambler:startGame(info)
 
         session.state = gameStates[2]
 
-        -- DEBUG
-        tinsert(session.players, {name = "Tester", realm = "Tester", roll = 500})
+        -- DEBUG: REMOVE ME
+        tinsert(session.players, {name = "Tester", realm = "Tester", roll = 1})
     else
         self:Print("WoWGoldGambler: A game session has already been started!")
     end
@@ -170,6 +171,8 @@ function WoWGoldGambler:changeChannel(info)
         self.db.global.game.chatChannel = chatChannels[2]
     elseif (self.db.global.game.chatChannel == chatChannels[2]) then
         self.db.global.game.chatChannel = chatChannels[3]
+    elseif (self.db.global.game.chatChannel == chatChannels[3]) then -- DEBUG: REMOVE ME
+        self.db.global.game.chatChannel = chatChannels[4]
     else
         self.db.global.game.chatChannel = chatChannels[1]
     end
@@ -202,6 +205,11 @@ function WoWGoldGambler:rollMe(info, maxAmount, minAmount)
 end
 
 -- Event Handlers --
+function WoWGoldGambler:CHAT_MSG_SAY(channelName, text, playerName)
+    -- Listens to the SAY channel for player registration
+    -- DEBUG: REMOVE ME
+    self:handleChatMessage(channelName, text, playerName)
+end
 
 function WoWGoldGambler:CHAT_MSG_PARTY(channelName, text, playerName)
     -- Listens to the PARTY channel for player registration

@@ -111,6 +111,8 @@ function WoWGoldGambler:startGame(info)
         elseif (self.db.global.game.chatChannel == "RAID") then
             self:RegisterEvent("CHAT_MSG_RAID")
             self:RegisterEvent("CHAT_MSG_RAID_LEADER")
+        elseif (self.db.global.gameModes.chatChannel == "SAY") then -- DEBUG: REMOVE ME
+            self:RegisterEvent("CHAT_MSG_SAY")
         else
             self:RegisterEvent("CHAT_MSG_GUILD")
         end
@@ -132,6 +134,7 @@ function WoWGoldGambler:startRolls(info)
             SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
 
             -- Stop listening to chat messages
+            self:UnregisterEvent("CHAT_MSG_SAY") -- DEBUG: REMOVE ME
             self:UnregisterEvent("CHAT_MSG_PARTY")
             self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
             self:UnregisterEvent("CHAT_MSG_RAID")
@@ -410,6 +413,7 @@ function WoWGoldGambler:endGame(info)
     end
 
     -- Restore original IDLE state
+    self:UnregisterEvent("CHAT_MSG_SAY") -- DEBUG: REMOVE ME
     self:UnregisterEvent("CHAT_MSG_PARTY")
     self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
     self:UnregisterEvent("CHAT_MSG_RAID")

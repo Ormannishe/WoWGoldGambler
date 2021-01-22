@@ -369,7 +369,7 @@ function WoWGoldGambler:detectTie()
 end
 
 function WoWGoldGambler:resolveTie()
-    -- Tie breakers are always won by the player who rolled the highest on a 100 roll
+    -- Tie breakers are always won by the player(s) who rolled the highest on a 100 roll
     local tieWinners = {session.result.tieBreakers[1]}
     local tieLosers = {session.result.tieBreakers[1]}
 
@@ -412,7 +412,9 @@ function WoWGoldGambler:endGame(info)
     -- Posts the result of the game session to the chat channel and updates stats before terminating the game session
     self:Print("WoWGoldGambler: Game is ending...")  
     if (session.result ~= nil) then
+        self:Print("WoWGoldGambler: Session is not nil...")  
         for i = 1, #session.result.losers do
+            self:Print("WoWGoldGambler: Loser owes" .. session.result.amountOwed)  
             SendChatMessage(session.result.losers[1].name .. " owes " .. self:makeNameString(session.result.winners) .. " " .. session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
         end
         -- TODO: Updates stats

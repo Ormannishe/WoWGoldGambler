@@ -29,7 +29,7 @@ local session = {
     result = nil
 }
 
--- Stores game-related data that should persist between sessions
+-- Stores game data that should persist between sessions
 local defaults = {
     global = {
         game = {
@@ -219,16 +219,16 @@ function WoWGoldGambler:printStats()
     -- Post all player stats to the chat channel, ordered from highest winnings to lowest losings
     local sortedPlayers = {}
     
-    for key in pairs(self:db.global.stats.player) do
+    for key in pairs(self.db.global.stats.player) do
         tinsert(sortedPlayers, key)    
     end
     
     table.sort(sortedPlayers, function(a, b)
-        return self:db.global.stats.player[a] > self:db.global.stats.player[b]
+        return self.db.global.stats.player[a] > self.db.global.stats.player[b]
     end)
     
     for i = 1, #sortedPlayers do
-        local amount = self:db.global.stats.player[sortedPlayers[i]]
+        local amount = self.db.global.stats.player[sortedPlayers[i]]
         local wonOrLost = " has won "
         
         if (amount < 0) then
@@ -240,8 +240,8 @@ function WoWGoldGambler:printStats()
 end
 
 function WoWGoldGambler:resetStats()
-    -- Deletes all WGG stats!
-    self:db.global.stats = {
+    -- Deletes all stats!
+    self.db.global.stats = {
         player = {}
     }
 end
@@ -487,17 +487,17 @@ function WoWGoldGambler:checkPlayerRolls()
     local players = session.players
     local playersToRoll = {}
 
-    if (session.state = gameStates[4]) then
+    if (session.state == gameStates[4]) then
         players = session.result.tieBreakers
     end
 
     for i = 1, #players do
         if (players[i].roll == nil) then
-            tinsert(players, players[i].name)
+            tinsert(playersToRoll, players[i].name)
         end
     end
 
-    return players
+    return playersToRoll
 end
 
 function WoWGoldGambler:calculateClassicResult()

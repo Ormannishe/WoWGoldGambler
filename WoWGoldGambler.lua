@@ -26,7 +26,10 @@ local session = {
     state = gameStates[1],
     dealer = nil,
     players = {},
-    result = nil
+    result = nil,
+    stats = {
+        player = {}
+    }
 }
 
 -- Stores game data that should persist between sessions
@@ -38,8 +41,9 @@ local defaults = {
             chatChannel = chatChannels[1]
         },
         stats = {
-            player = {}
-        }
+            player = {},
+            aliases = {}
+        },
     }
 }
 
@@ -78,17 +82,35 @@ local options = {
             type = "input",
             set = "setWager"
         },
+        enterme = {
+            name = "Enter Me",
+            desc = "Register the dealer for a game by entering 1 in chat",
+            type = "execute",
+            func = "enterMe"
+        },
         rollme = {
             name = "Roll Me",
             desc = "Do a /roll for the dealer",
             type = "execute",
             func = "rollMe"
         },
-        stats = {
-            name = "Print Stats",
-            desc = "Output the player stats to the chat channel",
+        allstats = {
+            name = "All Stats",
+            desc = "Output all player stats to the chat channel",
             type = "execute",
             func = "printStats"
+        },
+        sessionStats = {
+            name = "Session Stats",
+            desc = "Output player stats from the current session to the chat channel",
+            type = "execute",
+            func = "printStats"
+        },
+        joinstats = {
+            name = "Join Stats",
+            desc = "Merge the stats of two given players",
+            type = "input",
+            set = "joinStats"
         },
         resetstats = {
             name = "Reset Stats",
@@ -215,33 +237,58 @@ function WoWGoldGambler:rollMe(info, maxAmount, minAmount)
     RandomRoll(minAmount, maxAmount)
 end
 
-function WoWGoldGambler:printStats()
-    -- Post all player stats to the chat channel, ordered from highest winnings to lowest losings
-    local sortedPlayers = {}
-    
-    for key in pairs(self.db.global.stats.player) do
-        tinsert(sortedPlayers, key)    
-    end
-    
-    table.sort(sortedPlayers, function(a, b)
-        return self.db.global.stats.player[a] > self.db.global.stats.player[b]
-    end)
-    
-    for i = 1, #sortedPlayers do
-        local amount = self.db.global.stats.player[sortedPlayers[i]]
-        local wonOrLost = " has won "
-        
-        if (amount < 0) then
-            wonOrLost = " has lost "    
+function WoWGoldGambler:enterMe()
+    -- Post a '1' in the chat channel for the dealer to register for a game
+    SendChatMessage("1", self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:allStats()
+    -- Post all player stats in the db to the chat channel
+    WoWGoldGambler:printStats(self.db.global.game.stats.player)
+end
+
+function WoWGoldGambler:sessionStats()
+    -- Post all player stats in the db to the chat channel
+    WoWGoldGambler:printStats(session.stats.player)
+end
+
+function WoWGoldGambler:joinStats(info, newMain, newAlt)
+    -- Create an alias for a player, allowing them to play on multiple characters and have their stats tracked under one name
+    for main, _ in pairs(#self.db.global.stats.aliases) do
+        -- Check all aliases for all mains to ensure newAlt is not already associated with a main
+        for i = 1, #self.db.global.stats.aliases[main] do
+            if (self.db.global.stats.aliases[main][i] == newAlt) then
+                self:Print("WoWGoldGambler: " .. newAlt .. " is already joined with .. " .. main)
+                return
+            end
         end
-        
-        SendChatMessage(sortedPlayers[i] .. wonOrLost .. amount .. " gold!", self.db.global.game.chatChannel)
+    end
+
+    -- Add an alias entry for newMain if one does not already exist
+    if (self.db.global.stats.aliases[newMain] == nil) then
+        self.db.global.stats.aliases[newMain] = {}
+    end
+
+    -- Add newAlt as an alias for newMain
+    tinsert(self.db.global.stats.aliases[newMain], newAlt)
+
+    -- If newAlt previously had aliases of its own, add them as aliases for newMain before removing them for newAlt
+    if (self.db.global.stats.aliases[newAlt] ~= nil) then
+        for i = 1, #self.db.global.stats.aliases[newAlt] do
+            tinsert(self.db.global.stats.aliases[newMain], self.db.global.stats.aliases[newAlt][i])
+        end
+
+        self.db.global.stats.aliases[newAlt] = nil
     end
 end
 
 function WoWGoldGambler:resetStats()
     -- Deletes all stats!
     self.db.global.stats = {
+        player = {}
+    }
+
+    session.stats = {
         player = {}
     }
 end
@@ -545,5 +592,39 @@ function WoWGoldGambler:updatePlayerStat(playerName, amount)
         self.db.global.stats.player[playerName] = 0
     end
 
+    if (session.stats.player[playerName] == nil) then
+        session.stats.player[playerName] = 0
+    end
+
     self.db.global.stats.player[playerName] = self.db.global.stats.player[playerName] + amount
+    session.stats.player[playerName] = session.stats.player[playerName] + amount
+end
+
+function WoWGoldGambler:printStats(stats)
+    -- Given a set of db or session stats, post all player stats to the chat channel, ordered from highest winnings to lowest losings
+    local mergedStats = {}
+    local sortedPlayers = {}
+
+    -- TODO: Merge alt stats into main stats for players with aliases
+
+    -- Sort player stats from highest winnings to lowest losings
+    for key in pairs(stats) do
+        tinsert(sortedPlayers, key)  
+    end
+    
+    table.sort(sortedPlayers, function(a, b)
+        return stats[a] > stats[b]
+    end)
+
+    -- Post each player's stats to the chat channel
+    for i = 1, #sortedPlayers do
+        local amount = stats[sortedPlayers[i]]
+        local wonOrLost = " has won "
+        
+        if (amount < 0) then
+            wonOrLost = " has lost "    
+        end
+        
+        SendChatMessage(sortedPlayers[i] .. wonOrLost .. amount .. " gold!", self.db.global.game.chatChannel)
+    end
 end

@@ -179,8 +179,8 @@ function WoWGoldGambler:startRolls(info)
         else
             SendChatMessage("Not enough players have registered to play!" , self.db.global.game.chatChannel)
         end
-    elseif (session.state == gameStates[3]) then
-        -- If the rolling phase has already started, post the names of the players who have yet to roll in the chat channel
+    elseif (session.state == gameStates[3] or session.state == gameStates[4]) then
+        -- If a rolling phase or tie breaker phase is in progress, post the names of the players who have yet to roll in the chat channel
         local playersToRoll = self:checkPlayerRolls()
 
         for i = 1, #playersToRoll do
@@ -389,8 +389,11 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
             end
         end
 
-        -- Attempt to resolve the tie
-        self:resolveTie()
+        -- If all tie breaker players have rolled, attempt to resolve the tie
+        if (#self:checkPlayerRolls() == 0) then
+            self:Print("WoWGoldGambler: All tie breaker players have rolled!")  
+            self:resolveTie()
+        end
     end
 end
 

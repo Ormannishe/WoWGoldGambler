@@ -98,13 +98,13 @@ local options = {
             name = "All Stats",
             desc = "Output all player stats to the chat channel",
             type = "execute",
-            func = "printStats"
+            func = "allStats"
         },
         sessionStats = {
             name = "Session Stats",
             desc = "Output player stats from the current session to the chat channel",
             type = "execute",
-            func = "printStats"
+            func = "sessionStats"
         },
         joinstats = {
             name = "Join Stats",
@@ -244,7 +244,7 @@ end
 
 function WoWGoldGambler:allStats()
     -- Post all player stats in the db to the chat channel
-    WoWGoldGambler:printStats(self.db.global.game.stats.player)
+    WoWGoldGambler:printStats(self.db.global.stats.player)
 end
 
 function WoWGoldGambler:sessionStats()
@@ -340,7 +340,6 @@ function WoWGoldGambler:handleChatMessage(channelName, text, playerName)
             end
 
             -- If the player is not already entered, create a new player entry for them
-            self:Print("WoWGoldGambler: Registered player " .. playerName)  
             local newPlayer = {
                 name = playerName,
                 realm = playerRealm,
@@ -368,7 +367,6 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
         if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.db.global.game.wager) then
             for i = 1, #session.players do
                 if (session.players[i].name == playerName and session.players[i].roll == nil) then
-                    self:Print("WoWGoldGambler: Recieved roll " .. actualRoll .. " from player " .. playerName)  
                     session.players[i].roll = tonumber(actualRoll)
                 end
             end
@@ -376,7 +374,6 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
 
         -- If all registered players have rolled, calculate the result
         if (#self:checkPlayerRolls() == 0) then
-            self:Print("WoWGoldGambler: All players have rolled!")  
             self:calculateResult()
         end
     elseif (session.state == gameStates[4]) then
@@ -391,7 +388,6 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
 
         -- If all tie breaker players have rolled, attempt to resolve the tie
         if (#self:checkPlayerRolls() == 0) then
-            self:Print("WoWGoldGambler: All tie breaker players have rolled!")  
             self:resolveTie()
         end
     end
@@ -399,7 +395,6 @@ end
 
 function WoWGoldGambler:calculateResult()
     -- Calculates the winners and losers of a session and the amount owed
-    self:Print("WoWGoldGambler: Calculating game results...")  
     session.result = {
         winners = {},
         losers = {},
@@ -432,8 +427,13 @@ function WoWGoldGambler:detectTie()
         session.result.tieBreakers = {}
 
         for i = 1, #session.result.winners do
-            session.result.tieBreakers[i] = session.result.winners
+            session.result.tieBreakers[i] = session.result.winners[i]
             session.result.tieBreakers[i].roll = nil
+
+            -- DEBUG: REMOVE ME
+            if (session.result.tieBreakers[i].name == "Tester2") then
+                session.result.tieBreakers[i].roll = 2
+            end
         end
     elseif (#session.result.losers > 1 and self.db.global.game.mode ~= gameModes[3]) then
         -- Low End Tie Breaker
@@ -442,8 +442,13 @@ function WoWGoldGambler:detectTie()
         session.result.tieBreakers = {}
         
         for i = 1, #session.result.losers do
-            session.result.tieBreakers[i] = session.result.losers
+            session.result.tieBreakers[i] = session.result.losers[i]
             session.result.tieBreakers[i].roll = nil
+
+            -- DEBUG: REMOVE ME
+            if (session.result.tieBreakers[i].name == "Tester1") then
+                session.result.tieBreakers[i].roll = 1
+            end
         end
     else
         self:endGame()
@@ -463,12 +468,15 @@ function WoWGoldGambler:resolveTie()
         -- New winner
         elseif (session.result.tieBreakers[i].roll > tieWinners[1].roll) then
             tieWinners = {session.result.tieBreakers[i]}
-        -- Tied loser
-        elseif (session.result.tieBreakers[i].roll == tieLosers[1].roll) then
-            tinsert(tieLosers, session.result.tieBreakers[i])
-        -- Tied winner
-        elseif (session.result.tieBreakers[i].roll == tieWinners[1].roll) then
-            tinsert(tieWinners, session.result.tieBreakers[i])
+        else
+            -- Handle ties. Due to the way we initialize tieWinners and tieLosers, it's possible for both of these to be true
+            if (session.result.tieBreakers[i].roll == tieLosers[1].roll) then
+                tinsert(tieLosers, session.result.tieBreakers[i])
+            end
+            
+            if (session.result.tieBreakers[i].roll == tieWinners[1].roll) then
+                tinsert(tieWinners, session.result.tieBreakers[i])
+            end
         end
     end
 
@@ -485,7 +493,6 @@ end
 
 function WoWGoldGambler:endGame(info)
     -- Posts the result of the game session to the chat channel and updates stats before terminating the game session
-    self:Print("WoWGoldGambler: Game is ending...")  
     if (session.result ~= nil) then
         if (#session.result.losers > 0 and #session.result.winners > 0) then
             for i = 1, #session.result.losers do
@@ -562,13 +569,21 @@ function WoWGoldGambler:calculateClassicResult()
         -- New winner
         elseif (session.players[i].roll > session.result.winners[1].roll) then
             session.result.winners = {session.players[i]}
-        -- Tied loser
-        elseif (session.players[i].roll == session.result.losers[1].roll) then
-            tinsert(session.result.losers, session.players[i])
-        -- Tied winner
-        elseif (session.players[i].roll == session.result.winners[1].roll) then
-            tinsert(session.result.winners, session.players[i])
+        else
+            -- Handle ties. Due to the way we initialize the winners/losers, it's possible for both of these to be true
+            if (session.players[i].roll == session.result.losers[1].roll) then
+                tinsert(session.result.losers, session.players[i])
+            end
+            if (session.players[i].roll == session.result.winners[1].roll) then
+                tinsert(session.result.winners, session.players[i])
+            end
         end
+    end
+
+    -- In a 1v1 tie scenario, it's possible to run in to this edge case. In this case, nobody wins or loses.
+    if (session.result.winners == session.result.losers) then
+        session.result.winner = {}
+        session.result.losers = {}
     end
 
     session.result.amountOwed = session.result.winners[1].roll - session.result.losers[1].roll
@@ -612,12 +627,14 @@ function WoWGoldGambler:printStats(stats)
 
     -- Sort player stats from highest winnings to lowest losings
     for key in pairs(stats) do
-        tinsert(sortedPlayers, key)  
+        tinsert(sortedPlayers, key)
     end
     
     table.sort(sortedPlayers, function(a, b)
         return stats[a] > stats[b]
     end)
+
+    SendChatMessage("-- WoWGoldGambler Stats --", self.db.global.game.chatChannel)
 
     -- Post each player's stats to the chat channel
     for i = 1, #sortedPlayers do
@@ -625,7 +642,7 @@ function WoWGoldGambler:printStats(stats)
         local wonOrLost = " has won "
         
         if (amount < 0) then
-            wonOrLost = " has lost "    
+            wonOrLost = " has lost "
         end
         
         SendChatMessage(sortedPlayers[i] .. wonOrLost .. amount .. " gold!", self.db.global.game.chatChannel)

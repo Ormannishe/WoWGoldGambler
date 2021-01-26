@@ -32,7 +32,7 @@ local session = {
     }
 }
 
--- Stores game data that should persist between sessions
+-- Defaults for the DB, which stores game data that should persist between sessions
 local defaults = {
     global = {
         game = {
@@ -47,6 +47,7 @@ local defaults = {
     }
 }
 
+-- Initializes slash commands for the addon. Some of these will no longer be slash commands when a UI is implemented
 local options = {
     name = "WoWGoldGambler",
     handler = WoWGoldGambler,
@@ -111,6 +112,18 @@ local options = {
             desc = "Merge the stats of two given players",
             type = "input",
             set = "joinStats"
+        },
+        unjoinstats = {
+            name = "Unjoin Stats",
+            desc = "Un-merge the stats of two given players",
+            type = "input",
+            set = "unjoinStats"
+        },
+        updateStat = {
+            name = "Update Stat",
+            desc = "Manually add the given amount to a given player's stats (use negative numbers to subtract)",
+            type = "input",
+            set = "updatePlayerStat" -- Make another function which accepts info, playerName, amount and tonumber's amount
         },
         resetstats = {
             name = "Reset Stats",
@@ -225,15 +238,19 @@ end
 
 function WoWGoldGambler:rollMe(info, maxAmount, minAmount)
     -- Automatically performs a roll between the given values for the dealer.
-    -- If no values are given, they are defaulted to 1 and the wager
+    -- If no values are given, they are defaulted to 1 and the wager (or 100 for tie breakers)
     if (maxAmount == nil) then
-        maxAmount = self.db.global.game.wager
+        if (session.state == gameStates[4]) then
+            maxAmount = 100
+        else
+            maxAmount = self.db.global.game.wager
+        end
     end
 
     if (minAmount == nil) then
         minAmount = 1
     end
-    
+
     RandomRoll(minAmount, maxAmount)
 end
 
@@ -258,8 +275,11 @@ function WoWGoldGambler:joinStats(info, newMain, newAlt)
         -- Check all aliases for all mains to ensure newAlt is not already associated with a main
         for i = 1, #self.db.global.stats.aliases[main] do
             if (self.db.global.stats.aliases[main][i] == newAlt) then
-                self:Print("WoWGoldGambler: " .. newAlt .. " is already joined with .. " .. main)
+                self:Print("WoWGoldGambler: Unjoining " .. newAlt .. " from " .. main .. " so it can be joined with " .. newMain .. " instead.")
                 return
+            elseif (self.db.global.stats.aliases[main][i] == newMain) then
+                self:Print("WoWGoldGambler: Joining " .. newAlt .. " to " .. main .. " instead, as it is already joined with " .. newMain)
+                newMain = main
             end
         end
     end
@@ -280,6 +300,10 @@ function WoWGoldGambler:joinStats(info, newMain, newAlt)
 
         self.db.global.stats.aliases[newAlt] = nil
     end
+end
+
+function WoWGoldGambler:unjoinStats(oldMain, oldAlt)
+    -- TODO
 end
 
 function WoWGoldGambler:resetStats()
@@ -613,6 +637,8 @@ function WoWGoldGambler:updatePlayerStat(playerName, amount)
     if (session.stats.player[playerName] == nil) then
         session.stats.player[playerName] = 0
     end
+
+    amount = tonumber(amount)
 
     self.db.global.stats.player[playerName] = self.db.global.stats.player[playerName] + amount
     session.stats.player[playerName] = session.stats.player[playerName] + amount

@@ -73,7 +73,7 @@ local options = {
         },
         changechannel = {
             name = "Change Channel",
-            desc = "Change the chat channel to the next one in the list",
+            desc = "Change the chat channel used by the addon",
             type = "execute",
             func = "changeChannel"
         },
@@ -85,7 +85,7 @@ local options = {
         },
         setwager = {
             name = "Set Wager",
-            desc = "Change the wager amount to a given amount",
+            desc = "[amount] - Set the wager amount to [amount]",
             type = "input",
             set = "setWager"
         },
@@ -103,11 +103,11 @@ local options = {
         },
         allstats = {
             name = "All Stats",
-            desc = "Output all player stats to the chat channel",
+            desc = "Output all-time player stats to the chat channel",
             type = "execute",
             func = "allStats"
         },
-        sessionStats = {
+        sessionstats = {
             name = "Session Stats",
             desc = "Output player stats from the current session to the chat channel",
             type = "execute",
@@ -115,25 +115,25 @@ local options = {
         },
         joinstats = {
             name = "Join Stats",
-            desc = "Merge the stats of two given players",
+            desc = "[main] [alt] - Merge the stats of [alt] into [main]",
             type = "input",
             set = "joinStats"
         },
         unjoinstats = {
             name = "Unjoin Stats",
-            desc = "Un-merge the stats of two given players",
+            desc = "[alt] - Unmerge the stats of [alt] from whomever they were merged with",
             type = "input",
             set = "unjoinStats"
         },
-        updateStat = {
+        updatestat = {
             name = "Update Stat",
-            desc = "Manually add the given amount to a given player's stats (use negative numbers to subtract)",
+            desc = "[player] [amount] - Add [amount] to [player]'s stats (use negative numbers to subtract)",
             type = "input",
-            set = "updatePlayerStat" -- Make another function which accepts info, playerName, amount and tonumber's amount
+            set = "updateStat"
         },
         resetstats = {
             name = "Reset Stats",
-            desc = "Delete all existing stats",
+            desc = "Permanently deletes all existing stats",
             type = "execute",
             func = "resetStats"
         }
@@ -143,7 +143,7 @@ local options = {
 -- Initialization --
 
 function WoWGoldGambler:OnInitialize()
-    -- Sets up the DB and slash options when the addon is loaded
+    -- Sets up the DB and slash command options when the addon is loaded
     self.db = LibStub("AceDB-3.0"):New("WoWGoldGamblerDB", defaults, true)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("WoWGoldGambler", options, {"wowgoldgambler", "wgg"})
     session.dealer = UnitName("player")
@@ -158,20 +158,20 @@ function WoWGoldGambler:startGame(info)
         SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self.db.global.game.wager, self.db.global.game.chatChannel)
 
         if (self.db.global.game.chatChannel == chatChannels[1]) then
-            self:RegisterEvent("CHAT_MSG_PARTY")
-            self:RegisterEvent("CHAT_MSG_PARTY_LEADER")
+            self:RegisterEvent("CHAT_MSG_PARTY", "handleChatMessage")
+            self:RegisterEvent("CHAT_MSG_PARTY_LEADER", "handleChatMessage")
         elseif (self.db.global.game.chatChannel == chatChannels[2]) then
-            self:RegisterEvent("CHAT_MSG_RAID")
-            self:RegisterEvent("CHAT_MSG_RAID_LEADER")
+            self:RegisterEvent("CHAT_MSG_RAID", "handleChatMessage")
+            self:RegisterEvent("CHAT_MSG_RAID_LEADER", "handleChatMessage")
         else
-            self:RegisterEvent("CHAT_MSG_GUILD")
+            self:RegisterEvent("CHAT_MSG_GUILD", "handleChatMessage")
         end
 
         session.state = gameStates[2]
 
         -- DEBUG: REMOVE ME
         tinsert(session.players, {name = "Tester1", realm = "Tester", roll = 1})
-        tinsert(session.players, {name = "Tester2", realm = "Tester", roll = 2})
+        tinsert(session.players, {name = "Tester2", realm = "Tester", roll = 1000})
     else
         self:Print("WoWGoldGambler: A game session has already been started!")
     end
@@ -192,7 +192,7 @@ function WoWGoldGambler:startRolls(info)
             self:UnregisterEvent("CHAT_MSG_GUILD")
 
             -- Start listening to system messages to recieve rolls
-            self:RegisterEvent("CHAT_MSG_SYSTEM")
+            self:RegisterEvent("CHAT_MSG_SYSTEM", "handleSystemMessage")
 
             session.state = gameStates[3]
         else
@@ -248,7 +248,7 @@ function WoWGoldGambler:changeGameMode(info)
 end
 
 function WoWGoldGambler:setWager(info, amount)
-    -- Sets the game's wager amount to the given amount
+    -- Sets the game's wager amount to [amount]
     amount = tonumber(amount)
 
     if (amount ~= nil and amount > 0) then
@@ -258,7 +258,7 @@ function WoWGoldGambler:setWager(info, amount)
 end
 
 function WoWGoldGambler:rollMe(info, maxAmount, minAmount)
-    -- Automatically performs a roll between the given values for the dealer.
+    -- Automatically performs a roll between [minAmount] and [maxAmount] for the dealer.
     -- If no values are given, they are defaulted to 1 and the wager (or 100 for tie breakers)
     if (maxAmount == nil) then
         if (session.state == gameStates[4]) then
@@ -282,23 +282,26 @@ end
 
 function WoWGoldGambler:allStats()
     -- Post all player stats in the db to the chat channel
-    WoWGoldGambler:printStats()
+    WoWGoldGambler:reportStats()
 end
 
 function WoWGoldGambler:sessionStats()
-    -- Post all player stats in the db to the chat channel
-    WoWGoldGambler:printStats(true)
+    -- Post player stats from the current session to the chat channel
+    WoWGoldGambler:reportStats(true)
 end
 
-function WoWGoldGambler:joinStats(info, newMain, newAlt)
-    -- Create an alias for a player, allowing them to play on multiple characters and have their stats tracked under one name
-    for main, _ in pairs(#self.db.global.stats.aliases) do
-        -- Check all aliases for all mains to ensure newAlt is not already associated with a main
-        for i = 1, #self.db.global.stats.aliases[main] do
-            if (self.db.global.stats.aliases[main][i] == newAlt) then
+function WoWGoldGambler:joinStats(info, args, args2)
+    -- Set up an alias of [newAlt] for [newMain]. Players with one or more aliases will have the aliased players' stats joined with their own at reporting time.
+    -- [newMain] and [newAlt] are parsed out of the given [args] via a string split on the space character
+    local newMain, newAlt = strsplit(" ", args)
+
+    for main, aliases in pairs(self.db.global.stats.aliases) do
+        -- Check all aliases for all mains to ensure newMain and newAlt are not already associated with a main
+        for i = 1, #aliases do
+            if (aliases[i] == newAlt) then
                 self:Print("WoWGoldGambler: Unjoining " .. newAlt .. " from " .. main .. " so it can be joined with " .. newMain .. " instead.")
-                self:unjoinStats(main, newAlt)
-            elseif (self.db.global.stats.aliases[main][i] == newMain) then
+                tremove(self.db.global.stats.aliases[main], i)
+            elseif (aliases[i] == newMain) then
                 self:Print("WoWGoldGambler: Joining " .. newAlt .. " to " .. main .. " instead, as it is already joined with " .. newMain)
                 newMain = main
             end
@@ -316,6 +319,7 @@ function WoWGoldGambler:joinStats(info, newMain, newAlt)
     -- If newAlt previously had aliases of its own, add them as aliases for newMain before removing them for newAlt
     if (self.db.global.stats.aliases[newAlt] ~= nil) then
         for i = 1, #self.db.global.stats.aliases[newAlt] do
+            self:Print("WoWGoldGambler: Joining " .. self.db.global.stats.aliases[newAlt][i] .. " to " .. newMain .. " as it was previously joined to " .. newAlt)
             tinsert(self.db.global.stats.aliases[newMain], self.db.global.stats.aliases[newAlt][i])
         end
 
@@ -323,55 +327,50 @@ function WoWGoldGambler:joinStats(info, newMain, newAlt)
     end
 end
 
-function WoWGoldGambler:unjoinStats(oldMain, oldAlt)
-    -- TODO
+function WoWGoldGambler:unjoinStats(info, player)
+    -- Remove all aliases for [player] and ensure [player] isn't an alias for anyone else
+    for main, aliases in pairs(self.db.global.stats.aliases) do
+        if (main == player) then
+            self.db.global.stats.aliases[main] = nil
+        else
+            for i = 1, #aliases do
+                if (aliases[i] == player) then
+                    tremove(self.db.global.stats.aliases[main], i)
+                end
+            end
+        end
+    end
+end
+
+function WoWGoldGambler:updateStat(info, args)
+    -- Add [amount] to the [player]'s stats. Negative numbers can be used to subtract from [player]'s stats
+    -- [player] and [amount] are parsed out of the given [args] via a string split on the space character
+    local player, amount = strsplit(" ", args)
+
+    amount = tonumber(amount)
+
+    if (amount ~= nil) then
+        self:updatePlayerStat(player, amount)
+    end
 end
 
 function WoWGoldGambler:resetStats()
     -- Deletes all stats!
     self.db.global.stats = {
-        player = {}
+        player = {},
+        aliases = {}
     }
 
     session.stats = {
         player = {}
     }
+
+    self:Print("WoWGoldGambler: Stats have been reset!")
 end
 
 -- Event Handlers --
-function WoWGoldGambler:CHAT_MSG_PARTY(channelName, text, playerName)
-    -- Listens to the PARTY channel for player registration
-    self:handleChatMessage(channelName, text, playerName)
-end
 
-function WoWGoldGambler:CHAT_MSG_PARTY_LEADER(channelName, text, playerName)
-    -- Listens to the PARTY channel for player registration from the party leader
-    self:handleChatMessage(channelName, text, playerName)
-end
-
-function WoWGoldGambler:CHAT_MSG_RAID(channelName, text, playerName)
-    -- Listens to the RAID channel for player registration
-    self:handleChatMessage(channelName, text, playerName)
-end
-
-function WoWGoldGambler:CHAT_MSG_RAID_LEADER(channelName, text, playerName)
-    -- Listens to the RAID channel for player registration from the raid leader
-    self:handleChatMessage(channelName, text, playerName)
-end
-
-function WoWGoldGambler:CHAT_MSG_GUILD(channelName, text, playerName)
-    -- Listens to the GUILD channel for player registration
-    self:handleChatMessage(channelName, text, playerName)
-end
-
-function WoWGoldGambler:CHAT_MSG_SYSTEM(channelName, text)
-    -- Listens to system events in the chat to keep track of user rolls
-    self:handleSystemMessage(channelName, text)
-end
-
--- Implementation Functions --
-
-function WoWGoldGambler:handleChatMessage(channelName, text, playerName)
+function WoWGoldGambler:handleChatMessage(_, text, playerName)
     -- Parses chat messages recieved by one of the chat Event Listeners to record player registration
     if (session.state == gameStates[2]) then
         local playerName, playerRealm = strsplit("-", playerName)
@@ -403,7 +402,7 @@ function WoWGoldGambler:handleChatMessage(channelName, text, playerName)
     end
 end
 
-function WoWGoldGambler:handleSystemMessage(channelName, text)
+function WoWGoldGambler:handleSystemMessage(_, text)
     -- Parses system messages recieved by the Event Listener to find and record player rolls
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
 
@@ -438,6 +437,8 @@ function WoWGoldGambler:handleSystemMessage(channelName, text)
     end
 end
 
+-- Implementation Functions --
+
 function WoWGoldGambler:calculateResult()
     -- Calculates the winners and losers of a session and the amount owed
     session.result = {
@@ -461,6 +462,65 @@ function WoWGoldGambler:calculateResult()
     end
 
     self:detectTie()
+end
+
+function WoWGoldGambler:calculateClassicResult()
+    -- Calculation logic for the Classic game mode. A tie-breaker round will resolve ties.
+    -- Winner: The player(s) with the highest roll
+    -- Loser: The player(s) with the lowest roll
+    -- Payment Amount: The difference between the losing and winning rolls
+    tinsert(session.result.winners, session.players[1])
+    tinsert(session.result.losers, session.players[1])
+
+    for i = 2, #session.players do
+        -- New loser
+        if (session.players[i].roll < session.result.losers[1].roll) then
+            session.result.losers = {session.players[i]}
+        -- New winner
+        elseif (session.players[i].roll > session.result.winners[1].roll) then
+            session.result.winners = {session.players[i]}
+        else
+            -- Handle ties. Due to the way we initialize the winners/losers, it's possible for both of these to be true
+            if (session.players[i].roll == session.result.losers[1].roll) then
+                tinsert(session.result.losers, session.players[i])
+            end
+            if (session.players[i].roll == session.result.winners[1].roll) then
+                tinsert(session.result.winners, session.players[i])
+            end
+        end
+    end
+
+    -- In a scenario where all players tie, it's possible to run in to this edge case. In this case, nobody wins or loses.
+    if (session.result.winners == session.result.losers) then
+        session.result.winner = {}
+        session.result.losers = {}
+    end
+
+    session.result.amountOwed = session.result.winners[1].roll - session.result.losers[1].roll
+end
+
+function WoWGoldGambler:calculateBigTwoResult()
+    -- Calculation logic for the BigTwo game mode. Ties are not possible.
+    -- Winner: A randomly selected player from the set of players who rolled a 2
+    -- Loser: A randomly selected player from the set of players who rolled a 1
+    -- Payment Amount: The wager amount
+    for i = 1, #session.players do
+        if (session.players[i].roll == 1) then
+            tinsert(session.result.losers, session.players[i])
+        elseif (session.players[i].roll == 2) then
+            tinsert(session.result.winners, session.players[i])
+        end
+    end
+
+    if (#session.result.losers > 0) then
+        session.result.losers = {session.result.losers[math.random(#session.result.losers)]}
+    end
+
+    if (#session.result.winners > 0) then
+        session.result.winners = {session.result.winners[math.random(#session.result.winners)]}
+    end
+
+    session.result.amountOwed = self.db.global.game.wager
 end
 
 function WoWGoldGambler:detectTie()
@@ -567,6 +627,78 @@ function WoWGoldGambler:endGame(info)
     session.result = nil
 end
 
+function WoWGoldGambler:updatePlayerStat(playerName, amount)
+    -- Update a given player's stats by adding the given amount
+    if (self.db.global.stats.player[playerName] == nil) then
+        self.db.global.stats.player[playerName] = 0
+    end
+
+    if (session.stats.player[playerName] == nil) then
+        session.stats.player[playerName] = 0
+    end
+
+    self.db.global.stats.player[playerName] = self.db.global.stats.player[playerName] + amount
+    session.stats.player[playerName] = session.stats.player[playerName] + amount
+end
+
+function WoWGoldGambler:reportStats(sessionFlag)
+    -- Post all player stats to the chat channel, ordered from highest winnings to lowest losings.
+    -- If the sessionFlag is true, print session stats instead of all-time stats
+    local sortedPlayers = {}
+    local stats = {}
+
+    -- Create a copy of the appropriate stats
+    if (sessionFlag) then
+        for player, winnings in pairs(session.stats.player) do
+            stats[player] = winnings
+        end
+    else
+        for player, winnings in pairs(self.db.global.stats.player) do
+            stats[player] = winnings
+        end
+    end
+
+    -- Merge alias player stats into their mains
+    for player, winnings in pairs(stats) do
+        if (self.db.global.stats.aliases[player] ~= nil) then
+            for i = 1, #self.db.global.stats.aliases[player] do
+                stats[player] = winnings + stats[self.db.global.stats.aliases[player][i]]
+                stats[self.db.global.stats.aliases[player][i]] = nil
+            end
+        end
+    end
+
+    -- Add all players with stats to the sortedPlayers array
+    for player, winnings in pairs(stats) do
+        if winnings ~= nil then
+            tinsert(sortedPlayers, player)
+        end
+    end
+
+    -- Sort the sortedPlayers array by their winnings
+    table.sort(sortedPlayers, function(a, b)
+        return stats[a] > stats[b]
+    end)
+
+    -- Post the stats to the chat channel
+    if (sessionFlag) then
+        SendChatMessage("-- WoWGoldGambler Session Stats --", self.db.global.game.chatChannel)
+    else
+        SendChatMessage("-- WoWGoldGambler All Time Stats --", self.db.global.game.chatChannel)
+    end
+
+    for i = 1, #sortedPlayers do
+        local amount = stats[sortedPlayers[i]]
+        local wonOrLost = " has won "
+
+        if (amount < 0) then
+            wonOrLost = " has lost "
+        end
+
+        SendChatMessage(sortedPlayers[i] .. wonOrLost .. amount .. " gold!", self.db.global.game.chatChannel)
+    end
+end
+
 -- Helper Functions -- 
 
 function WoWGoldGambler:makeNameString(players)
@@ -602,123 +734,4 @@ function WoWGoldGambler:checkPlayerRolls()
     end
 
     return playersToRoll
-end
-
-function WoWGoldGambler:calculateClassicResult()
-    -- Calculation logic for the Classic game mode. A tie-breaker round will resolve ties.
-    -- Winner: The player(s) with the highest roll
-    -- Loser: The player(s) with the lowest roll
-    -- Payment Amount: The difference between the losing and winning rolls
-    tinsert(session.result.winners, session.players[1])
-    tinsert(session.result.losers, session.players[1])
-
-    for i = 2, #session.players do
-        -- New loser
-        if (session.players[i].roll < session.result.losers[1].roll) then
-            session.result.losers = {session.players[i]}
-        -- New winner
-        elseif (session.players[i].roll > session.result.winners[1].roll) then
-            session.result.winners = {session.players[i]}
-        else
-            -- Handle ties. Due to the way we initialize the winners/losers, it's possible for both of these to be true
-            if (session.players[i].roll == session.result.losers[1].roll) then
-                tinsert(session.result.losers, session.players[i])
-            end
-            if (session.players[i].roll == session.result.winners[1].roll) then
-                tinsert(session.result.winners, session.players[i])
-            end
-        end
-    end
-
-    -- In a scenario where all players tie, it's possible to run in to this edge case. In this case, nobody wins or loses.
-    if (session.result.winners == session.result.losers) then
-        session.result.winner = {}
-        session.result.losers = {}
-    end
-
-    session.result.amountOwed = session.result.winners[1].roll - session.result.losers[1].roll
-end
-
-function WoWGoldGambler:calculateBigTwoResult()
-    -- Calculation logic for the BigTwo game mode. Ties are not possible.
-    -- Winner: A randomly selected player from the set of players who rolled a 2
-    -- Loser: A randomly selected player from the set of players who rolled a 1
-    -- Payment Amount: The wager amount
-    for i = 1, #session.players do
-        if (session.players[i].roll == 1) then
-            tinsert(session.result.losers, session.players[i])
-        elseif (session.players[i].roll == 2) then
-            tinsert(session.result.winners, session.players[i])
-        end
-    end
-
-    if (#session.result.losers > 0) then
-        session.result.losers = {session.result.losers[math.random(#session.result.losers)]}
-    end
-
-    if (#session.result.winners > 0) then
-        session.result.winners = {session.result.winners[math.random(#session.result.winners)]}
-    end
-
-    session.result.amountOwed = self.db.global.game.wager
-end
-
-function WoWGoldGambler:updatePlayerStat(playerName, amount)
-    -- Update a given player's stats by adding the given amount
-    if (self.db.global.stats.player[playerName] == nil) then
-        self.db.global.stats.player[playerName] = 0
-    end
-
-    if (session.stats.player[playerName] == nil) then
-        session.stats.player[playerName] = 0
-    end
-
-    self.db.global.stats.player[playerName] = self.db.global.stats.player[playerName] + amount
-    session.stats.player[playerName] = session.stats.player[playerName] + amount
-end
-
-function WoWGoldGambler:printStats(sessionFlag)
-    -- Post all player stats to the chat channel, ordered from highest winnings to lowest losings.
-    -- If the sessionFlag is true, print session stats instead of all-time stats
-    local sortedPlayers = {}
-    local stats = self.db.global.stats.player
-
-    if (sessionFlag == true) then
-        stats = session.stats.player
-    end
-
-    -- Merge alias player stats into their mains and populate the sortedPlayers array
-    for player, winnings in pairs(stats) do
-        tinsert(sortedPlayers, player)
-
-        if (self.db.global.stats.aliases[player] ~= nil) then
-            for i = 1, #self.db.global.stats.aliases[player] do
-                stats[player] = winnings + stats[self.db.global.stats.aliases[player][i]]
-                stats[self.db.global.stats.aliases[player][i]] = nil
-            end
-        end
-    end
-
-    -- Sort the sortedPlayers array by their winnings
-    table.sort(sortedPlayers, function(a, b)
-        return stats[a] > stats[b]
-    end)
-
-    if (sessionFlag) then
-        SendChatMessage("-- WoWGoldGambler Session Stats --", self.db.global.game.chatChannel)
-    else
-        SendChatMessage("-- WoWGoldGambler All Time Stats --", self.db.global.game.chatChannel)
-    end
-
-    -- Post each player's stats to the chat channel
-    for i = 1, #sortedPlayers do
-        local amount = stats[sortedPlayers[i]]
-        local wonOrLost = " has won "
-
-        if (amount < 0) then
-            wonOrLost = " has lost "
-        end
-
-        SendChatMessage(sortedPlayers[i] .. wonOrLost .. amount .. " gold!", self.db.global.game.chatChannel)
-    end
 end

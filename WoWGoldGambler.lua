@@ -77,6 +77,12 @@ local options = {
             type = "execute",
             func = "changeChannel"
         },
+        changegamemode = {
+            name = "Change Game Mode",
+            desc = "Change the game mode",
+            type = "execute",
+            func = "changeGameMode"
+        },
         setwager = {
             name = "Set Wager",
             desc = "Change the wager amount to a given amount",
@@ -224,6 +230,21 @@ function WoWGoldGambler:changeChannel(info)
     end
 
     self:Print("WoWGoldGambler: New chat channel is " .. self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:changeGameMode(info)
+    -- Increment the game mode to be used by the addon
+    if (self.db.global.game.mode == gameModes[1]) then
+        self.db.global.game.mode = gameModes[2]
+    elseif (self.db.global.game.mode == gameModes[2]) then
+        self.db.global.game.mode = gameModes[3]
+    elseif (self.db.global.game.mode == gameModes[3]) then
+        self.db.global.game.mode = gameModes[4]
+    else
+        self.db.global.game.mode = gameModes[1]
+    end
+
+    self:Print("WoWGoldGambler: New game mode is " .. self.db.global.game.mode)
 end
 
 function WoWGoldGambler:setWager(info, amount)

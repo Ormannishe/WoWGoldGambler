@@ -2,11 +2,16 @@
 ## Title: WoWGoldGambler
 ## Author: Ormannishe
 ## Version: v0.1
-## Notes: May the Blizzard RNG be ever in your favor.
+## Notes: May RNG be ever in your favor.
 ## SavedVariables: WoWGoldGamblerDB
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 
 embeds.xml
 
-WoWGoldGambler.lua
+Src/WoWGoldGambler.lua
+Src/ModeClassic.lua
+Src/ModeBigTwo.lua
+Src/ModeRoulette.lua
+Src/ModePriceIsRight.lua
+Src/Stats.lua

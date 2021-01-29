@@ -1,0 +1,74 @@
+-- Classic Game Mode --
+
+function WoWGoldGambler:classicGameStart()
+    SendChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
+
+     -- DEBUG: REMOVE ME
+     tinsert(self.session.players, {name = "Tester1", realm = "Tester", roll = 1})
+     tinsert(self.session.players, {name = "Tester2", realm = "Tester", roll = 2})
+end
+
+function WoWGoldGambler:classicRegister(text, playerName, playerRealm)
+    -- Registration for non-roulette game modes
+    if (text == "1") then
+        self:registerPlayer(playerName, playerRealm)
+    elseif (text == "-1") then
+        self:unregisterPlayer(playerName, playerRealm)
+    end
+end
+
+function WoWGoldGambler:classicStartRolls()
+    -- Informs players that the registration phase has ended
+    SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:classicRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    -- If a registered player made the wager roll and has not yet rolled, record the roll
+    if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.db.global.game.wager) then
+        for i = 1, #self.session.players do
+            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
+                self.session.players[i].roll = tonumber(actualRoll)
+            end
+        end
+    end
+
+    -- If all registered players have rolled, calculate the result
+    if (#self:checkPlayerRolls() == 0) then
+        self:calculateResult()
+    end
+end
+
+function WoWGoldGambler:classicCalculateResult()
+    -- Calculation logic for the Classic game mode. A tie-breaker round will resolve ties.
+    -- Winner: The player(s) with the highest roll
+    -- Loser: The player(s) with the lowest roll
+    -- Payment Amount: The difference between the losing and winning rolls
+    tinsert(self.session.result.winners, self.session.players[1])
+    tinsert(self.session.result.losers, self.session.players[1])
+
+    for i = 2, #self.session.players do
+        -- New loser
+        if (self.session.players[i].roll < self.session.result.losers[1].roll) then
+            self.session.result.losers = {self.session.players[i]}
+        -- New winner
+        elseif (self.session.players[i].roll > self.session.result.winners[1].roll) then
+            self.session.result.winners = {self.session.players[i]}
+        else
+            -- Handle ties. Due to the way we initialize the winners/losers, it's possible for both of these to be true
+            if (self.session.players[i].roll == self.session.result.losers[1].roll) then
+                tinsert(self.session.result.losers, self.session.players[i])
+            end
+            if (self.session.players[i].roll == self.session.result.winners[1].roll) then
+                tinsert(self.session.result.winners, self.session.players[i])
+            end
+        end
+    end
+
+    -- In a scenario where all players tie, it's possible to run in to this edge case. In this case, nobody wins or loses.
+    if (self.session.result.winners == self.session.result.losers) then
+        self.session.result.winner = {}
+        self.session.result.losers = {}
+    end
+
+    self.session.result.amountOwed = self.session.result.winners[1].roll - self.session.result.losers[1].roll
+end

@@ -24,7 +24,7 @@ local chatChannels = {
 -- Stores all session-related game data. Not to be stored in the DB
 local session = {
     state = gameStates[1],
-    dealer = nil,
+    dealer = {},
     players = {},
     result = nil,
     stats = {
@@ -146,7 +146,7 @@ function WoWGoldGambler:OnInitialize()
     -- Sets up the DB and slash command options when the addon is loaded
     self.db = LibStub("AceDB-3.0"):New("WoWGoldGamblerDB", defaults, true)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("WoWGoldGambler", options, {"wowgoldgambler", "wgg"})
-    session.dealer = UnitName("player")
+    session.dealer.name = UnitName("player")
 end
 
 -- Slash Command Handlers --
@@ -154,9 +154,7 @@ end
 function WoWGoldGambler:startGame(info)
     -- Starts a new game session for registration when there is no session in progress
     if (session.state == gameStates[1]) then
-        SendChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
-        SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self.db.global.game.wager, self.db.global.game.chatChannel)
-
+        -- Start listening to chat messages
         if (self.db.global.game.chatChannel == chatChannels[1]) then
             self:RegisterEvent("CHAT_MSG_PARTY", "handleChatMessage")
             self:RegisterEvent("CHAT_MSG_PARTY_LEADER", "handleChatMessage")
@@ -167,11 +165,18 @@ function WoWGoldGambler:startGame(info)
             self:RegisterEvent("CHAT_MSG_GUILD", "handleChatMessage")
         end
 
+        -- Change the game state to REGISTRATION
         session.state = gameStates[2]
 
-        -- DEBUG: REMOVE ME
-        tinsert(session.players, {name = "Tester1", realm = "Tester", roll = 1})
-        tinsert(session.players, {name = "Tester2", realm = "Tester", roll = 1000})
+        -- Perform game-mode specific tasks required to start the game
+        if (self.db.global.game.mode == gameModes[3]) then
+            self:rouletteGameStart()
+        else
+            self:classicGameStart()
+        end
+
+        -- Inform players of the selected Game Mode and Wager
+        SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self.db.global.game.wager, self.db.global.game.chatChannel)
     else
         self:Print("WoWGoldGambler: A game session has already been started!")
     end
@@ -182,8 +187,6 @@ function WoWGoldGambler:startRolls(info)
     if (session.state == gameStates[2]) then
         -- At least two players are required to play
         if (#session.players > 1) then
-            SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
-
             -- Stop listening to chat messages
             self:UnregisterEvent("CHAT_MSG_PARTY")
             self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
@@ -194,7 +197,17 @@ function WoWGoldGambler:startRolls(info)
             -- Start listening to system messages to recieve rolls
             self:RegisterEvent("CHAT_MSG_SYSTEM", "handleSystemMessage")
 
+            -- Change the game state to ROLLING
             session.state = gameStates[3]
+
+            -- Perform game-mode specific tasks required to start the rolling phase
+            if (self.db.global.game.mode == gameModes[2]) then
+                self:bigtwoStartRolls()
+            elseif (self.db.global.game.mode == gameModes[3]) then
+                self:rouletteStartRolls()
+            else
+                self:classicStartRolls()
+            end
         else
             SendChatMessage("Not enough players have registered to play!" , self.db.global.game.chatChannel)
         end
@@ -213,7 +226,7 @@ end
 function WoWGoldGambler:cancelGame(info)
     -- Terminates the currently running game session, voiding out any result
     if (session.state ~= gameStates[1]) then
-        SendChatMessage("Game session has been canceled by " .. session.dealer , self.db.global.game.chatChannel)
+        SendChatMessage("Game session has been canceled by " .. session.dealer.name , self.db.global.game.chatChannel)
         session.result = nil
         self:endGame()
     end
@@ -375,29 +388,11 @@ function WoWGoldGambler:handleChatMessage(_, text, playerName)
     if (session.state == gameStates[2]) then
         local playerName, playerRealm = strsplit("-", playerName)
 
-        if (text == "1") then
-            -- Ignore entry if player is already entered
-            for i = 1, #session.players do
-                if (session.players[i].name == playerName and session.players[i].realm == playerRealm) then
-                    return
-                end
-            end
-
-            -- If the player is not already entered, create a new player entry for them
-            local newPlayer = {
-                name = playerName,
-                realm = playerRealm,
-                roll = nil
-            }
-
-            tinsert(session.players, newPlayer)
-        elseif (text == "-1") then
-            -- Remove the player if they have previously entered
-            for i = 1, #session.players do
-                if (session.players[i].name == playerName and session.players[i].realm == playerRealm) then
-                    tremove(session.players, i)
-                end
-            end
+        -- All game modes except roulette use the same registration rules
+        if (self.db.global.game.mode == gameModes[3]) then
+            self:rouletteRegister(text, playerName, playerRealm)
+        else
+            self:classicRegister(text, playerName, playerRealm)
         end
     end
 end
@@ -407,37 +402,20 @@ function WoWGoldGambler:handleSystemMessage(_, text)
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
 
     if (session.state == gameStates[3]) then
-        -- If a registered player made the wager roll and has not yet rolled, record the roll
-        if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.db.global.game.wager) then
-            for i = 1, #session.players do
-                if (session.players[i].name == playerName and session.players[i].roll == nil) then
-                    session.players[i].roll = tonumber(actualRoll)
-                end
-            end
-        end
-
-        -- If all registered players have rolled, calculate the result
-        if (#self:checkPlayerRolls() == 0) then
-            self:calculateResult()
+        -- All game modes except roulette record rolls the same way
+        if (self.db.global.game.mode == gameModes[2]) then
+            self:bigtwoRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+        elseif (self.db.global.game.mode == gameModes[3]) then
+            self:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+        else
+            self:classicRecordRoll(playerName, actualRoll, minRoll, maxRoll)
         end
     elseif (session.state == gameStates[4]) then
-        -- If a tie-breaker player made a 1-100 roll and has not yet made a tie breaker roll, record the tie breaker roll
-        if (tonumber(minRoll) == 1 and tonumber(maxRoll) == 100) then
-            for i = 1, #session.result.tieBreakers do
-                if (session.result.tieBreakers[i].name == playerName and session.result.tieBreakers[i].roll == nil) then
-                    session.result.tieBreakers[i].roll = tonumber(actualRoll)
-                end
-            end
-        end
-
-        -- If all tie breaker players have rolled, attempt to resolve the tie
-        if (#self:checkPlayerRolls() == 0) then
-            self:resolveTie()
-        end
+        self:tiebreakerRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     end
 end
 
--- Implementation Functions --
+-- Game-End Functionality --
 
 function WoWGoldGambler:calculateResult()
     -- Calculates the winners and losers of a session and the amount owed
@@ -448,11 +426,11 @@ function WoWGoldGambler:calculateResult()
     }
 
     if (self.db.global.game.mode == gameModes[1]) then
-        self:calculateClassicResult()
+        self:classicCalculateResult()
     elseif (self.db.global.game.mode == gameModes[2]) then
         self:calculateBigTwoResult()
     elseif (self.db.global.game.mode == gameModes[3]) then
-        -- Roulette
+        self:calculateRouletteResult()
     elseif (self.db.global.game.mode == gameModes[4]) then
         -- PriceIsRight
     else
@@ -462,65 +440,6 @@ function WoWGoldGambler:calculateResult()
     end
 
     self:detectTie()
-end
-
-function WoWGoldGambler:calculateClassicResult()
-    -- Calculation logic for the Classic game mode. A tie-breaker round will resolve ties.
-    -- Winner: The player(s) with the highest roll
-    -- Loser: The player(s) with the lowest roll
-    -- Payment Amount: The difference between the losing and winning rolls
-    tinsert(session.result.winners, session.players[1])
-    tinsert(session.result.losers, session.players[1])
-
-    for i = 2, #session.players do
-        -- New loser
-        if (session.players[i].roll < session.result.losers[1].roll) then
-            session.result.losers = {session.players[i]}
-        -- New winner
-        elseif (session.players[i].roll > session.result.winners[1].roll) then
-            session.result.winners = {session.players[i]}
-        else
-            -- Handle ties. Due to the way we initialize the winners/losers, it's possible for both of these to be true
-            if (session.players[i].roll == session.result.losers[1].roll) then
-                tinsert(session.result.losers, session.players[i])
-            end
-            if (session.players[i].roll == session.result.winners[1].roll) then
-                tinsert(session.result.winners, session.players[i])
-            end
-        end
-    end
-
-    -- In a scenario where all players tie, it's possible to run in to this edge case. In this case, nobody wins or loses.
-    if (session.result.winners == session.result.losers) then
-        session.result.winner = {}
-        session.result.losers = {}
-    end
-
-    session.result.amountOwed = session.result.winners[1].roll - session.result.losers[1].roll
-end
-
-function WoWGoldGambler:calculateBigTwoResult()
-    -- Calculation logic for the BigTwo game mode. Ties are not possible.
-    -- Winner: A randomly selected player from the set of players who rolled a 2
-    -- Loser: A randomly selected player from the set of players who rolled a 1
-    -- Payment Amount: The wager amount
-    for i = 1, #session.players do
-        if (session.players[i].roll == 1) then
-            tinsert(session.result.losers, session.players[i])
-        elseif (session.players[i].roll == 2) then
-            tinsert(session.result.winners, session.players[i])
-        end
-    end
-
-    if (#session.result.losers > 0) then
-        session.result.losers = {session.result.losers[math.random(#session.result.losers)]}
-    end
-
-    if (#session.result.winners > 0) then
-        session.result.winners = {session.result.winners[math.random(#session.result.winners)]}
-    end
-
-    session.result.amountOwed = self.db.global.game.wager
 end
 
 function WoWGoldGambler:detectTie()
@@ -558,6 +477,22 @@ function WoWGoldGambler:detectTie()
         end
     else
         self:endGame()
+    end
+end
+
+function WoWGoldGambler:tiebreakerRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    -- If a tie-breaker player made a 1-100 roll and has not yet made a tie breaker roll, record the tie breaker roll
+    if (tonumber(minRoll) == 1 and tonumber(maxRoll) == 100) then
+        for i = 1, #session.result.tieBreakers do
+            if (session.result.tieBreakers[i].name == playerName and session.result.tieBreakers[i].roll == nil) then
+                session.result.tieBreakers[i].roll = tonumber(actualRoll)
+            end
+        end
+    end
+
+    -- If all tie breaker players have rolled, attempt to resolve the tie
+    if (#self:checkPlayerRolls() == 0) then
+        self:resolveTie()
     end
 end
 
@@ -608,7 +543,7 @@ function WoWGoldGambler:endGame(info)
             end
             
             for i = 1, #session.result.winners do
-                self:updatePlayerStat(session.result.winners[i].name, session.result.amountOwed)
+                self:updatePlayerStat(session.result.winners[i].name, session.result.amountOwed * #session.result.losers)
             end
         else
             SendChatMessage("Looks like nobody wins this round!" , self.db.global.game.chatChannel)
@@ -625,7 +560,208 @@ function WoWGoldGambler:endGame(info)
     session.state = gameStates[1]
     session.players = {}
     session.result = nil
+    session.dealer.roll = nil
 end
+
+-- Classic Game Mode --
+function WoWGoldGambler:classicGameStart()
+    SendChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
+
+     -- DEBUG: REMOVE ME
+     tinsert(session.players, {name = "Tester1", realm = "Tester", roll = 1})
+     tinsert(session.players, {name = "Tester2", realm = "Tester", roll = 2})
+end
+
+function WoWGoldGambler:classicRegister(text, playerName, playerRealm)
+    -- Registration for non-roulette game modes
+    if (text == "1") then
+        self:registerPlayer(playerName, playerRealm)
+    elseif (text == "-1") then
+        self:unregisterPlayer(playerName, playerRealm)
+    end
+end
+
+function WoWGoldGambler:classicStartRolls()
+    -- Informs players that the registration phase has ended
+    SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:classicRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    -- If a registered player made the wager roll and has not yet rolled, record the roll
+    self:Print("Recieved roll: " .. playerName)
+
+    if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.db.global.game.wager) then
+        for i = 1, #session.players do
+            if (session.players[i].name == playerName and session.players[i].roll == nil) then
+                session.players[i].roll = tonumber(actualRoll)
+            end
+        end
+    end
+
+    -- If all registered players have rolled, calculate the result
+    if (#self:checkPlayerRolls() == 0) then
+        self:calculateResult()
+    end
+end
+
+function WoWGoldGambler:classicCalculateResult()
+    -- Calculation logic for the Classic game mode. A tie-breaker round will resolve ties.
+    -- Winner: The player(s) with the highest roll
+    -- Loser: The player(s) with the lowest roll
+    -- Payment Amount: The difference between the losing and winning rolls
+    tinsert(session.result.winners, session.players[1])
+    tinsert(session.result.losers, session.players[1])
+
+    for i = 2, #session.players do
+        -- New loser
+        if (session.players[i].roll < session.result.losers[1].roll) then
+            session.result.losers = {session.players[i]}
+        -- New winner
+        elseif (session.players[i].roll > session.result.winners[1].roll) then
+            session.result.winners = {session.players[i]}
+        else
+            -- Handle ties. Due to the way we initialize the winners/losers, it's possible for both of these to be true
+            if (session.players[i].roll == session.result.losers[1].roll) then
+                tinsert(session.result.losers, session.players[i])
+            end
+            if (session.players[i].roll == session.result.winners[1].roll) then
+                tinsert(session.result.winners, session.players[i])
+            end
+        end
+    end
+
+    -- In a scenario where all players tie, it's possible to run in to this edge case. In this case, nobody wins or loses.
+    if (session.result.winners == session.result.losers) then
+        session.result.winner = {}
+        session.result.losers = {}
+    end
+
+    session.result.amountOwed = session.result.winners[1].roll - session.result.losers[1].roll
+end
+
+-- BigTwo Game Mode --
+
+function WoWGoldGambler:bigtwoStartRolls()
+    -- Informs players that the registration phase has ended.
+    SendChatMessage("Registration has ended. All players /roll 2 now!" , self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:bigtwoRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    -- If a registered player made the wager roll and has not yet rolled, record the roll
+    self:Print("Recieved roll: " .. playerName)
+
+    if (tonumber(minRoll) == 1 and tonumber(maxRoll) == 2) then
+        for i = 1, #session.players do
+            if (session.players[i].name == playerName and session.players[i].roll == nil) then
+                session.players[i].roll = tonumber(actualRoll)
+            end
+        end
+    end
+
+    -- If all registered players have rolled, calculate the result
+    if (#self:checkPlayerRolls() == 0) then
+        self:calculateResult()
+    end
+end
+
+function WoWGoldGambler:calculateBigTwoResult()
+    -- Calculation logic for the BigTwo game mode. Ties are not possible.
+    -- Winner: A randomly selected player from the set of players who rolled a 2
+    -- Loser: A randomly selected player from the set of players who rolled a 1
+    -- Payment Amount: The wager amount
+    for i = 1, #session.players do
+        if (session.players[i].roll == 1) then
+            tinsert(session.result.losers, session.players[i])
+        elseif (session.players[i].roll == 2) then
+            tinsert(session.result.winners, session.players[i])
+        end
+    end
+
+    if (#session.result.losers > 0) then
+        session.result.losers = {session.result.losers[math.random(#session.result.losers)]}
+    end
+
+    if (#session.result.winners > 0) then
+        session.result.winners = {session.result.winners[math.random(#session.result.winners)]}
+    end
+
+    session.result.amountOwed = self.db.global.game.wager
+end
+
+-- Roulette Game Mode --
+
+function WoWGoldGambler:rouletteGameStart()
+    SendChatMessage("WoWGoldGambler: A new game has been started! Type a number between 1 and 36 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
+
+     -- DEBUG: REMOVE ME
+     tinsert(session.players, {name = "Tester1", realm = "Tester", roll = 1})
+     tinsert(session.players, {name = "Tester2", realm = "Tester", roll = 2})
+     tinsert(session.players, {name = "Tester3", realm = "Tester", roll = 3})
+     tinsert(session.players, {name = "Tester4", realm = "Tester", roll = 4})
+     tinsert(session.players, {name = "Tester5", realm = "Tester", roll = 5})
+     tinsert(session.players, {name = "Tester6", realm = "Tester", roll = 6})
+     tinsert(session.players, {name = "Tester7", realm = "Tester", roll = 7})
+     tinsert(session.players, {name = "Tester8", realm = "Tester", roll = 8})
+     tinsert(session.players, {name = "Tester9", realm = "Tester", roll = 1})
+     tinsert(session.players, {name = "Tester10", realm = "Tester", roll = 2})
+     tinsert(session.players, {name = "Tester11", realm = "Tester", roll = 3})
+     tinsert(session.players, {name = "Tester12", realm = "Tester", roll = 4})
+     tinsert(session.players, {name = "Tester13", realm = "Tester", roll = 5})
+     tinsert(session.players, {name = "Tester14", realm = "Tester", roll = 6})
+     tinsert(session.players, {name = "Tester15", realm = "Tester", roll = 7})
+     tinsert(session.players, {name = "Tester16", realm = "Tester", roll = 8})
+end
+
+function WoWGoldGambler:rouletteRegister(text, playerName, playerRealm)
+    -- Registration for the Roulette game mode
+    text = tonumber(text)
+
+    if (text ~= nil and text > 0 and text < 37) then
+        self:registerPlayer(playerName, playerRealm)
+        
+        for i = 1, #session.players do
+            if (session.players[i] == playerName and session.players[i].roll == nil) then
+                session.players[i].roll = text
+            end
+        end
+    elseif (text == -1) then
+        self:unregisterPlayer(playerName, playerRealm)
+    end
+end
+
+function WoWGoldGambler:rouletteStartRolls()
+    -- Informs players that the registration phase has ended. Performs a /roll 36 to determine the winning number
+    SendChatMessage("Registration has ended. Spinning the wheel..." , self.db.global.game.chatChannel)
+    self:rollMe(nil, 36)
+end
+
+function WoWGoldGambler:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    -- If the dealer performed a /roll 36, record it as the result of the roulette round
+    if (session.dealer.name == playerName and session.dealer.roll == nil and tonumber(minRoll) == 1 and tonumber(maxRoll) == 36) then
+        session.dealer.roll = tonumber(actualRoll)
+        self:calculateResult()
+    end
+end
+
+function WoWGoldGambler:calculateRouletteResult()
+    -- Calculation logic for the BigTwo game mode. Ties are not possible.
+    -- Winner: A randomly selected player from the set of players who rolled a 2
+    -- Loser: A randomly selected player from the set of players who rolled a 1
+    -- Payment Amount: The wager amount
+    for i = 1, #session.players do
+        if (session.players[i].roll == session.dealer.roll) then
+            tinsert(session.result.winners, session.players[i])
+        else
+            tinsert(session.result.losers, session.players[i])
+        end
+    end
+
+    if (#session.result.winners > 0) then
+        session.result.amountOwed = math.floor(self.db.global.game.wager / #session.result.winners)
+    end
+end
+
+-- Stats Implementation
 
 function WoWGoldGambler:updatePlayerStat(playerName, amount)
     -- Update a given player's stats by adding the given amount
@@ -693,6 +829,7 @@ function WoWGoldGambler:reportStats(sessionFlag)
 
         if (amount < 0) then
             wonOrLost = " has lost "
+            amount = amount * -1
         end
 
         SendChatMessage(sortedPlayers[i] .. wonOrLost .. amount .. " gold!", self.db.global.game.chatChannel)
@@ -716,6 +853,35 @@ function WoWGoldGambler:makeNameString(players)
     end
 
     return nameString
+end
+
+function WoWGoldGambler:registerPlayer(playerName, playerRealm)
+    -- Ignore entry if player is already entered
+    self:Print("Registering player: " .. playerName)
+    for i = 1, #session.players do
+        if (session.players[i].name == playerName and session.players[i].realm == playerRealm) then
+            return
+        end
+    end
+
+    -- If the player is not already entered, create a new player entry for them
+    local newPlayer = {
+        name = playerName,
+        realm = playerRealm,
+        roll = nil
+    }
+
+    tinsert(session.players, newPlayer)
+end
+
+function WoWGoldGambler:unregisterPlayer(playerName, playerRealm)
+    -- Remove the player from the currently running game session if they have previously entered
+    self:Print("Unregistering player: " .. playerName)
+    for i = 1, #session.players do
+        if (session.players[i].name == playerName and session.players[i].realm == playerRealm) then
+            tremove(session.players, i)
+        end
+    end
 end
 
 function WoWGoldGambler:checkPlayerRolls()

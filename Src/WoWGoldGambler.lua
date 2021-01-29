@@ -272,10 +272,12 @@ end
 
 function WoWGoldGambler:rollMe(info, maxAmount, minAmount)
     -- Automatically performs a roll between [minAmount] and [maxAmount] for the dealer.
-    -- If no values are given, they are defaulted to 1 and the wager (or 100 for tie breakers)
+    -- If [maxValue] or [minValue] are nil, they are defaulted to appropriate values for the game mode and game state
     if (maxAmount == nil) then
         if (self.session.state == gameStates[4]) then
             maxAmount = 100
+        elseif (self.db.global.game.chatChannel == gameModes[2]) then
+            maxAmount = 2
         else
             maxAmount = self.db.global.game.wager
         end

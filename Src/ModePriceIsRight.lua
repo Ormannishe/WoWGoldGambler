@@ -38,11 +38,12 @@ function WoWGoldGambler:priceIsRightCalculateResult()
     local smallestDiff = self.db.global.game.wager
     local biggestDiff = 0
 
-    -- TODO: THIS HAS TO BE INITIALIZED
+    -- TODO: FIX ME
+    tinsert(self.session.result.winners, self.session.players[1])
     tinsert(self.session.result.losers, self.session.players[1])
 
 
-    for i = 1, #self.session.players do
+    for i = 2, #self.session.players do
         -- Roll was lower than or equal to the price
         if (self.session.players[i].roll <= self.session.dealer.roll) then
             -- New Winner

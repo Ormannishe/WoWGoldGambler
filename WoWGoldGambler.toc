@@ -11,7 +11,7 @@ embeds.xml
 
 Src/WoWGoldGambler.lua
 Src/ModeClassic.lua
-Src/ModeBigTwo.lua
+Src/ModeCoinflip.lua
 Src/ModeRoulette.lua
 Src/ModePriceIsRight.lua
 Src/Stats.lua

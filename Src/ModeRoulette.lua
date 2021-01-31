@@ -37,7 +37,7 @@ end
 
 function WoWGoldGambler:rouletteStartRolls()
     -- Informs players that the registration phase has ended. Performs a /roll 36 to determine the winning number
-    SendChatMessage("Registration has ended. Spinning the wheel..." , self.db.global.game.chatChannel)
+    SendChatMessage("Registration has ended. Spinning the wheel...", self.db.global.game.chatChannel)
     self:rollMe(nil, 36)
 end
 
@@ -45,24 +45,39 @@ function WoWGoldGambler:rouletteRecordRoll(playerName, actualRoll, minRoll, maxR
     -- If the dealer performed a /roll 36, record it as the result of the roulette round
     if (self.session.dealer.name == playerName and self.session.dealer.roll == nil and tonumber(minRoll) == 1 and tonumber(maxRoll) == 36) then
         self.session.dealer.roll = tonumber(actualRoll)
-        self:calculateResult()
+        SendChatMessage("The ball has landed on " .. actualRoll .. "!", self.db.global.game.chatChannel)
     end
 end
 
-function WoWGoldGambler:rouletteCalculateResult()
+function WoWGoldGambler:rouletteCalculateResult(players)
     -- Calculation logic for the Roulette game mode. Ties are permitted.
     -- Winner: Anyone who registered with the winning number
     -- Loser: Anyone who did not choose the winning number. If there are no winners, there are no losers.
     -- Payment Amount: The wager amount (evenly distributed to all winners)
-    for i = 1, #self.session.players do
-        if (self.session.players[i].roll == self.session.dealer.roll) then
-            tinsert(self.session.result.winners, self.session.players[i])
+    local winners = {}
+    local losers = {}
+    local amountOwed = nil
+
+    for i = 1, #players do
+        if (players[i].roll == self.session.dealer.roll) then
+            tinsert(winners, players[i])
         else
-            tinsert(self.session.result.losers, self.session.players[i])
+            tinsert(losers, players[i])
         end
     end
 
     if (#self.session.result.winners > 0) then
-        self.session.result.amountOwed = math.floor(self.db.global.game.wager / #self.session.result.winners)
+        amountOwed = math.floor(self.db.global.game.wager / #winners)
     end
+
+    return {
+        winners = winners,
+        losers = losers,
+        amountOwed = amountOwed   
+    }
+end
+
+function WoWGoldGambler:rouletteDetectTie(tieBreakers)
+    -- Ties are allowed in Roulette, so simply end the game.
+    self:endGame()
 end

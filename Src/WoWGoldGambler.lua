@@ -10,7 +10,7 @@ local gameStates = {
 
 local gameModes = {
     "CLASSIC",
-    "BIG TWO",
+    "COINFLIP",
     "ROULETTE",
     "PRICE IS RIGHT"
 }
@@ -54,7 +54,7 @@ local options = {
             type = "execute",
             func = "startRolls"
         },
-        endgame = {
+        cancelgame = {
             name = "Cancel Game",
             desc = "Cancel the currently running game session and void out any results",
             type = "execute",
@@ -249,7 +249,7 @@ function WoWGoldGambler:startRolls(info)
             if (self.db.global.game.mode == gameModes[1]) then
                 self:classicStartRolls()
             elseif (self.db.global.game.mode == gameModes[2]) then
-                self:bigTwoStartRolls()
+                self:coinflipStartRolls()
             elseif (self.db.global.game.mode == gameModes[3]) then
                 self:rouletteStartRolls()
             elseif (self.db.global.game.mode == gameModes[4]) then
@@ -260,7 +260,7 @@ function WoWGoldGambler:startRolls(info)
         end
     elseif (self.session.state == gameStates[3] or self.session.state == gameStates[4]) then
         -- If a rolling phase or tie breaker phase is in progress, post the names of the players who have yet to roll in the chat channel
-        local playersToRoll = self:checkPlayerRolls()
+        local playersToRoll = self:checkPlayerRolls(self.session.players)
 
         for i = 1, #playersToRoll do
             SendChatMessage(playersToRoll[i] .. " still needs to roll!" , self.db.global.game.chatChannel)
@@ -317,143 +317,101 @@ end
 
 function WoWGoldGambler:handleSystemMessage(_, text)
     -- Parses system messages recieved by the Event Listener to find and record player rolls
+    local players = self.session.players
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
 
-    if (self.session.state == gameStates[3]) then
-        -- Perform game mode specific tasks for recording player rolls
-        if (self.db.global.game.mode == gameModes[1]) then
-            self:classicRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-        elseif (self.db.global.game.mode == gameModes[2]) then
-            self:bigTwoRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-        elseif (self.db.global.game.mode == gameModes[3]) then
-            self:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-        elseif (self.db.global.game.mode == gameModes[4]) then
-            self:priceIsRightRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-        end
-    elseif (self.session.state == gameStates[4]) then
-        self:tiebreakerRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    if (self.session.state == gameStates[4]) then
+        players = self.session.result.tieBreakers
+    end
+
+    -- Perform game mode specific tasks for recording player rolls
+    if (self.db.global.game.mode == gameModes[1]) then
+        self:classicRecordRoll(players, playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[2]) then
+        self:coinflipRecordRoll(players, playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[3]) then
+        self:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[4]) then
+        self:priceIsRightRecordRoll(players, playerName, actualRoll, minRoll, maxRoll)
+    end
+
+    -- If all registered players have rolled, calculate the result
+    if (#self:checkPlayerRolls(players) == 0) then
+        self:calculateResult(players)
     end
 end
 
 -- Game-End Functionality --
 
-function WoWGoldGambler:calculateResult()
+function WoWGoldGambler:calculateResult(players)
     -- Calculates the winners and losers of a session and the amount owed
-    self.session.result = {
-        winners = {},
-        losers = {},
-        amountOwed = 0
-    }
+    local result = {}
 
     if (self.db.global.game.mode == gameModes[1]) then
-        self:classicCalculateResult()
+        result = self:classicCalculateResult(players)
     elseif (self.db.global.game.mode == gameModes[2]) then
-        self:bigTwoCalculateResult()
+        result = self:coinflipCalculateResult(players)
     elseif (self.db.global.game.mode == gameModes[3]) then
-        self:rouletteCalculateResult()
+        result = self:rouletteCalculateResult(players)
     elseif (self.db.global.game.mode == gameModes[4]) then
-        self:priceIsRightCalculateResult()
+        result = self:priceIsRightCalculateResult(players)34
     else
         self:Print(self.db.global.game.mode .. " is not a valid game mode.")
         self.session.result = nil
         self:endGame()
     end
 
+    if (self.session.state == gameStates[3]) then
+        self.session.result = result
+    -- If the result is a tie-breaker result, only replace the portion of the result for which there was a tie. High-end ties are resolved first.
+    elseif  (self.session.state == gameStates[4]) then
+        if (#self.session.result.winners > 1) then
+            self.session.result.winners = result.winners
+        elseif (#self.session.result.losers > 1) then
+            self.session.result.losers = result.losers
+        end
+    end
+
     self:detectTie()
 end
 
 function WoWGoldGambler:detectTie()
-    -- Detects when there is a tie on either the winner or loser side. Multiple winners/losers is allowed in the Roulette game mode.
-    -- If a tie is detected, set the game state to TIE BREAKER and continue listening for rolls. If a tie is not detected, the game is ended
-    if (#self.session.result.winners > 1 and self.db.global.game.mode ~= gameModes[3]) then
+    -- Detects when there is a tie on either the winner or loser side. High-end ties are decided first.
+    -- Ties will not be resolved if there are no winners or no losers (resolving the tie would be pointless)
+    local tieBreakers = {}
+
+    if (#self.session.result.winners > 1 and #self.session.result.losers ~= 0) then
         -- High End Tie Breaker
-        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.result.winners) .. " /roll 100 now!", self.db.global.game.chatChannel)
-        self.session.state = gameStates[4]
-        self.session.result.tieBreakers = {}
-
-        for i = 1, #self.session.result.winners do
-            self.session.result.tieBreakers[i] = self.session.result.winners[i]
-            self.session.result.tieBreakers[i].roll = nil
-
-            -- DEBUG: REMOVE ME
-            if (self.session.result.tieBreakers[i].name == "Tester2") then
-                self.session.result.tieBreakers[i].roll = 2
-            end
-        end
-    elseif (#self.session.result.losers > 1 and self.db.global.game.mode ~= gameModes[3]) then
+        tieBreakers = self.session.result.winners
+    elseif (#self.session.result.losers > 1 and #self.session.result.winners ~= 0) then
         -- Low End Tie Breaker
-        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.result.losers) .. " /roll 100 now!", self.db.global.game.chatChannel)
-        self.session.state = gameStates[4]
-        self.session.result.tieBreakers = {}
-        
-        for i = 1, #self.session.result.losers do
-            self.session.result.tieBreakers[i] = self.session.result.losers[i]
-            self.session.result.tieBreakers[i].roll = nil
+        tieBreakers = self.session.result.winners
+    end
 
-            -- DEBUG: REMOVE ME
-            if (self.session.result.tieBreakers[i].name == "Tester1") then
-                self.session.result.tieBreakers[i].roll = 1
-            end
+    if (#tieBreakers > 0) then
+        -- If a tie is detected, set up the session for tie-breaing and continue listening for rolls.
+        self.session.state = gameStates[4]
+        self.session.result.tieBreakers = tieBreakers
+
+        for i = 1, #self.session.result.tieBreakers do
+            self.session.result.tieBreakers[i].roll = nil
+        end
+
+        -- Perform game-mode specific tasks required to enter the TIE BREAKER phase
+        if (self.db.global.game.mode == gameModes[2]) then
+            self:coinflipDetectTie()
+        elseif (self.db.global.game.mode == gameModes[3]) then
+            self:rouletteDetectTie()
+        else
+            self:classicDetectTie()
         end
     else
+         -- If a tie is not detected, the game is ended
         self:endGame()
     end
 end
 
-function WoWGoldGambler:tiebreakerRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-    -- If a tie-breaker player made a 1-100 roll and has not yet made a tie breaker roll, record the tie breaker roll
-    if (tonumber(minRoll) == 1 and tonumber(maxRoll) == 100) then
-        for i = 1, #self.session.result.tieBreakers do
-            if (self.session.result.tieBreakers[i].name == playerName and self.session.result.tieBreakers[i].roll == nil) then
-                self.session.result.tieBreakers[i].roll = tonumber(actualRoll)
-            end
-        end
-    end
-
-    -- If all tie breaker players have rolled, attempt to resolve the tie
-    if (#self:checkPlayerRolls() == 0) then
-        self:resolveTie()
-    end
-end
-
-function WoWGoldGambler:resolveTie()
-    -- Tie breakers are always won and lost by the players who rolled the highest and lowest on a 100 roll
-    -- Additional tie breaker rounds are possible if a tie still exists after resolution
-    local tieWinners = {self.session.result.tieBreakers[1]}
-    local tieLosers = {self.session.result.tieBreakers[1]}
-
-    -- Determine which tied players had the highest and lowest rolls
-    for i = 2, #self.session.result.tieBreakers do
-        -- New loser
-        if (self.session.result.tieBreakers[i].roll < tieLosers[1].roll) then
-            tieLosers = {self.session.result.tieBreakers[i]}
-        -- New winner
-        elseif (self.session.result.tieBreakers[i].roll > tieWinners[1].roll) then
-            tieWinners = {self.session.result.tieBreakers[i]}
-        else
-            -- Handle ties. Due to the way we initialize tieWinners and tieLosers, it's possible for both of these to be true
-            if (self.session.result.tieBreakers[i].roll == tieLosers[1].roll) then
-                tinsert(tieLosers, self.session.result.tieBreakers[i])
-            end
-            
-            if (self.session.result.tieBreakers[i].roll == tieWinners[1].roll) then
-                tinsert(tieWinners, self.session.result.tieBreakers[i])
-            end
-        end
-    end
-
-    -- Replace the result winners or losers with the tie result. High end ties are always resolved first.
-    if (#self.session.result.winners > 1) then
-        self.session.result.winners = tieWinners
-    elseif (#self.session.result.losers > 1) then
-        self.session.result.losers = tieLosers
-    end
-
-    -- Check the updated results for additional ties
-    self:detectTie()
-end
-
-function WoWGoldGambler:endGame(info)
+function WoWGoldGambler:endGame()
     -- Posts the result of the game session to the chat channel and updates stats before terminating the game session
     if (self.session.result ~= nil) then
         if (#self.session.result.losers > 0 and #self.session.result.winners > 0) then
@@ -529,14 +487,9 @@ function WoWGoldGambler:unregisterPlayer(playerName, playerRealm)
     end
 end
 
-function WoWGoldGambler:checkPlayerRolls()
+function WoWGoldGambler:checkPlayerRolls(players)
     -- Returns a list of the names of all registered or tie breaker players who have not rolled yet
-    local players = self.session.players
     local playersToRoll = {}
-
-    if (self.session.state == gameStates[4]) then
-        players = self.session.result.tieBreakers
-    end
 
     for i = 1, #players do
         if (players[i].roll == nil) then

@@ -49,7 +49,7 @@ function WoWGoldGambler:rouletteRecordRoll(playerName, actualRoll, minRoll, maxR
     end
 end
 
-function WoWGoldGambler:rouletteCalculateResult(players)
+function WoWGoldGambler:rouletteCalculateResult()
     -- Calculation logic for the Roulette game mode. Ties are permitted.
     -- Winner: Anyone who registered with the winning number
     -- Loser: Anyone who did not choose the winning number. If there are no winners, there are no losers.
@@ -58,11 +58,11 @@ function WoWGoldGambler:rouletteCalculateResult(players)
     local losers = {}
     local amountOwed = nil
 
-    for i = 1, #players do
-        if (players[i].roll == self.session.dealer.roll) then
-            tinsert(winners, players[i])
+    for i = 1, #self.session.players do
+        if (self.session.players[i].roll == self.session.dealer.roll) then
+            tinsert(winners, self.session.players[i])
         else
-            tinsert(losers, players[i])
+            tinsert(losers, self.session.players[i])
         end
     end
 
@@ -77,7 +77,7 @@ function WoWGoldGambler:rouletteCalculateResult(players)
     }
 end
 
-function WoWGoldGambler:rouletteDetectTie(tieBreakers)
+function WoWGoldGambler:rouletteDetectTie()
     -- Ties are allowed in Roulette, so simply end the game.
     self:endGame()
 end

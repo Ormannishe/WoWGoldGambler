@@ -4,8 +4,7 @@ WoWGoldGambler = LibStub("AceAddon-3.0"):NewAddon("WoWGoldGambler", "AceConsole-
 local gameStates = {
     "IDLE",
     "REGISTRATION",
-    "ROLLING",
-    "TIE BREAKER"
+    "ROLLING"
 }
 
 local gameModes = {
@@ -258,8 +257,8 @@ function WoWGoldGambler:startRolls(info)
         else
             SendChatMessage("Not enough players have registered to play!" , self.db.global.game.chatChannel)
         end
-    elseif (self.session.state == gameStates[3] or self.session.state == gameStates[4]) then
-        -- If a rolling phase or tie breaker phase is in progress, post the names of the players who have yet to roll in the chat channel
+    elseif (self.session.state == gameStates[3]) then
+        -- If a rolling phase is in progress, post the names of the players who have yet to roll in the chat channel
         local playersToRoll = self:checkPlayerRolls(self.session.players)
 
         for i = 1, #playersToRoll do
@@ -272,11 +271,9 @@ end
 
 function WoWGoldGambler:rollMe(info, maxAmount, minAmount)
     -- Automatically performs a roll between [minAmount] and [maxAmount] for the dealer.
-    -- If [maxValue] or [minValue] are nil, they are defaulted to appropriate values for the game mode and game state
+    -- If [maxValue] or [minValue] are nil, they are defaulted to appropriate values for the game mode
     if (maxAmount == nil) then
-        if (self.session.state == gameStates[4]) then
-            maxAmount = 100
-        elseif (self.db.global.game.chatChannel == gameModes[2]) then
+        if (self.db.global.game.chatChannel == gameModes[2]) then
             maxAmount = 2
         else
             maxAmount = self.db.global.game.wager
@@ -317,54 +314,49 @@ end
 
 function WoWGoldGambler:handleSystemMessage(_, text)
     -- Parses system messages recieved by the Event Listener to find and record player rolls
-    local players = self.session.players
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
-
-    if (self.session.state == gameStates[4]) then
-        players = self.session.result.tieBreakers
-    end
 
     -- Perform game mode specific tasks for recording player rolls
     if (self.db.global.game.mode == gameModes[1]) then
-        self:classicRecordRoll(players, playerName, actualRoll, minRoll, maxRoll)
+        self:classicRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     elseif (self.db.global.game.mode == gameModes[2]) then
-        self:coinflipRecordRoll(players, playerName, actualRoll, minRoll, maxRoll)
+        self:coinflipRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     elseif (self.db.global.game.mode == gameModes[3]) then
         self:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     elseif (self.db.global.game.mode == gameModes[4]) then
-        self:priceIsRightRecordRoll(players, playerName, actualRoll, minRoll, maxRoll)
+        self:priceIsRightRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     end
 
     -- If all registered players have rolled, calculate the result
-    if (#self:checkPlayerRolls(players) == 0) then
-        self:calculateResult(players)
+    if (#self:checkPlayerRolls() == 0) then
+        self:calculateResult()
     end
 end
 
 -- Game-End Functionality --
 
-function WoWGoldGambler:calculateResult(players)
+function WoWGoldGambler:calculateResult()
     -- Calculates the winners and losers of a session and the amount owed
     local result = {}
 
     if (self.db.global.game.mode == gameModes[1]) then
-        result = self:classicCalculateResult(players)
+        result = self:classicCalculateResult()
     elseif (self.db.global.game.mode == gameModes[2]) then
-        result = self:coinflipCalculateResult(players)
+        result = self:coinflipCalculateResult()
     elseif (self.db.global.game.mode == gameModes[3]) then
-        result = self:rouletteCalculateResult(players)
+        result = self:rouletteCalculateResult()
     elseif (self.db.global.game.mode == gameModes[4]) then
-        result = self:priceIsRightCalculateResult(players)34
+        result = self:priceIsRightCalculateResult()
     else
         self:Print(self.db.global.game.mode .. " is not a valid game mode.")
         self.session.result = nil
         self:endGame()
     end
 
-    if (self.session.state == gameStates[3]) then
+    if  (self.session.result == nil) then
         self.session.result = result
-    -- If the result is a tie-breaker result, only replace the portion of the result for which there was a tie. High-end ties are resolved first.
-    elseif  (self.session.state == gameStates[4]) then
+    else
+        -- If the result is a tie-breaker result, only replace the portion of the result for which there was a tie. High-end ties are resolved first.
         if (#self.session.result.winners > 1) then
             self.session.result.winners = result.winners
         elseif (#self.session.result.losers > 1) then
@@ -385,19 +377,18 @@ function WoWGoldGambler:detectTie()
         tieBreakers = self.session.result.winners
     elseif (#self.session.result.losers > 1 and #self.session.result.winners ~= 0) then
         -- Low End Tie Breaker
-        tieBreakers = self.session.result.winners
+        tieBreakers = self.session.result.losers
     end
 
     if (#tieBreakers > 0) then
         -- If a tie is detected, set up the session for tie-breaing and continue listening for rolls.
-        self.session.state = gameStates[4]
-        self.session.result.tieBreakers = tieBreakers
+        self.session.players = tieBreakers
 
-        for i = 1, #self.session.result.tieBreakers do
-            self.session.result.tieBreakers[i].roll = nil
+        for i = 1, #self.session.players do
+            self.session.players[i].roll = nil
         end
 
-        -- Perform game-mode specific tasks required to enter the TIE BREAKER phase
+        -- Perform game-mode specific tasks when entering a tie-breaker
         if (self.db.global.game.mode == gameModes[2]) then
             self:coinflipDetectTie()
         elseif (self.db.global.game.mode == gameModes[3]) then
@@ -487,13 +478,13 @@ function WoWGoldGambler:unregisterPlayer(playerName, playerRealm)
     end
 end
 
-function WoWGoldGambler:checkPlayerRolls(players)
-    -- Returns a list of the names of all registered or tie breaker players who have not rolled yet
+function WoWGoldGambler:checkPlayerRolls()
+    -- Returns a list of the names of all registered players who have not rolled yet
     local playersToRoll = {}
 
-    for i = 1, #players do
-        if (players[i].roll == nil) then
-            tinsert(playersToRoll, players[i].name)
+    for i = 1, #self.session.players do
+        if (self.session.players[i].roll == nil) then
+            tinsert(playersToRoll, self.session.players[i].name)
         end
     end
 

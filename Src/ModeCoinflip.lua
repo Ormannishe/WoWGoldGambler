@@ -26,7 +26,7 @@ function WoWGoldGambler:coinflipCalculateResult()
 
     for i = 1, #self.session.players do
         if (self.session.players[i].roll == 1) then
-            tinsert(losers, players[i])
+            tinsert(losers, self.session.players[i])
         elseif (self.session.players[i].roll == 2) then
             tinsert(winners, self.session.players[i])
         end
@@ -45,5 +45,18 @@ function WoWGoldGambler:coinflipDetectTie()
         SendChatMessage("Winner's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!", self.db.global.game.chatChannel)
     elseif (#self.session.result.losers > 1) then
         SendChatMessage("Loser's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!", self.db.global.game.chatChannel)
+    end
+
+    -- DEBUG: REMOVE ME
+    for i = 1, #self.session.players do
+        if (self.session.players[i].name == "Tester1") then
+            self.session.players[i].roll = 1
+        elseif (self.session.players[i].name == "Tester2") then
+            self.session.players[i].roll = 2
+        elseif (self.session.players[i].name == "Tester3") then
+            self.session.players[i].roll = 1
+        elseif (self.session.players[i].name == "Tester4") then
+            self.session.players[i].roll = 2
+        end
     end
 end

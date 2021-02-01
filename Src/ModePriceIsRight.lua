@@ -32,7 +32,7 @@ function WoWGoldGambler:priceIsRightCalculateResult()
     -- Payment Amount: The absolute difference between the price and the losing player's roll
     local winners = {self.session.players[1]}
     local losers = {self.session.players[1]}
-    local biggestDiff = 0
+    local biggestDiff = math.abs(self.session.dealer.roll - self.session.players[1].roll)
 
     for i = 2, #self.session.players do
         -- Roll was lower than or equal to the price

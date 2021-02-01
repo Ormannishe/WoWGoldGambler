@@ -139,6 +139,8 @@ function WoWGoldGambler:reportStats(sessionFlag)
     end
 
     -- Sort the sortedPlayers array by their winnings
+    -- BUG: When using SendChatMessage on the guild channel, the messages lose their order. This appears to be an issue with the Blizzard API
+    -- To work around this, we would have to confirm each stat has been sent before sending the next one. Seems like a lot of work.
     table.sort(sortedPlayers, function(a, b)
         return stats[a] > stats[b]
     end)
@@ -159,6 +161,6 @@ function WoWGoldGambler:reportStats(sessionFlag)
             amount = amount * -1
         end
 
-        SendChatMessage(sortedPlayers[i] .. wonOrLost .. amount .. " gold!", self.db.global.game.chatChannel)
+        SendChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. amount .. " gold!", self.db.global.game.chatChannel)
     end
 end

@@ -24,10 +24,11 @@ function WoWGoldGambler:rouletteRegister(text, playerName, playerRealm)
 
     if (text ~= nil and text > 0 and text < 37) then
         self:registerPlayer(playerName, playerRealm)
-        
+
         for i = 1, #self.session.players do
-            if (self.session.players[i] == playerName and self.session.players[i].roll == nil) then
+            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
                 self.session.players[i].roll = text
+                self:Print(playerName .. " entered with " .. text)
             end
         end
     elseif (text == -1) then
@@ -66,14 +67,14 @@ function WoWGoldGambler:rouletteCalculateResult()
         end
     end
 
-    if (#self.session.result.winners > 0) then
+    if (#winners > 0) then
         amountOwed = math.floor(self.db.global.game.wager / #winners)
     end
 
     return {
         winners = winners,
         losers = losers,
-        amountOwed = amountOwed   
+        amountOwed = amountOwed
     }
 end
 

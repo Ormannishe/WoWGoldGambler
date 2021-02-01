@@ -5,7 +5,7 @@ function WoWGoldGambler:classicGameStart()
 
      -- DEBUG: REMOVE ME
      tinsert(self.session.players, {name = "Tester1", realm = "Tester", roll = 1})
-     tinsert(self.session.players, {name = "Tester2", realm = "Tester", roll = 2})
+     tinsert(self.session.players, {name = "Tester2", realm = "Tester", roll = 1})
 end
 
 function WoWGoldGambler:classicRegister(text, playerName, playerRealm)
@@ -78,5 +78,14 @@ function WoWGoldGambler:classicDetectTie()
         SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll " .. self.db.global.game.wager .. " now!", self.db.global.game.chatChannel)
     elseif (#self.session.result.losers > 1) then
         SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll " .. self.db.global.game.wager .. " now!", self.db.global.game.chatChannel)
+    end
+
+    -- DEBUG: REMOVE ME
+    for i = 1, #self.session.players do
+        if (self.session.players[i].name == "Tester1") then
+            self.session.players[i].roll = 1
+        elseif (self.session.players[i].name == "Tester2") then
+            self.session.players[i].roll = self.db.global.game.wager
+        end
     end
 end

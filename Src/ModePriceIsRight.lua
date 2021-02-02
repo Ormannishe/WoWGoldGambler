@@ -68,9 +68,12 @@ function WoWGoldGambler:priceIsRightCalculateResult()
     end
 
     -- In a scenario where all players tie, it's possible to run in to this edge case. In this case, nobody wins or loses.
-    if (winners == losers) then
-        winners = {}
-        losers = {}
+    if (winners[1].name == losers[1].name) then
+        return {
+            winners = {},
+            losers = {},
+            amountOwed = 0
+        }
     end
 
     return {

@@ -2,20 +2,6 @@
 
 function WoWGoldGambler:rouletteGameStart()
     SendChatMessage("WoWGoldGambler: A new game has been started! Type a number between 1 and 36 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
-
-     -- DEBUG: REMOVE ME
-     tinsert(self.session.players, {name = "Tester1", realm = "Tester", roll = 1})
-     tinsert(self.session.players, {name = "Tester2", realm = "Tester", roll = 2})
-     tinsert(self.session.players, {name = "Tester3", realm = "Tester", roll = 3})
-     tinsert(self.session.players, {name = "Tester4", realm = "Tester", roll = 4})
-     tinsert(self.session.players, {name = "Tester5", realm = "Tester", roll = 5})
-     tinsert(self.session.players, {name = "Tester6", realm = "Tester", roll = 6})
-     tinsert(self.session.players, {name = "Tester7", realm = "Tester", roll = 7})
-     tinsert(self.session.players, {name = "Tester8", realm = "Tester", roll = 8})
-     tinsert(self.session.players, {name = "Tester9", realm = "Tester", roll = 1})
-     tinsert(self.session.players, {name = "Tester10", realm = "Tester", roll = 2})
-     tinsert(self.session.players, {name = "Tester11", realm = "Tester", roll = 3})
-     tinsert(self.session.players, {name = "Tester12", realm = "Tester", roll = 4})
 end
 
 function WoWGoldGambler:rouletteRegister(text, playerName, playerRealm)
@@ -28,7 +14,6 @@ function WoWGoldGambler:rouletteRegister(text, playerName, playerRealm)
         for i = 1, #self.session.players do
             if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
                 self.session.players[i].roll = text
-                self:Print(playerName .. " entered with " .. text)
             end
         end
     elseif (text == -1) then

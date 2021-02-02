@@ -156,7 +156,6 @@ function WoWGoldGambler:setWager(amount)
 
     if (amount ~= nil and amount > 0) then
         self.db.global.game.wager = amount
-        self:Print("New wager amount is " .. tostring(amount))
     end
 end
 

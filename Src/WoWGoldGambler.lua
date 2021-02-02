@@ -41,23 +41,11 @@ local options = {
     handler = WoWGoldGambler,
     type = 'group',
     args = {
-        startgame = {
-            name = "Start Game",
-            desc = "Start the registration phase of a game session",
+        show = {
+            name = "Show UI",
+            desc = "Show the WoWGoldGambler UI",
             type = "execute",
-            func = "startGame"
-        },
-        startrolls = {
-            name = "Start Rolls",
-            desc = "Start the rolling phase of a game session",
-            type = "execute",
-            func = "startRolls"
-        },
-        cancelgame = {
-            name = "Cancel Game",
-            desc = "Cancel the currently running game session and void out any results",
-            type = "execute",
-            func = "cancelGame"
+            func = "drawUi"
         },
         changechannel = {
             name = "Change Channel",
@@ -70,24 +58,6 @@ local options = {
             desc = "Change the game mode",
             type = "execute",
             func = "changeGameMode"
-        },
-        setwager = {
-            name = "Set Wager",
-            desc = "[amount] - Set the wager amount to [amount]",
-            type = "input",
-            set = "setWager"
-        },
-        enterme = {
-            name = "Enter Me",
-            desc = "Register the dealer for a game by entering 1 in chat",
-            type = "execute",
-            func = "enterMe"
-        },
-        rollme = {
-            name = "Roll Me",
-            desc = "Do a /roll for the dealer",
-            type = "execute",
-            func = "rollMe"
         },
         allstats = {
             name = "All Stats",
@@ -125,7 +95,7 @@ local options = {
             type = "execute",
             func = "resetStats"
         }
-    },
+    }
 }
 
 -- Initialization --
@@ -180,7 +150,7 @@ function WoWGoldGambler:changeGameMode(info)
     self:Print("WoWGoldGambler: New game mode is " .. self.db.global.game.mode)
 end
 
-function WoWGoldGambler:setWager(info, amount)
+function WoWGoldGambler:setWager(amount)
     -- Sets the game's wager amount to [amount]
     amount = tonumber(amount)
 

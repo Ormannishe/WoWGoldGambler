@@ -15,3 +15,4 @@ Src/ModeCoinflip.lua
 Src/ModeRoulette.lua
 Src/ModePriceIsRight.lua
 Src/Stats.lua
+Src/ui.lua

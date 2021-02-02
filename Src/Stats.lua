@@ -125,7 +125,7 @@ function WoWGoldGambler:reportStats(sessionFlag)
     for player, winnings in pairs(stats) do
         if (self.db.global.stats.aliases[player] ~= nil) then
             for i = 1, #self.db.global.stats.aliases[player] do
-                stats[player] = winnings + stats[self.db.global.stats.aliases[player][i]]
+                stats[player] = stats[player] + stats[self.db.global.stats.aliases[player][i]]
                 stats[self.db.global.stats.aliases[player][i]] = nil
             end
         end

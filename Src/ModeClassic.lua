@@ -36,6 +36,7 @@ function WoWGoldGambler:classicCalculateResult()
     -- Payment Amount: The difference between the losing and winning rolls
     local winners = {self.session.players[1]}
     local losers = {self.session.players[1]}
+    local amountOwed = 0
 
     for i = 2, #self.session.players do
         -- New loser
@@ -55,19 +56,17 @@ function WoWGoldGambler:classicCalculateResult()
         end
     end
 
-    -- In a scenario where all players tie, it's possible to run in to this edge case. In this case, nobody wins or loses.
+    -- In a scenario where all players tie, it's possible to run in to this edge case. Void out the losers as everyone tied.
     if (winners[1].name == losers[1].name) then
-        return {
-            winners = {},
-            losers = {},
-            amountOwed = 0
-        }
+        losers = {}
+    else
+        amountOwed = winners[1].roll - losers[1].roll
     end
 
     return {
         winners = winners,
         losers = losers,
-        amountOwed = winners[1].roll - losers[1].roll
+        amountOwed = amountOwed
     }
 end
 

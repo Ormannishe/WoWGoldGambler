@@ -60,7 +60,7 @@ local options = {
             type = "execute",
             func = "changeChannel"
         },
-        changegamemode = {
+        changemode = {
             name = "Change Game Mode",
             desc = "Change the game mode",
             type = "execute",
@@ -349,9 +349,17 @@ function WoWGoldGambler:calculateResult()
     else
         -- If the result is a tie-breaker result, only replace the portion of the result for which there was a tie. High-end ties are resolved first.
         if (#self.session.result.winners > 1) then
-            self.session.result.winners = result.winners
+            if (#result.winners > 0) then
+                self.session.result.winners = result.winners
+            else
+                self.session.result.winners = result.losers
+            end
         elseif (#self.session.result.losers > 1) then
-            self.session.result.losers = result.losers
+            if (#result.losers > 0) then
+                self.session.result.losers = result.losers
+            else
+                self.session.result.losers = result.winners
+            end
         end
     end
 
@@ -455,7 +463,9 @@ function WoWGoldGambler:makeNameString(players)
     return nameString
 end
 
-function WoWGoldGambler:registerPlayer(playerName, playerRealm)
+function WoWGoldGambler:registerPlayer(playerName, playerRealm, playerRoll)
+    -- Add a new player to the game if they are not already registered. [playerRoll] can optionally be provided to pre-record a roll for the player.
+
     -- Ignore entry if player is already entered
     for i = 1, #self.session.players do
         if (self.session.players[i].name == playerName and self.session.players[i].realm == playerRealm) then
@@ -467,7 +477,7 @@ function WoWGoldGambler:registerPlayer(playerName, playerRealm)
     local newPlayer = {
         name = playerName,
         realm = playerRealm,
-        roll = nil
+        roll = playerRoll
     }
 
     tinsert(self.session.players, newPlayer)

@@ -9,13 +9,7 @@ function WoWGoldGambler:rouletteRegister(text, playerName, playerRealm)
     text = tonumber(text)
 
     if (text ~= nil and text > 0 and text < 37) then
-        self:registerPlayer(playerName, playerRealm)
-
-        for i = 1, #self.session.players do
-            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
-                self.session.players[i].roll = text
-            end
-        end
+        self:registerPlayer(playerName, playerRealm, text)
     elseif (text == -1) then
         self:unregisterPlayer(playerName, playerRealm)
     end

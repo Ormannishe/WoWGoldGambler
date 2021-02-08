@@ -35,7 +35,7 @@ function WoWGoldGambler:drawUi()
     local lastCallButton = AceGUI:Create("Button")
     lastCallButton:SetText("Last Call")
     lastCallButton:SetWidth(150)
-    lastCallButton:SetCallback("OnClick", function() SendChatMessage("Last Call to join!", self.db.global.game.chatChannel) end)
+    lastCallButton:SetCallback("OnClick", function() SendChatMessage("Last call to join!", self.db.global.game.chatChannel) end)
     container:AddChild(lastCallButton)
 
     local rollButton = AceGUI:Create("Button")

@@ -26,7 +26,8 @@ local defaults = {
         game = {
             mode = gameModes[1],
             wager = 1000,
-            chatChannel = chatChannels[1]
+            chatChannel = chatChannels[1],
+            houseCut = 0
         },
         stats = {
             player = {},
@@ -46,6 +47,12 @@ local options = {
             desc = "Show the WoWGoldGambler UI",
             type = "execute",
             func = "drawUi"
+        },
+        sethousecut = {
+            name = "Set House Cut",
+            desc = "[amount] - Set the percentage (0% - 100%) of winnings taken by the house (ie. guild).",
+            type = "input",
+            func = "setHouseCut"
         },
         changechannel = {
             name = "Change Channel",
@@ -88,6 +95,12 @@ local options = {
             desc = "[player] [amount] - Add [amount] to [player]'s stats (use negative numbers to subtract)",
             type = "input",
             set = "updateStat"
+        },
+        deletestat = {
+            name = "Delete Stat",
+            desc = "[player] - Permanently delete the stats for the given [player]",
+            type = "input",
+            set = "deleteStat"
         },
         resetstats = {
             name = "Reset Stats",
@@ -156,6 +169,15 @@ function WoWGoldGambler:setWager(amount)
 
     if (amount ~= nil and amount > 0) then
         self.db.global.game.wager = amount
+    end
+end
+
+function WoWGoldGambler:setHouseCut(_, amount)
+    -- Sets the house cut to the given [amount]. The house cut is a percentage, so amount must be a number between 0 and 100
+    amount = tonumber(amount)
+
+    if (amount ~= nil and amount >= 0 and amount <= 100) then
+        self.db.global.game.houseCut = amount
     end
 end
 
@@ -350,7 +372,7 @@ function WoWGoldGambler:detectTie()
     end
 
     if (#tieBreakers > 0) then
-        -- If a tie is detected, set up the session for tie-breaing and continue listening for rolls.
+        -- If a tie is detected, set up the session for tie-breaking and continue listening for rolls.
         self.session.players = tieBreakers
 
         for i = 1, #self.session.players do
@@ -375,9 +397,22 @@ function WoWGoldGambler:endGame()
     -- Posts the result of the game session to the chat channel and updates stats before terminating the game session
     if (self.session.result ~= nil) then
         if (#self.session.result.losers > 0 and #self.session.result.winners > 0) then
+            local houseAmount = 0
+
+            -- If a house cut is set, determine the amount owed to the house and adjust the amountOwed to the winner(s)
+            if (self.db.global.game.houseCut > 0) then
+                houseAmount = math.floor(self.session.result.amountOwed * (self.db.global.game.houseCut / 100))
+                self.session.result.amountOwed = self.session.result.amountOwed - houseAmount
+            end
+
             for i = 1, #self.session.result.losers do
                 SendChatMessage(self.session.result.losers[i].name .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self.session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
                 self:updatePlayerStat(self.session.result.losers[i].name, self.session.result.amountOwed * -1)
+
+                if (self.db.global.game.houseCut > 0) then
+                    SendChatMessage(self.session.result.losers[i].name .. " owes the guild bank " .. houseAmount .. " gold!" , self.db.global.game.chatChannel)
+                    -- TODO: Stat track how much has been won by the house
+                end
             end
             
             for i = 1, #self.session.result.winners do

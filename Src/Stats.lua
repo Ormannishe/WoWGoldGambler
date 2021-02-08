@@ -10,7 +10,7 @@ function WoWGoldGambler:sessionStats()
     WoWGoldGambler:reportStats(true)
 end
 
-function WoWGoldGambler:joinStats(info, args, args2)
+function WoWGoldGambler:joinStats(info, args)
     -- Set up an alias of [newAlt] for [newMain]. Players with one or more aliases will have the aliased players' stats joined with their own at reporting time.
     -- [newMain] and [newAlt] are parsed out of the given [args] via a string split on the space character
     local newMain, newAlt = strsplit(" ", args)
@@ -18,9 +18,11 @@ function WoWGoldGambler:joinStats(info, args, args2)
     for main, aliases in pairs(self.db.global.stats.aliases) do
         -- Check all aliases for all mains to ensure newMain and newAlt are not already associated with a main
         for i = 1, #aliases do
+            -- newAlt is already an alias for someone else
             if (aliases[i] == newAlt) then
                 self:Print("WoWGoldGambler: Unjoining " .. newAlt .. " from " .. main .. " so it can be joined with " .. newMain .. " instead.")
                 tremove(self.db.global.stats.aliases[main], i)
+            -- newMain is already an alias for someone else
             elseif (aliases[i] == newMain) then
                 self:Print("WoWGoldGambler: Joining " .. newAlt .. " to " .. main .. " instead, as it is already joined with " .. newMain)
                 newMain = main
@@ -74,7 +76,14 @@ function WoWGoldGambler:updateStat(info, args)
     end
 end
 
-function WoWGoldGambler:resetStats()
+function WoWGoldGambler:deleteStat(info, player)
+    -- Permanently delete the stats for the given [player]
+    if (self.db.global.stats.player[player] ~= nil) then
+        self.db.global.stats.player[player] = nil
+    end
+end
+
+function WoWGoldGambler:resetStats(info)
     -- Deletes all stats!
     self.db.global.stats = {
         player = {},
@@ -122,11 +131,15 @@ function WoWGoldGambler:reportStats(sessionFlag)
     end
 
     -- Merge alias player stats into their mains
-    for player, winnings in pairs(stats) do
+    for player, _ in pairs(stats) do
         if (self.db.global.stats.aliases[player] ~= nil) then
             for i = 1, #self.db.global.stats.aliases[player] do
-                stats[player] = stats[player] + stats[self.db.global.stats.aliases[player][i]]
-                stats[self.db.global.stats.aliases[player][i]] = nil
+                local alias = self.db.global.stats.aliases[player][i]
+
+                if (stats[alias] ~= nil) then
+                    stats[player] = stats[player] + stats[alias]
+                    stats[alias] = nil
+                end
             end
         end
     end

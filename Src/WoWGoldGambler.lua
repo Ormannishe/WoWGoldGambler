@@ -31,7 +31,8 @@ local defaults = {
         },
         stats = {
             player = {},
-            aliases = {}
+            aliases = {},
+            house = 0
         },
     }
 }
@@ -72,7 +73,7 @@ local options = {
             type = "execute",
             func = "allStats"
         },
-        sessionstats = {
+        stats = {
             name = "Session Stats",
             desc = "Output player stats from the current session to the chat channel",
             type = "execute",
@@ -128,7 +129,8 @@ function WoWGoldGambler:OnInitialize()
         players = {},
         result = nil,
         stats = {
-            player = {}
+            player = {},
+            house = 0
         }
     }
 end
@@ -413,13 +415,15 @@ function WoWGoldGambler:endGame()
                 self.session.result.amountOwed = self.session.result.amountOwed - houseAmount
             end
 
+            -- Notify players of the results and update player/house stats
             for i = 1, #self.session.result.losers do
                 SendChatMessage(self.session.result.losers[i].name .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self.session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
                 self:updatePlayerStat(self.session.result.losers[i].name, self.session.result.amountOwed * -1)
 
                 if (self.db.global.game.houseCut > 0) then
                     SendChatMessage(self.session.result.losers[i].name .. " owes the guild bank " .. houseAmount .. " gold!" , self.db.global.game.chatChannel)
-                    -- TODO: Stat track how much has been won by the house
+                    self.db.global.stats.house = self.db.global.stats.house + houseAmount
+                    self.session.stats.house = self.session.stats.house + houseAmount
                 end
             end
             

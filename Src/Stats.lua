@@ -161,8 +161,10 @@ function WoWGoldGambler:reportStats(sessionFlag)
     -- Post the stats to the chat channel
     if (sessionFlag) then
         SendChatMessage("-- WoWGoldGambler Session Stats --", self.db.global.game.chatChannel)
+        SendChatMessage("The house has taken " .. self.session.stats.house .. " gold!", self.db.global.game.chatChannel)
     else
         SendChatMessage("-- WoWGoldGambler All Time Stats --", self.db.global.game.chatChannel)
+        SendChatMessage("The house has taken " .. self.db.global.stats.house .. " gold!", self.db.global.game.chatChannel)
     end
 
     for i = 1, #sortedPlayers do

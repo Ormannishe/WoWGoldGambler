@@ -8,11 +8,11 @@ To start a game session, the Dealer (ie. the owner of the addon) simply clicks t
 
 Once a game session is started, WoWGoldGambler will notify players of the Game Mode and Wager selected by the Dealer. Players can register to play by typing '1' into the appropriate chat channel. The Dealer can click the 'Join Game' button to automatically register. If a player has already registered for the game and wishes to unregister, they can do so by typing '-1' in chat.
 
-The Dealer can start the rolling phase of the game as soon as they feel enough players have registered by clicking the 'Start Rolls' button. They can also click the 'Last Call' button prior to rolling to notify players that the game will be starting soon.
+The Dealer can start the rolling phase of the game as soon as they feel enough players have registered by clicking the 'Start Rolls' button. They can also click the 'Last Call' button prior to rolling to notify players that registration is about to close.
 
-Once the rolling phase is started, WoWGoldGambler will close registration and notify all players of the amount they have to /roll. All registered players must /roll the appropriate amount for the game to resolve. The Dealer can click the 'Roll For Me' button to automatically perform the appropriate roll.
+Once the rolling phase is started, WoWGoldGambler will close registration and notify all players of the amount they have to /roll. All registered players must /roll the appropriate amount (varying depending on the selected Game Mode) for the game to resolve. The Dealer can click the 'Roll For Me' button to automatically perform the appropriate roll.
 
-After all players have rolled, WoWGoldGambler will determine the winner(s), loser(s) and how much gold is owed using the rules defined below for the selected Game Mode. If a tie occurs, a series of tie-breaker rounds will be performed using the same Game Mode rules until one winner and one loser remain.
+After all players have rolled, WoWGoldGambler will determine the winner(s), loser(s) and how much gold is owed using the rules defined below for the selected Game Mode. If a tie occurs, a series of tie-breaker rounds will be performed using the same rules until one winner and one loser remain.
 
 WoWGoldGambler will then notify players of the results and close the game session. The loser must trade the amount of gold owed to the winner - the Dealer can ban players from future rounds if they refuse to pay their losses!
 

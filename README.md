@@ -80,7 +80,7 @@ All players can then /roll any amount they want with the goal of rolling as clos
 
 ### Stat Tracking
 
-WoWGoldGambler keeps track of winnings and losings from all game sessions to see who the real winners and losers are. All-time stats can be posted to the chat channel using the **/wgg allstats** command, and session stats (winnings/losing since the Dealer last logged in) can be shared with the **/wgg stats** command.
+WoWGoldGambler keeps track of winnings and losings from all game sessions to see who the real winners and losers are. All-time stats can be posted to the chat channel using the **/wgg allstats** command, and session stats (winnings/losses since the Dealer last logged in) can be shared with the **/wgg stats** command.
 
 The Dealer can also record a list of aliases for players who participate on multiple characters using the **/wgg joinstats [main] [alt]** command. When this is done, stats for [alt] will be reported together under the name of [main]. A [main] can have multiple aliases, so players can play on any number of alts and have all of their stats tracked together.
 

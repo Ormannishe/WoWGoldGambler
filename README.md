@@ -6,9 +6,9 @@ WoWGoldGambler is a World of Warcraft addon (inspired by the [Cross Gambling](ht
 
 To start a game session, the Dealer (ie. the owner of the addon) simply clicks the 'Start Game' button. Before starting a game, the Dealer should configure the game options to their liking.
 
-Once a game session is started, WoWGoldGambler will notify players of the Game Mode and Wager selected by the Dealer. Players can register to play by typing '1' into the appropriate chat channel. The Dealer can click the 'Join Game' button to automatically register. If a player has already registered for the game and wishes to unregister, they can do so by typing '-1' in chat.
+Once a game session is started, WoWGoldGambler will notify players of the Game Mode and Wager selected by the Dealer. Players can register to play by typing '1' into the appropriate chat channel (Party, Raid, or Guild - whichever WoWGoldGambler is active in). The Dealer can click the 'Join Game' button to automatically register. If a player has already registered for the game and wishes to unregister, they can do so by typing '-1' in chat.
 
-The Dealer can start the rolling phase of the game as soon as they feel enough players have registered by clicking the 'Start Rolls' button. They can also click the 'Last Call' button prior to rolling to notify players that registration is about to close.
+The Dealer can start the rolling phase of the game as soon as they feel enough players have registered by clicking the 'Start Rolls' button. They can optionally click the 'Last Call' button prior to rolling to notify players that registration is about to close.
 
 Once the rolling phase is started, WoWGoldGambler will close registration and notify all players of the amount they have to /roll. All registered players must /roll the appropriate amount (varying depending on the selected Game Mode) for the game to resolve. If the 'Start Rolls' button is clicked a second time, WoWGoldGambler will prompt all players who have not rolled yet to do so. The Dealer can click the 'Roll For Me' button to automatically perform the appropriate roll for them.
 

@@ -81,6 +81,10 @@ function WoWGoldGambler:deleteStat(info, player)
     if (self.db.global.stats.player[player] ~= nil) then
         self.db.global.stats.player[player] = nil
     end
+
+    if (self.session.stats.player[player] ~= nil) then
+        self.session.stats.player[player] = nil
+    end
 end
 
 function WoWGoldGambler:resetStats(info)

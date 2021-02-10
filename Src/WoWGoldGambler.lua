@@ -394,6 +394,8 @@ function WoWGoldGambler:detectTie()
             self:coinflipDetectTie()
         elseif (self.db.global.game.mode == gameModes[3]) then
             self:rouletteDetectTie()
+        elseif (self.db.global.game.mode == gameModes[4]) then
+            self:priceIsRightDetectTie()
         else
             self:classicDetectTie()
         end

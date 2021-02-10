@@ -88,6 +88,6 @@ If a player wishes to un-merge the stats of one of their characters, the alias c
 
 Stats can also be manually adjusted by using the **/wgg updatestat [player] [amount]** command. This command simply adds the given [amount] to the given [player]'s stats. A negative number should be used to subtract from a player's stats.
 
-This allows the Dealer to make corrections to the stats in cases where the addon fails, or external factors affact the outcome (ie. a verbal agreement). This also allows you to transfer stats from some other location (ie. a ledger or another gambling addon) into WoWGoldGambler to easily pick up where you left off.
+This allows the Dealer to make corrections to the stats in cases where the addon fails, or external factors affect the outcome (ie. a verbal agreement). This also allows you to transfer stats from some other location (ie. a ledger or another gambling addon) into WoWGoldGambler to easily pick up where you left off.
 
 Lastly, the Dealer can remove a player entirely from the stats by using the **/wgg deletestat [player]** command. Alternatively, if the Dealer wishes to delete all stats, **/wgg resetstats** can be used. **These commands should not be used lightly, as the stats will be permanenetly deleted!**

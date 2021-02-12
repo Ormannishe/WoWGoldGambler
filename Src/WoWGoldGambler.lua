@@ -47,7 +47,13 @@ local options = {
             name = "Show UI",
             desc = "Show the WoWGoldGambler UI",
             type = "execute",
-            func = "drawUi"
+            func = "showUi"
+        },
+        hide = {
+            name = "Hide UI",
+            desc = "Hide the WoWGoldGambler UI",
+            type = "execute",
+            func = "hideUi"
         },
         sethousecut = {
             name = "Set House Cut",
@@ -133,6 +139,8 @@ function WoWGoldGambler:OnInitialize()
             house = 0
         }
     }
+
+    self:drawUi()
 end
 
 -- Slash Command Handlers --
@@ -147,7 +155,7 @@ function WoWGoldGambler:changeChannel(info)
         self.db.global.game.chatChannel = chatChannels[1]
     end
 
-    self:Print("WoWGoldGambler: New chat channel is " .. self.db.global.game.chatChannel)
+    self:Print("New chat channel is " .. self.db.global.game.chatChannel)
 end
 
 function WoWGoldGambler:changeGameMode(info)
@@ -162,7 +170,7 @@ function WoWGoldGambler:changeGameMode(info)
         self.db.global.game.mode = gameModes[1]
     end
 
-    self:Print("WoWGoldGambler: New game mode is " .. self.db.global.game.mode)
+    self:Print("New game mode is " .. self.db.global.game.mode)
 end
 
 function WoWGoldGambler:setWager(amount)
@@ -183,7 +191,7 @@ function WoWGoldGambler:setHouseCut(_, amount)
     end
 end
 
-function WoWGoldGambler:startGame(info)
+function WoWGoldGambler:startGame()
     -- Starts a new game session for registration when there is no session in progress
     if (self.session.state == gameStates[1]) then
         -- Start listening to chat messages
@@ -210,7 +218,7 @@ function WoWGoldGambler:startGame(info)
         -- Inform players of the selected Game Mode and Wager
         SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self.db.global.game.wager, self.db.global.game.chatChannel)
     else
-        self:Print("WoWGoldGambler: A game session has already been started!")
+        self:Print("A game session has already been started!")
     end
 end
 
@@ -219,7 +227,12 @@ function WoWGoldGambler:enterMe()
     SendChatMessage("1", self.db.global.game.chatChannel)
 end
 
-function WoWGoldGambler:startRolls(info)
+function WoWGoldGambler:lastCall()
+    -- Post a message to the chat channel informing players that registration is about to end
+    SendChatMessage("Last call to join!", self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:startRolls()
     -- Ends the registration phase of the currently running session and begins the rolling phase
     if (self.session.state == gameStates[2]) then
         -- At least two players are required to play
@@ -258,11 +271,11 @@ function WoWGoldGambler:startRolls(info)
             SendChatMessage(playersToRoll[i] .. " still needs to roll!" , self.db.global.game.chatChannel)
         end
     else
-        self:Print("WoWGoldGambler: Player registration must be done before rolling can start!")
+        self:Print("Player registration must be done before rolling can start!")
     end
 end
 
-function WoWGoldGambler:rollMe(info, maxAmount, minAmount)
+function WoWGoldGambler:rollMe(maxAmount, minAmount)
     -- Automatically performs a roll between [minAmount] and [maxAmount] for the dealer.
     -- If [maxValue] or [minValue] are nil, they are defaulted to appropriate values for the game mode
     if (maxAmount == nil) then
@@ -280,7 +293,7 @@ function WoWGoldGambler:rollMe(info, maxAmount, minAmount)
     RandomRoll(minAmount, maxAmount)
 end
 
-function WoWGoldGambler:cancelGame(info)
+function WoWGoldGambler:cancelGame()
     -- Terminates the currently running game session, voiding out any result
     if (self.session.state ~= gameStates[1]) then
         SendChatMessage("Game session has been canceled by " .. self.session.dealer.name , self.db.global.game.chatChannel)

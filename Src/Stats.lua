@@ -20,11 +20,11 @@ function WoWGoldGambler:joinStats(info, args)
         for i = 1, #aliases do
             -- newAlt is already an alias for someone else
             if (aliases[i] == newAlt) then
-                self:Print("WoWGoldGambler: Unjoining " .. newAlt .. " from " .. main .. " so it can be joined with " .. newMain .. " instead.")
+                self:Print("Unjoining " .. newAlt .. " from " .. main .. " so it can be joined with " .. newMain .. " instead.")
                 tremove(self.db.global.stats.aliases[main], i)
             -- newMain is already an alias for someone else
             elseif (aliases[i] == newMain) then
-                self:Print("WoWGoldGambler: Joining " .. newAlt .. " to " .. main .. " instead, as it is already joined with " .. newMain)
+                self:Print("Joining " .. newAlt .. " to " .. main .. " instead, as it is already joined with " .. newMain)
                 newMain = main
             end
         end
@@ -41,7 +41,7 @@ function WoWGoldGambler:joinStats(info, args)
     -- If newAlt previously had aliases of its own, add them as aliases for newMain before removing them for newAlt
     if (self.db.global.stats.aliases[newAlt] ~= nil) then
         for i = 1, #self.db.global.stats.aliases[newAlt] do
-            self:Print("WoWGoldGambler: Joining " .. self.db.global.stats.aliases[newAlt][i] .. " to " .. newMain .. " as it was previously joined to " .. newAlt)
+            self:Print("Joining " .. self.db.global.stats.aliases[newAlt][i] .. " to " .. newMain .. " as it was previously joined to " .. newAlt)
             tinsert(self.db.global.stats.aliases[newMain], self.db.global.stats.aliases[newAlt][i])
         end
 
@@ -98,7 +98,7 @@ function WoWGoldGambler:resetStats(info)
         player = {}
     }
 
-    self:Print("WoWGoldGambler: Stats have been reset!")
+    self:Print("Stats have been reset!")
 end
 
 -- Implementation --

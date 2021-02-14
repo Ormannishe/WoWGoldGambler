@@ -125,7 +125,44 @@ function WoWGoldGambler:OnInitialize()
     self:drawUi()
 end
 
--- Slash Command Handlers --
+-- Event Handlers --
+
+function WoWGoldGambler:handleChatMessage(_, text, playerName)
+    -- Parses chat messages recieved by one of the chat Event Listeners to record player registration
+    if (self.session.state == gameStates[2]) then
+        local playerName, playerRealm = strsplit("-", playerName)
+
+        -- All game modes except roulette use the same registration rules
+        if (self.db.global.game.mode == gameModes[3]) then
+            self:rouletteRegister(text, playerName, playerRealm)
+        else
+            self:classicRegister(text, playerName, playerRealm)
+        end
+    end
+end
+
+function WoWGoldGambler:handleSystemMessage(_, text)
+    -- Parses system messages recieved by the Event Listener to find and record player rolls
+    local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
+
+    -- Perform game mode specific tasks for recording player rolls
+    if (self.db.global.game.mode == gameModes[1]) then
+        self:classicRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[2]) then
+        self:coinflipRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[3]) then
+        self:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[4]) then
+        self:priceIsRightRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    end
+
+    -- If all registered players have rolled, calculate the result
+    if (#self:checkPlayerRolls() == 0) then
+        self:calculateResult()
+    end
+end
+
+-- Implementation --
 
 function WoWGoldGambler:changeChannel(direction)
     -- Increment or decrement (determined by [direction]) the chat channel to be used by the addon
@@ -313,45 +350,6 @@ function WoWGoldGambler:cancelGame()
         self:endGame()
     end
 end
-
--- Event Handlers --
-
-function WoWGoldGambler:handleChatMessage(_, text, playerName)
-    -- Parses chat messages recieved by one of the chat Event Listeners to record player registration
-    if (self.session.state == gameStates[2]) then
-        local playerName, playerRealm = strsplit("-", playerName)
-
-        -- All game modes except roulette use the same registration rules
-        if (self.db.global.game.mode == gameModes[3]) then
-            self:rouletteRegister(text, playerName, playerRealm)
-        else
-            self:classicRegister(text, playerName, playerRealm)
-        end
-    end
-end
-
-function WoWGoldGambler:handleSystemMessage(_, text)
-    -- Parses system messages recieved by the Event Listener to find and record player rolls
-    local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
-
-    -- Perform game mode specific tasks for recording player rolls
-    if (self.db.global.game.mode == gameModes[1]) then
-        self:classicRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-    elseif (self.db.global.game.mode == gameModes[2]) then
-        self:coinflipRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-    elseif (self.db.global.game.mode == gameModes[3]) then
-        self:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-    elseif (self.db.global.game.mode == gameModes[4]) then
-        self:priceIsRightRecordRoll(playerName, actualRoll, minRoll, maxRoll)
-    end
-
-    -- If all registered players have rolled, calculate the result
-    if (#self:checkPlayerRolls() == 0) then
-        self:calculateResult()
-    end
-end
-
--- Game-End Functionality --
 
 function WoWGoldGambler:calculateResult()
     -- Calculates the winners and losers of a session and the amount owed

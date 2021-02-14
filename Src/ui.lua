@@ -24,7 +24,7 @@ local channelLeftButton
 local channelRightButton
 local houseCutEditBox
 
--- Public Functions
+-- Public Functions --
 
 function WoWGoldGambler:showUi(info)
     -- Show the WGG UI if it is not already visible
@@ -147,7 +147,7 @@ function WoWGoldGambler:drawUi()
     houseCutEditBox:Hide()
 end
 
--- Implementation Functions
+-- Implementation Functions --
 
 function WoWGoldGambler:openOptionsTab()
     -- Expands the size of the main container and shows the options menu
@@ -177,7 +177,7 @@ function WoWGoldGambler:closeOptionsTab()
     houseCutEditBox:Hide()
 end
 
--- Custom Widgets
+-- Custom Widgets --
 
 function WoWGoldGambler:createFrameWidget(parent)
     -- Creates the base frame for the WGG UI. Includes a header with the name and version of the addon.

@@ -55,24 +55,6 @@ local options = {
             type = "execute",
             func = "hideUi"
         },
-        sethousecut = {
-            name = "Set House Cut",
-            desc = "[amount] - Set the percentage (0% - 100%) of winnings taken by the house (ie. guild).",
-            type = "input",
-            func = "setHouseCut"
-        },
-        changechannel = {
-            name = "Change Channel",
-            desc = "Change the chat channel used by the addon",
-            type = "execute",
-            func = "changeChannel"
-        },
-        changemode = {
-            name = "Change Game Mode",
-            desc = "Change the game mode",
-            type = "execute",
-            func = "changeGameMode"
-        },
         allstats = {
             name = "All Stats",
             desc = "Output all-time player stats to the chat channel",
@@ -145,32 +127,62 @@ end
 
 -- Slash Command Handlers --
 
-function WoWGoldGambler:changeChannel(info)
-    -- Increment the chat channel to be used by the addon
-    if (self.db.global.game.chatChannel == chatChannels[1]) then
-        self.db.global.game.chatChannel = chatChannels[2]
-    elseif (self.db.global.game.chatChannel == chatChannels[2]) then
-        self.db.global.game.chatChannel = chatChannels[3]
+function WoWGoldGambler:changeChannel(direction)
+    -- Increment or decrement (determined by [direction]) the chat channel to be used by the addon
+    local channelIndex
+
+    for i = 1, #chatChannels do
+        if (self.db.global.game.chatChannel == chatChannels[i]) then
+            channelIndex = i
+        end
+    end
+
+    if (channelIndex ~= nil) then
+        if (direction == "prev") then
+            if (channelIndex == 1) then
+                self.db.global.game.chatChannel = chatChannels[#chatChannels]
+            else
+                self.db.global.game.chatChannel = chatChannels[channelIndex - 1]
+            end
+        elseif (direction == "next") then
+            if (channelIndex == #chatChannels) then
+                self.db.global.game.chatChannel = chatChannels[1]
+            else
+                self.db.global.game.chatChannel = chatChannels[channelIndex + 1]
+            end
+        end
     else
         self.db.global.game.chatChannel = chatChannels[1]
     end
-
-    self:Print("New chat channel is " .. self.db.global.game.chatChannel)
 end
 
-function WoWGoldGambler:changeGameMode(info)
-    -- Increment the game mode to be used by the addon
-    if (self.db.global.game.mode == gameModes[1]) then
-        self.db.global.game.mode = gameModes[2]
-    elseif (self.db.global.game.mode == gameModes[2]) then
-        self.db.global.game.mode = gameModes[3]
-    elseif (self.db.global.game.mode == gameModes[3]) then
-        self.db.global.game.mode = gameModes[4]
+function WoWGoldGambler:changeGameMode(direction)
+    -- Increment or decrement (determined by [direction]) the game mode to be used by the addon
+    local modeIndex
+
+    for i = 1, #gameModes do
+        if (self.db.global.game.mode == gameModes[i]) then
+            modeIndex = i
+        end
+    end
+
+    if (modeIndex ~= nil) then
+        if (direction == "prev") then
+            if (modeIndex == 1) then
+                self.db.global.game.mode = gameModes[#gameModes]
+            else
+                self.db.global.game.mode = gameModes[modeIndex - 1]
+            end
+        elseif (direction == "next") then
+            if (modeIndex == #gameModes) then
+                self.db.global.game.mode = gameModes[1]
+            else
+                self.db.global.game.mode = gameModes[modeIndex + 1]
+            end
+        end
     else
         self.db.global.game.mode = gameModes[1]
     end
-
-    self:Print("New game mode is " .. self.db.global.game.mode)
 end
 
 function WoWGoldGambler:setWager(amount)
@@ -182,7 +194,7 @@ function WoWGoldGambler:setWager(amount)
     end
 end
 
-function WoWGoldGambler:setHouseCut(_, amount)
+function WoWGoldGambler:setHouseCut(amount)
     -- Sets the house cut to the given [amount]. The house cut is a percentage, so amount must be a number between 0 and 100
     amount = tonumber(amount)
 

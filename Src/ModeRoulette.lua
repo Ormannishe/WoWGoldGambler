@@ -18,7 +18,7 @@ end
 function WoWGoldGambler:rouletteStartRolls()
     -- Informs players that the registration phase has ended. Performs a /roll 36 to determine the winning number
     SendChatMessage("Registration has ended. Spinning the wheel...", self.db.global.game.chatChannel)
-    self:rollMe(nil, 36)
+    self:rollMe(36)
 end
 
 function WoWGoldGambler:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)

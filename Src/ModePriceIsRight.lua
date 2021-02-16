@@ -3,7 +3,7 @@
 function WoWGoldGambler:priceIsRightStartRolls()
     -- Informs players that the registration phase has ended. Performs a /roll of the wager amount to set the 'price'
     SendChatMessage("Registration has ended. All players /roll whatever amount you want now!" , self.db.global.game.chatChannel)
-    self:rollMe(nil, self.db.global.game.wager)
+    self:rollMe(self.db.global.game.wager)
 end
 
 function WoWGoldGambler:priceIsRightRecordRoll(playerName, actualRoll, minRoll, maxRoll)

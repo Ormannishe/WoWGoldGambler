@@ -123,6 +123,7 @@ function WoWGoldGambler:OnInitialize()
     }
 
     self:drawUi()
+    self:updateUi(self.session.state, gameStates)
 end
 
 -- Event Handlers --
@@ -266,6 +267,9 @@ function WoWGoldGambler:startGame()
 
         -- Inform players of the selected Game Mode and Wager
         SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self.db.global.game.wager, self.db.global.game.chatChannel)
+
+        -- Update UI Widgets
+        self:updateUi(self.session.state, gameStates)
     else
         self:Print("A game session has already been started!")
     end
@@ -309,6 +313,9 @@ function WoWGoldGambler:startRolls()
             elseif (self.db.global.game.mode == gameModes[4]) then
                 self:priceIsRightStartRolls()
             end
+
+            -- Update UI Widgets
+            self:updateUi(self.session.state, gameStates)
         else
             SendChatMessage("Not enough players have registered to play!" , self.db.global.game.chatChannel)
         end
@@ -471,6 +478,9 @@ function WoWGoldGambler:endGame()
     self.session.players = {}
     self.session.result = nil
     self.session.dealer.roll = nil
+
+    -- Update UI Widgets
+    self:updateUi(self.session.state, gameStates)
 end
 
 -- Helper Functions --

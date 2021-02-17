@@ -44,6 +44,13 @@ function WoWGoldGambler:enableWidget(widget)
     -- Enables the given widget if it is currently disabled
     if (widget:IsEnabled() ~= true) then
         widget:Enable()
+
+        if (widget:GetObjectType() == "Button") then
+            widget:SetBackdropColor(1, 0, 34 / 255, 1)
+            widget.label:SetTextColor(1, 229 / 255, 153 / 255)
+        elseif (widget:GetObjectType() == "EditBox") then
+            widget:SetTextColor(1, 1, 1)
+        end
     end
 end
 
@@ -53,7 +60,8 @@ function WoWGoldGambler:disableWidget(widget)
         widget:Disable()
 
         if (widget:GetObjectType() == "Button") then
-            self:Print("Button!")
+            widget:SetBackdropColor(117 / 255, 31 / 255, 42 / 255)
+            widget.label:SetTextColor(0.4, 0.4, 0.4)
         elseif (widget:GetObjectType() == "EditBox") then
             widget:SetTextColor(0.5, 0.5, 0.5)
         end
@@ -145,6 +153,41 @@ function WoWGoldGambler:drawUi()
     houseCutEditBox:SetNumeric(true)
     houseCutEditBox:SetMaxLetters(2)
     houseCutEditBox:Hide()
+end
+
+function WoWGoldGambler:updateUi(currentState, gameStates)
+    -- Enables or disables widgets to align with what the user should be able to do in the given game state
+    self:disableWidget(wagerEditBox)
+    self:disableWidget(startGameButton)
+    self:disableWidget(joinGameButton)
+    self:disableWidget(lastCallButton)
+    self:disableWidget(rollForMeButton)
+    self:disableWidget(startRollButton)
+    self:disableWidget(cancelGameButton)
+    self:disableWidget(gameModeLeftButton)
+    self:disableWidget(gameModeRightButton)
+    self:disableWidget(channelLeftButton)
+    self:disableWidget(channelRightButton)
+    self:disableWidget(houseCutEditBox)
+
+    if (currentState == gameStates[1]) then
+        self:enableWidget(wagerEditBox)
+        self:enableWidget(startGameButton)
+        self:enableWidget(gameModeLeftButton)
+        self:enableWidget(gameModeRightButton)
+        self:enableWidget(channelLeftButton)
+        self:enableWidget(channelRightButton)
+        self:enableWidget(houseCutEditBox)
+    elseif (currentState == gameStates[2]) then
+        self:enableWidget(joinGameButton)
+        self:enableWidget(lastCallButton)
+        self:enableWidget(startRollButton)
+        self:enableWidget(cancelGameButton)
+    elseif (currentState == gameStates[3]) then
+        self:enableWidget(rollForMeButton)
+        self:enableWidget(startRollButton)
+        self:enableWidget(cancelGameButton)
+    end
 end
 
 -- Implementation Functions --
@@ -265,6 +308,16 @@ function WoWGoldGambler:createButtonWidget(parent, text, size)
     widget:SetBackdrop(backdrop)
     widget:SetBackdropBorderColor(0, 0, 0, 0.8)
     widget:SetBackdropColor(1, 0, 34 / 255, 1)
+    widget:SetScript("OnEnter", function()
+        if (widget:IsEnabled()) then
+            widget:SetBackdropColor(1, 77 / 255, 100 / 255, 1)
+        end
+    end)
+    widget:SetScript("OnLeave", function()
+        if (widget:IsEnabled()) then
+            widget:SetBackdropColor(1, 0, 34 / 255, 1)
+        end
+    end)
 
     widget.label = widget:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     widget.label:SetPoint("TOP", widget, "TOP", 0, -6)

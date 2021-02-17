@@ -527,6 +527,7 @@ function WoWGoldGambler:unregisterPlayer(playerName, playerRealm)
     for i = 1, #self.session.players do
         if (self.session.players[i].name == playerName and self.session.players[i].realm == playerRealm) then
             tremove(self.session.players, i)
+            return
         end
     end
 end

@@ -30,45 +30,42 @@ function WoWGoldGambler:priceIsRightCalculateResult()
     -- Winner: The player(s) who rolled closest to the price without going over
     -- Loser: The player(s) who's roll was furthest from the price (either over or under)
     -- Payment Amount: The absolute difference between the price and the losing player's roll
-    local winners = {self.session.players[1]}
-    local losers = {self.session.players[1]}
-    local biggestDiff = math.abs(self.session.dealer.roll - self.session.players[1].roll)
+    local winners = {}
+    local losers = {}
+    local smallestDiff = self.db.global.game.wager
+    local biggestDiff = 0
 
-    for i = 2, #self.session.players do
-        -- Roll was lower than or equal to the price
-        if (self.session.players[i].roll <= self.session.dealer.roll) then
-            -- New Winner
-            if (self.session.players[i].roll > winners[1].roll) then
-                winners = {self.session.players[i]}
-            -- New Loser
-            elseif (self.session.dealer.roll - self.session.players[i].roll > biggestDiff) then
-                losers = {self.session.players[i]}
-                biggestDiff = self.session.dealer.roll - self.session.players[i].roll
-            else
-                -- Handle ties. Due to the way we initialize the winners/losers, it's possible for both of these to be true
-                if (self.session.players[i].roll == winners[1].roll) then
-                    tinsert(winners, self.session.players[i])
-                end
-            
-                if (self.session.dealer.roll - self.session.players[i].roll == biggestDiff) then
-                    tinsert(losers, self.session.players[i])
-                end
-            end
-        -- Roll was higher than the price
-        else
-            -- New Loser
-            if (self.session.players[i].roll - self.session.dealer.roll > biggestDiff) then
-                losers = {self.session.players[i]}
-                biggestDiff = self.session.players[i].roll - self.session.dealer.roll
-            -- Tied Loser
-            elseif (self.session.players[i].roll - self.session.dealer.roll == biggestDiff) then
-                tinsert(losers, self.session.players[i])
-            end
+    for i = 1, #self.session.players do
+        local playerRoll = self.session.players[i].roll
+        local playerDiff = math.abs(playerRoll - self.session.dealer.roll)
+
+        -- Tied Winner
+        if (playerDiff == smallestDiff and playerRoll <= self.session.dealer.roll) then
+            tinsert(winners, self.session.players[i])
+        end
+
+        -- New Winner
+        if (playerDiff < smallestDiff and playerRoll <= self.session.dealer.roll) then
+            winners = {self.session.players[i]}
+            smallestDiff = playerDiff
+        end
+
+        -- Tied Loser
+        if (playerDiff == biggestDiff) then
+            tinsert(losers, self.session.players[i])
+        end
+
+        -- New Loser
+        if (playerDiff > biggestDiff) then
+            losers = {self.session.players[i]}
+            biggestDiff = playerDiff
         end
     end
 
-    -- In a scenario where all players tie, it's possible to run in to this edge case. Void out the losers as everyone tied.
-    if (winners[1].name == losers[1].name) then
+    -- In a scenario where all players tie, it's possible to run in to this edge case. Void out the losers so the round can end in a draw.
+    if (#winners > 0 and
+        #losers > 0 and
+        winners[1].name == losers[1].name) then
         losers = {}
     end
 

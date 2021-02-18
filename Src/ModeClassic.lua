@@ -50,13 +50,14 @@ function WoWGoldGambler:classicCalculateResult()
             if (self.session.players[i].roll == losers[1].roll) then
                 tinsert(losers, self.session.players[i])
             end
+
             if (self.session.players[i].roll == winners[1].roll) then
                 tinsert(winners, self.session.players[i])
             end
         end
     end
 
-    -- In a scenario where all players tie, it's possible to run in to this edge case. Void out the losers as everyone tied.
+    -- In a scenario where all players tie, it's possible to run in to this edge case. Void out the losers so the round can end in a draw.
     if (winners[1].name == losers[1].name) then
         losers = {}
     else

@@ -275,9 +275,16 @@ function WoWGoldGambler:startGame()
     end
 end
 
-function WoWGoldGambler:enterMe()
-    -- Post a '1' in the chat channel for the dealer to register for a game
-    SendChatMessage("1", self.db.global.game.chatChannel)
+function WoWGoldGambler:enterMe(leaveFlag)
+    -- Post a '1' in the chat channel for the dealer to register for a game.
+    -- If [leaveFlag] is given, post a '-1' to the chat instead to unregister for the game.
+    local message = "1"
+
+    if (leaveFlag) then
+        message = "-1"
+    end
+
+    SendChatMessage(message, self.db.global.game.chatChannel)
 end
 
 function WoWGoldGambler:lastCall()

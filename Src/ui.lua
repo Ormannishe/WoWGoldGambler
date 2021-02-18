@@ -83,11 +83,22 @@ function WoWGoldGambler:drawUi()
 	startGameButton:SetPoint("TOPLEFT", wagerEditBox, "TOPLEFT", 0, -35)
 
     joinGameButton = self:createButtonWidget(container, "Join Game", "large")
-    joinGameButton:SetScript("OnClick", function() self:enterMe() end)
+    joinGameButton:SetScript("OnClick", function()
+        if (joinGameButton.label:GetText() == "Join Game") then
+            self:enterMe()
+            joinGameButton.label:SetText("Leave Game")
+        elseif (joinGameButton.label:GetText() == "Leave Game") then
+            self:enterMe(true)
+            joinGameButton.label:SetText("Join Game")
+        end
+    end)
 	joinGameButton:SetPoint("TOPLEFT", wagerEditBox, "TOPRIGHT", -125, -35)
 
     lastCallButton = self:createButtonWidget(container, "Last Call", "large")
-    lastCallButton:SetScript("OnClick", function() self:lastCall() end)
+    lastCallButton:SetScript("OnClick", function()
+        self:lastCall()
+        self:disableWidget(lastCallButton)
+    end)
 	lastCallButton:SetPoint("TOPLEFT", startGameButton, "TOPLEFT", 0, -30)
 
     rollForMeButton = self:createButtonWidget(container, "Roll For Me", "large")
@@ -178,6 +189,7 @@ function WoWGoldGambler:updateUi(currentState, gameStates)
         self:enableWidget(channelLeftButton)
         self:enableWidget(channelRightButton)
         self:enableWidget(houseCutEditBox)
+        joinGameButton.label:SetText("Join Game")
     elseif (currentState == gameStates[2]) then
         self:enableWidget(joinGameButton)
         self:enableWidget(lastCallButton)

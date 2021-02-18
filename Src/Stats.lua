@@ -47,6 +47,8 @@ function WoWGoldGambler:joinStats(info, args)
 
         self.db.global.stats.aliases[newAlt] = nil
     end
+
+    self:Print("Successfully joined [main] " .. newMain .. " and [alt] " .. newAlt .. ".")
 end
 
 function WoWGoldGambler:unjoinStats(info, player)
@@ -54,13 +56,36 @@ function WoWGoldGambler:unjoinStats(info, player)
     for main, aliases in pairs(self.db.global.stats.aliases) do
         if (main == player) then
             self.db.global.stats.aliases[main] = nil
+            self:Print("Successfully unjoined " .. player .. " from all aliases.")
         else
             for i = 1, #aliases do
                 if (aliases[i] == player) then
                     tremove(self.db.global.stats.aliases[main], i)
+
+                    -- If this was the only alias for the main, remove it from the alias list
+                    if (#self.db.global.stats.aliases[main] == 0) then
+                        self.db.global.stats.aliases[main] = nil
+                    end
+
+                    self:Print("Successfully unjoined " .. player .. " from " .. main .. ".")
+
+                    return
                 end
             end
         end
+    end
+end
+
+function WoWGoldGambler:listAliases(info)
+    -- Prints out the list of all aliases to the user
+    for main, aliases in pairs(self.db.global.stats.aliases) do
+        local nameString = aliases[1]
+
+        for i = 2, #aliases do
+            nameString = nameString .. ", " .. aliases[i]    
+        end
+
+        self:Print("[main] " .. main .. " is merged with [alts] " .. nameString)
     end
 end
 
@@ -71,8 +96,17 @@ function WoWGoldGambler:updateStat(info, args)
 
     amount = tonumber(amount)
 
-    if (amount ~= nil) then
+    if (player ~= nil and amount ~= nil) then
+        local oldAmount = self.db.global.stats.player[player]
+
+        if (oldAmount == nil) then
+            oldAmount = 0
+        end
+
         self:updatePlayerStat(player, amount)
+        self:Print("Successfully updated stats for " .. player .. " (" .. oldAmount .. " -> " .. self.db.global.stats.player[player] .. ")")
+    else
+        self:Print("Could not add given amount (" .. tostring(amount) .. ") to " .. tostring(player) .. "'s stats due to invalid input.")
     end
 end
 
@@ -85,6 +119,8 @@ function WoWGoldGambler:deleteStat(info, player)
     if (self.session.stats.player[player] ~= nil) then
         self.session.stats.player[player] = nil
     end
+
+    self:Print("Successfully removed stats for " .. player .. ".")
 end
 
 function WoWGoldGambler:resetStats(info)
@@ -105,8 +141,6 @@ end
 
 function WoWGoldGambler:updatePlayerStat(playerName, amount)
     -- Update a given player's stats by adding the given amount
-    local oldAmount
-
     if (self.db.global.stats.player[playerName] == nil) then
         self.db.global.stats.player[playerName] = 0
     end
@@ -115,12 +149,8 @@ function WoWGoldGambler:updatePlayerStat(playerName, amount)
         self.session.stats.player[playerName] = 0
     end
 
-    oldAmount = self.db.global.stats.player[playerName]
-
     self.db.global.stats.player[playerName] = self.db.global.stats.player[playerName] + amount
     self.session.stats.player[playerName] = self.session.stats.player[playerName] + amount
-
-    self:Print("Successfully updated stats for " .. playerName .. " (" .. oldAmount .. " -> " .. self.db.global.stats.player[playerName])
 end
 
 function WoWGoldGambler:reportStats(sessionFlag)

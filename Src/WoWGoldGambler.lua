@@ -88,6 +88,12 @@ local options = {
             type = "input",
             set = "unjoinStats"
         },
+        listaliases = {
+            name = "List Aliases",
+            desc = "See the list of all defined aliases (ie. joined stats)",
+            type = "execute",
+            func = "listAliases"
+        },
         updatestat = {
             name = "Update Stat",
             desc = "[player] [amount] - Add [amount] to [player]'s stats (use negative numbers to subtract)",

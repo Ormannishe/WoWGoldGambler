@@ -105,6 +105,8 @@ end
 
 function WoWGoldGambler:updatePlayerStat(playerName, amount)
     -- Update a given player's stats by adding the given amount
+    local oldAmount
+
     if (self.db.global.stats.player[playerName] == nil) then
         self.db.global.stats.player[playerName] = 0
     end
@@ -113,8 +115,12 @@ function WoWGoldGambler:updatePlayerStat(playerName, amount)
         self.session.stats.player[playerName] = 0
     end
 
+    oldAmount = self.db.global.stats.player[playerName]
+
     self.db.global.stats.player[playerName] = self.db.global.stats.player[playerName] + amount
     self.session.stats.player[playerName] = self.session.stats.player[playerName] + amount
+
+    self:Print("Successfully updated stats for " .. playerName .. " (" .. oldAmount .. " -> " .. self.db.global.stats.player[playerName])
 end
 
 function WoWGoldGambler:reportStats(sessionFlag)

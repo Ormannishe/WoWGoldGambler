@@ -23,6 +23,9 @@ local chatChannels = {
 -- Defaults for the DB
 local defaults = {
     global = {
+        dealer = {
+            rouletteNumber = 36
+        },
         game = {
             mode = gameModes[1],
             wager = 1000,
@@ -54,6 +57,12 @@ local options = {
             desc = "Hide the WoWGoldGambler UI",
             type = "execute",
             func = "hideUi"
+        },
+        setroulettenumber = {
+            name = "Set Roulette Number",
+            desc = "[number] - Sets your default roulette number to [number] (must be between 1 and 36).",
+            type = "input",
+            set = "setRouletteNumber"
         },
         allstats = {
             name = "All Stats",
@@ -241,6 +250,19 @@ function WoWGoldGambler:setHouseCut(amount)
     end
 end
 
+function WoWGoldGambler:setRouletteNumber(info, rouletteNumber)
+    -- Sets the Dealer's default roulette number to [number] if it is between 1 and 36
+    -- This number will be used to register the dealer for Roulette games
+    local rouletteNumber = tonumber(rouletteNumber)
+
+    if (rouletteNumber ~= nil and rouletteNumber > 0 and rouletteNumber < 37) then
+        self.db.global.dealer.rouletteNumber = rouletteNumber
+        self:Print("Your default roulette number is now " .. rouletteNumber .. ".")
+    else
+        self:Print("Default roulette number was not set due to invalid input.")
+    end
+end
+
 function WoWGoldGambler:startGame()
     -- Starts a new game session for registration when there is no session in progress
     if (self.session.state == gameStates[1]) then
@@ -282,6 +304,8 @@ function WoWGoldGambler:enterMe(leaveFlag)
 
     if (leaveFlag) then
         message = "-1"
+    elseif (self.db.global.game.mode == gameModes[3]) then
+        message = self.db.global.dealer.rouletteNumber
     end
 
     SendChatMessage(message, self.db.global.game.chatChannel)

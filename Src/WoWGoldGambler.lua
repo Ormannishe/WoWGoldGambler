@@ -294,7 +294,11 @@ function WoWGoldGambler:startGame()
         end
 
         -- Inform players of the selected Game Mode and Wager
-        SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self.db.global.game.wager, self.db.global.game.chatChannel)
+        if (self.db.global.game.houseCut == 0) then
+            SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g", self.db.global.game.chatChannel)
+        else
+            SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g - House Cut - " .. self.db.global.game.houseCut .. "%", self.db.global.game.chatChannel)
+        end
 
         -- Update UI Widgets
         self:updateUi(self.session.state, gameStates)
@@ -486,11 +490,11 @@ function WoWGoldGambler:endGame()
 
             -- Notify players of the results and update player/house stats
             for i = 1, #self.session.result.losers do
-                SendChatMessage(self.session.result.losers[i].name .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self.session.result.amountOwed .. " gold!" , self.db.global.game.chatChannel)
+                SendChatMessage(self.session.result.losers[i].name .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self:formatInt(self.session.result.amountOwed) .. " gold!" , self.db.global.game.chatChannel)
                 self:updatePlayerStat(self.session.result.losers[i].name, self.session.result.amountOwed * -1)
 
                 if (self.db.global.game.houseCut > 0) then
-                    SendChatMessage(self.session.result.losers[i].name .. " owes the guild bank " .. houseAmount .. " gold!" , self.db.global.game.chatChannel)
+                    SendChatMessage(self.session.result.losers[i].name .. " owes the guild bank " .. self:formatInt(houseAmount) .. " gold!" , self.db.global.game.chatChannel)
                     self.db.global.stats.house = self.db.global.stats.house + houseAmount
                     self.session.stats.house = self.session.stats.house + houseAmount
                 end
@@ -581,3 +585,12 @@ function WoWGoldGambler:checkPlayerRolls()
 
     return playersToRoll
 end
+
+function WoWGoldGambler:formatInt(number)
+    -- Formats a given [number], returning it as a string with comma separators between digits
+    local i, j, minus, int, fraction = tostring(number):find('([-]?)(%d+)([.]?%d*)')
+
+    int = int:reverse():gsub("(%d%d%d)", "%1,")
+
+    return minus .. int:reverse():gsub("^,", "") .. fraction
+  end

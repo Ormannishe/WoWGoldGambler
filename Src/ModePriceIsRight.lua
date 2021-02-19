@@ -13,7 +13,7 @@ function WoWGoldGambler:priceIsRightRecordRoll(playerName, actualRoll, minRoll, 
         if (self.session.dealer.roll == nil) then
             if (playerName == self.session.dealer.name and tonumber(maxRoll) == self.db.global.game.wager) then
                 self.session.dealer.roll = tonumber(actualRoll)
-                SendChatMessage("The price is " .. self.session.dealer.roll .. "! Be careful not to go over!" , self.db.global.game.chatChannel)
+                SendChatMessage("The price is " .. self:formatInt(self.session.dealer.roll) .. "! Be careful not to go over!" , self.db.global.game.chatChannel)
             end
         else
             for i = 1, #self.session.players do
@@ -79,8 +79,8 @@ end
 function WoWGoldGambler:priceIsRightDetectTie()
     -- Output a message to the chat channel informing players of a tie (and which end the tie is on)
     if (#self.session.result.winners > 1) then
-        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self.session.dealer.roll .. "!", self.db.global.game.chatChannel)
+        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.session.dealer.roll) .. "!", self.db.global.game.chatChannel)
     elseif (#self.session.result.losers > 1) then
-        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self.session.dealer.roll .. "!", self.db.global.game.chatChannel)
+        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.session.dealer.roll) .. "!", self.db.global.game.chatChannel)
     end
 end

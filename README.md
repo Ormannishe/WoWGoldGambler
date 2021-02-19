@@ -26,19 +26,19 @@ The Wager Amount can be set using the 'Wager Amount' textbox in WoWGoldGambler U
 
 ##### Game Mode
 
-To change the Game Mode, the Dealer must first click the 'Options' button in the bottom right of the WoWGoldGambler UI. This will reveal additional options to the Dealer. They can select their desired Game Mode using the '<' and '>' buttons to cycle through options in the 'Game Mode' texbox.
+To change the Game Mode, the Dealer must first click the 'Options' button in the bottom right of the WoWGoldGambler UI. This will reveal additional options to the Dealer. They can select their desired Game Mode using the '<' and '>' buttons to cycle through options in the 'Game Mode' textbox.
 
 ##### Chat Channel
 
-WoWGoldGambler can be played in either Party, Guild or Raid chat. When using Guild chat, it should be noted that the Blizzard API for Guild chat does not guarantee message order (this can effect WoWGoldGambler output).
+WoWGoldGambler can be played in either Party, Guild or Raid chat. When using Guild chat, it should be noted that the Blizzard API for Guild chat does not guarantee message order (this can affect WoWGoldGambler output).
 
-To change the Chat Channel, the Dealer must first click the 'Options' button in the bottom right of the WoWGoldGambler UI. This will reveal additional options to the Dealer. They can select the Chat Channel they wish to play in using the '<' and '>' buttons to cycle through options in the 'Chat Channel' texbox.
+To change the Chat Channel, the Dealer must first click the 'Options' button in the bottom right of the WoWGoldGambler UI. This will reveal additional options to the Dealer. They can select the Chat Channel they wish to play in using the '<' and '>' buttons to cycle through options in the 'Chat Channel' textbox.
 
 ##### House Cut
 
 WoWGoldGambler can be configured to pay out a given percentage of winnings to the 'house' (ie. the guild bank). This can be a useful way of injecting gold into the guild bank at the end of a long, repair-heavy raid night!
 
-To set a House Cut, the Dealer must first click the 'Options' button in the bottom right of the WoWGoldGambler UI. This will reveal additional options to the Dealer. They can then enter an amount between 0 and 100 into the 'House Cut' texbox.
+To set a House Cut, the Dealer must first click the 'Options' button in the bottom right of the WoWGoldGambler UI. This will reveal additional options to the Dealer. They can then enter an amount between 0 and 100 into the 'House Cut' textbox.
 
 ## Game Modes
 
@@ -60,7 +60,7 @@ Coinflip is a tournament-style Game Mode resolved through multiple tie-breaker r
 
 Players in the Winner's Bracket will then /roll 2 again. Players who again roll a 2 get to stay in the Winner's Bracket, meanwhile players who roll a 1 are disqualified. If all players roll a 1, they all stay in the Winner's Bracket. Tie-breaker rolls are continued until only one winner remains.
 
-Once a winner is determined, players in the Loser's Bracket will also have to /roll 2. Players who roll a 1 stay in the Loser's Bracket, meanwhile players who roll a 2 are removed from the it. If all players roll a 2, they all stay in the Loser's Bracket. Tie-breaker rolls are continued until only one loser remains.
+Once a winner is determined, players in the Loser's Bracket will also have to /roll 2. Players who roll a 1 stay in the Loser's Bracket, meanwhile players who roll a 2 are removed from it. If all players roll a 2, they all stay in the Loser's Bracket. Tie-breaker rolls are continued until only one loser remains.
 
 **Winner**: The player who rolled the most 2's
 
@@ -80,9 +80,9 @@ There are no tie-breaker rounds in Roulette. In the case of a tie, all winners w
 
 If no player guessed the Dealer roll correctly, the round is a draw (nobody wins or loses).
 
-**Winner**: The player(s) who's entry number was rolled by the Dealer
+**Winner**: The player(s) whose entry number was rolled by the Dealer
 
-**Loser**: **ALL** players who's entry number was not rolled by the Dealer
+**Loser**: **ALL** players whose entry number was not rolled by the Dealer
 
 **Payment Amount**: The wager amount
 
@@ -94,9 +94,9 @@ When the rolling phase of the game session begins, WoWGoldGambler will automatic
 
 All players can then /roll any amount they want with the goal of rolling as close to the 'price' as possible, without going over.
 
-**Winner**: The player who's roll was closest to the Dealer's roll while not being larger than the Dealer's roll
+**Winner**: The player whose roll was closest to the Dealer's roll while not being larger than the Dealer's roll
 
-**Loser**: The player who's roll was furthest from the Dealer's roll (in either direction - under or over)
+**Loser**: The player whose roll was furthest from the Dealer's roll (in either direction - under or over)
 
 **Payment Amount**: The difference between the loser's roll and the Dealer's roll
 
@@ -104,17 +104,17 @@ All players can then /roll any amount they want with the goal of rolling as clos
 
 ### Stat Tracking
 
-WoWGoldGambler keeps track of winnings and losings from all game sessions to see who the real winners and losers are. All-time stats can be posted to the chat channel using the **/wgg allstats** command, and session stats (winnings/losses since the Dealer last logged in) can be shared with the **/wgg stats** command. The amount of gold taken by the house (via configuring a House Cut amount) is also tracked alongside player stats.
+WoWGoldGambler keeps track of winnings and losses from all game sessions to see who the real winners and losers are. All-time stats can be posted to the chat channel using the **/wgg allstats** command, and session stats (winnings/losses since the Dealer last logged in) can be shared with the **/wgg stats** command. The amount of gold taken by the house (via configuring a House Cut amount) is also tracked alongside player stats.
 
 The Dealer can also record a list of aliases for players who participate on multiple characters using the **/wgg joinstats [main] [alt]** command. When this is done, stats for [alt] will be reported together under the name of [main]. A [main] can have multiple aliases, so players can play on any number of alts and have all of their stats tracked together. The Dealer can view a list of all configured aliases using the **/wgg listaliases** command.
 
-If a player wishes to un-merge the stats of one of their characters, the alias can be removed with the **/wgg unjoinstats [player]** command.
+If a player wishes to unmerge the stats of one of their characters, the alias can be removed with the **/wgg unjoinstats [player]** command.
 
 Stats can also be manually adjusted by using the **/wgg updatestat [player] [amount]** command. This command simply adds the given [amount] to the given [player]'s stats. A negative number should be used to subtract from a player's stats.
 
 This allows the Dealer to make corrections to the stats in cases where the addon fails, or external factors affect the outcome (ie. a verbal agreement). This also allows you to transfer stats from some other location (ie. a ledger or another gambling addon) into WoWGoldGambler to easily pick up where you left off.
 
-Lastly, the Dealer can remove a player entirely from the stats by using the **/wgg deletestat [player]** command. Alternatively, if the Dealer wishes to delete all stats, **/wgg resetstats** can be used. **These commands should not be used lightly, as the stats will be permanenetly deleted!**
+Lastly, the Dealer can remove a player entirely from the stats by using the **/wgg deletestat [player]** command. Alternatively, if the Dealer wishes to delete all stats, **/wgg resetstats** can be used. **These commands should not be used lightly, as the stats will be permanently deleted!**
 
 ### Dealer Features
 
@@ -129,4 +129,5 @@ WoWGoldGambler can also automatically perform rolls for the Dealer when they cli
 ### Player Banning
 
 If a player refuses to pay their losses, or if they engage in griefing behaviour (ie. registering for a game and never rolling), the Dealer can ban them from playing using the **/wgg ban [player]** command. This will prevent the given player from being able to register for future games. To undo the ban, the Dealer can use the **/wgg unban [player]** command.
+
 

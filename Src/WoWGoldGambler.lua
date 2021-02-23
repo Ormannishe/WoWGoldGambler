@@ -37,6 +37,7 @@ local defaults = {
             aliases = {},
             house = 0
         },
+        bannedPlayers = {},
     }
 }
 
@@ -111,7 +112,25 @@ local options = {
             desc = "Permanently deletes all existing stats",
             type = "execute",
             func = "resetStats"
-        }
+        },
+        ban = {
+            name = "Ban Player",
+            desc = "[player] - Ban the given [player], preventing them from registering for games",
+            type = "input",
+            set = "banPlayer"
+        },
+        unban = {
+            name = "Unban Player",
+            desc = "[player] - Unban the given [player], allowing them to once again register for games",
+            type = "input",
+            set = "unbanPlayer"
+        },
+        listbans = {
+            name = "List Bans",
+            desc = "See a list of banned players",
+            type = "execute",
+            func = "listBans"
+        },
     }
 }
 
@@ -175,6 +194,60 @@ function WoWGoldGambler:handleSystemMessage(_, text)
     -- If all registered players have rolled, calculate the result
     if (#self:checkPlayerRolls() == 0) then
         self:calculateResult()
+    end
+end
+
+-- Slash Command Handlers --
+
+function WoWGoldGambler:setRouletteNumber(info, rouletteNumber)
+    -- Sets the Dealer's default roulette number to [number] if it is between 1 and 36
+    -- This number will be used to register the dealer for Roulette games
+    local rouletteNumber = tonumber(rouletteNumber)
+
+    if (rouletteNumber ~= nil and rouletteNumber > 0 and rouletteNumber < 37) then
+        self.db.global.dealer.rouletteNumber = rouletteNumber
+        self:Print("Your default roulette number is now " .. rouletteNumber .. ".")
+    else
+        self:Print("Default roulette number was not set due to invalid input.")
+    end
+end
+
+function WoWGoldGambler:banPlayer(info, playerName)
+    -- Adds the given [playerName] to the list of banned players if they are not already on the list
+    for i = 1, #self.db.global.bannedPlayers do
+        if (playerName == self.db.global.bannedPlayers[i]) then
+            self:Print(playerName .. " is already banned!")
+            return
+        end
+    end
+
+    tinsert(self.db.global.bannedPlayers, playerName)
+    self:Print(playerName .. " has been added to the ban list.")
+end
+
+function WoWGoldGambler:unbanPlayer(info, playerName)
+    -- Removes the given [playerName] from the list of banned players
+    for i = 1, #self.db.global.bannedPlayers do
+        if (playerName == self.db.global.bannedPlayers[i]) then
+            tremove(self.db.global.bannedPlayers, i)
+            self:Print(playerName .. " has been removed from the ban list.")
+            return
+        end
+    end
+
+    self:Print(playerName .. " is not currently banned!")
+end
+
+function WoWGoldGambler:listBans(info)
+    -- Prints out a list of all banned players to the user
+    if (#self.db.global.bannedPlayers > 0) then
+        self:Print("The following players have been banned from playing:")
+
+        for i = 1, #self.db.global.bannedPlayers do
+            self:Print(self.db.global.bannedPlayers[i])
+        end
+    else
+        self:Print("There are no players on the ban list.")
     end
 end
 
@@ -253,19 +326,6 @@ function WoWGoldGambler:setHouseCut(amount)
 
     if (amount ~= nil and amount >= 0 and amount <= 100) then
         self.db.global.game.houseCut = amount
-    end
-end
-
-function WoWGoldGambler:setRouletteNumber(info, rouletteNumber)
-    -- Sets the Dealer's default roulette number to [number] if it is between 1 and 36
-    -- This number will be used to register the dealer for Roulette games
-    local rouletteNumber = tonumber(rouletteNumber)
-
-    if (rouletteNumber ~= nil and rouletteNumber > 0 and rouletteNumber < 37) then
-        self.db.global.dealer.rouletteNumber = rouletteNumber
-        self:Print("Your default roulette number is now " .. rouletteNumber .. ".")
-    else
-        self:Print("Default roulette number was not set due to invalid input.")
     end
 end
 
@@ -553,7 +613,15 @@ function WoWGoldGambler:registerPlayer(playerName, playerRealm, playerRoll)
         end
     end
 
-    -- If the player is not already entered, create a new player entry for them
+    -- Check to make sure the player isn't banned
+    for i = 1, #self.db.global.bannedPlayers do
+        if (self.db.global.bannedPlayers[i] == playerName) then
+            SendChatMessage("Sorry " .. playerName .. ", you've been banned from playing!" , self.db.global.game.chatChannel)
+            return
+        end
+    end
+
+    -- If the player is not already entered and is not banned, create a new player entry for them
     local newPlayer = {
         name = playerName,
         realm = playerRealm,

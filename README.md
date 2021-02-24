@@ -4,7 +4,9 @@ WoWGoldGambler is a World of Warcraft addon (inspired by the [Cross Gambling](ht
 
 ## How To Play
 
-To start a game session, the Dealer (ie. the owner of the addon) simply clicks the 'Start Game' button in the WoWGoldGambler UI. Before starting a game, the Dealer should configure the game options to their liking (game options are described in the 'Game Options' section below).
+To start a game session, the Dealer (ie. the owner of the addon) must first bring up the WoWGoldGambler UI using the **/wgg show** command, or by clicking the WoWGoldGambler minimap icon. To hide the UI, the Dealer can use the **/wgg hide** command, or simply click the minimap icon once more.
+
+Before starting a game, the Dealer should configure the game options to their liking (game options are described in the 'Game Options' section below). Once configured, the Dealer should simply click the 'Start Game' button to start a new game.
 
 Once a game session is started, WoWGoldGambler will notify players of the Game Mode, Wager and House Cut amount selected by the Dealer. Players can register to play by typing '1' into the appropriate chat channel (Party, Raid, or Guild - whichever WoWGoldGambler is active in). If a player has already registered for the game and wishes to unregister, they can do so by typing '-1' in chat.
 

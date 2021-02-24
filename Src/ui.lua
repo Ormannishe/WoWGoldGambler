@@ -40,31 +40,12 @@ function WoWGoldGambler:hideUi(info)
     end
 end
 
-function WoWGoldGambler:enableWidget(widget)
-    -- Enables the given widget if it is currently disabled
-    if (widget:IsEnabled() ~= true) then
-        widget:Enable()
-
-        if (widget:GetObjectType() == "Button") then
-            widget:SetBackdropColor(1, 0, 34 / 255, 1)
-            widget.label:SetTextColor(1, 229 / 255, 153 / 255)
-        elseif (widget:GetObjectType() == "EditBox") then
-            widget:SetTextColor(1, 1, 1)
-        end
-    end
-end
-
-function WoWGoldGambler:disableWidget(widget)
-    -- Disables the given widget if it is currently enabled
-    if (widget:IsEnabled()) then
-        widget:Disable()
-
-        if (widget:GetObjectType() == "Button") then
-            widget:SetBackdropColor(117 / 255, 31 / 255, 42 / 255)
-            widget.label:SetTextColor(0.4, 0.4, 0.4)
-        elseif (widget:GetObjectType() == "EditBox") then
-            widget:SetTextColor(0.5, 0.5, 0.5)
-        end
+function WoWGoldGambler:toggleUi()
+    -- Show the WGG UI if it is not currently visible and hide it if it is
+    if (container:IsVisible()) then
+        container:Hide()
+    else
+        container:Show()
     end
 end
 
@@ -203,6 +184,34 @@ function WoWGoldGambler:updateUi(currentState, gameStates)
 end
 
 -- Implementation Functions --
+
+function WoWGoldGambler:enableWidget(widget)
+    -- Enables the given widget if it is currently disabled
+    if (widget:IsEnabled() ~= true) then
+        widget:Enable()
+
+        if (widget:GetObjectType() == "Button") then
+            widget:SetBackdropColor(1, 0, 34 / 255, 1)
+            widget.label:SetTextColor(1, 229 / 255, 153 / 255)
+        elseif (widget:GetObjectType() == "EditBox") then
+            widget:SetTextColor(1, 1, 1)
+        end
+    end
+end
+
+function WoWGoldGambler:disableWidget(widget)
+    -- Disables the given widget if it is currently enabled
+    if (widget:IsEnabled()) then
+        widget:Disable()
+
+        if (widget:GetObjectType() == "Button") then
+            widget:SetBackdropColor(117 / 255, 31 / 255, 42 / 255)
+            widget.label:SetTextColor(0.4, 0.4, 0.4)
+        elseif (widget:GetObjectType() == "EditBox") then
+            widget:SetTextColor(0.5, 0.5, 0.5)
+        end
+    end
+end
 
 function WoWGoldGambler:openOptionsTab()
     -- Expands the size of the main container and shows the options menu

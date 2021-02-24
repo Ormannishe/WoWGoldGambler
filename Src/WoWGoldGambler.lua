@@ -23,6 +23,9 @@ local chatChannels = {
 -- Defaults for the DB
 local defaults = {
     global = {
+        minimap = {
+            hide = false,
+        },
         dealer = {
             rouletteNumber = 36
         },
@@ -141,6 +144,23 @@ function WoWGoldGambler:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("WoWGoldGamblerDB", defaults, true)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("WoWGoldGambler", options, {"wowgoldgambler", "wgg"})
 
+    -- Sets up the minimap icon
+    local minimapIcon = LibStub("LibDBIcon-1.0")
+    local minimapLDB = LibStub("LibDataBroker-1.1"):NewDataObject("MinimapIcon", {
+        type = "data source",
+        text = "WoWGoldGambler",
+        icon = "Interface\\Icons\\inv_misc_coin_17",
+        OnClick = function() self:toggleUi() end,
+        OnTooltipShow = function(tooltip)
+		    tooltip:AddLine("WoWGoldGambler", 1, 1, 1)
+            tooltip:AddLine(" ", 1, 1, 1)
+            tooltip:AddLine("Click to toggle the WoWGoldGambler UI.", 1, 229 / 255, 153 / 255)
+		    tooltip:Show()
+		end,
+    })
+
+    minimapIcon:Register("MinimapIcon", minimapLDB, self.db.global.minimap)
+
     -- Stores all session-related game data. Not to be stored in the DB
     self.session = {
         state = gameStates[1],
@@ -158,6 +178,7 @@ function WoWGoldGambler:OnInitialize()
 
     self:drawUi()
     self:updateUi(self.session.state, gameStates)
+    self:hideUi()
 end
 
 -- Event Handlers --

@@ -166,6 +166,7 @@ function WoWGoldGambler:OnInitialize()
         state = gameStates[1],
         dealer = {
             name = UnitName("player"),
+            realm = GetRealmName(),
             roll = nil
         },
         players = {},
@@ -625,7 +626,21 @@ function WoWGoldGambler:makeNameString(players)
 end
 
 function WoWGoldGambler:registerPlayer(playerName, playerRealm, playerRoll)
-    -- Add a new player to the game if they are not already registered. [playerRoll] can optionally be provided to pre-record a roll for the player.
+    -- Add a new player to the game if they meet the entry conditions. [playerRoll] can optionally be provided to pre-record a roll for the player.
+
+    -- Check to make sure the player is on the correct realm
+    if (playerRealm ~= self.session.dealer.realm) then
+        SendChatMessage("Sorry " .. playerName .. ", you need to be on " .. self.session.dealer.name .. "'s realm (" .. self.session.dealer.realm .. ") to play." , self.db.global.game.chatChannel)
+        return
+    end
+
+    -- Check to make sure the player isn't banned
+    for i = 1, #self.db.global.bannedPlayers do
+        if (self.db.global.bannedPlayers[i] == playerName) then
+            SendChatMessage("Sorry " .. playerName .. ", you've been banned from playing." , self.db.global.game.chatChannel)
+            return
+        end
+    end
 
     -- Ignore entry if player is already entered
     for i = 1, #self.session.players do
@@ -634,15 +649,7 @@ function WoWGoldGambler:registerPlayer(playerName, playerRealm, playerRoll)
         end
     end
 
-    -- Check to make sure the player isn't banned
-    for i = 1, #self.db.global.bannedPlayers do
-        if (self.db.global.bannedPlayers[i] == playerName) then
-            SendChatMessage("Sorry " .. playerName .. ", you've been banned from playing!" , self.db.global.game.chatChannel)
-            return
-        end
-    end
-
-    -- If the player is not already entered and is not banned, create a new player entry for them
+    -- If the player is allowed to enter, create a new player entry for them
     local newPlayer = {
         name = playerName,
         realm = playerRealm,

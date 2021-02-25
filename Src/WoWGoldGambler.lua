@@ -33,7 +33,8 @@ local defaults = {
             mode = gameModes[1],
             wager = 1000,
             chatChannel = chatChannels[1],
-            houseCut = 0
+            houseCut = 0,
+            realmFilter = true,
         },
         stats = {
             player = {},
@@ -67,6 +68,12 @@ local options = {
             desc = "[number] - Sets your default roulette number to [number] (must be between 1 and 36).",
             type = "input",
             set = "setRouletteNumber"
+        },
+        realmfilter = {
+            name = "Toggle Realm Filter",
+            desc = "Toggles the realm filter on/off, determining whether or not players from other realms can register.",
+            type = "execute",
+            func = "toggleRealmFilter"
         },
         allstats = {
             name = "All Stats",
@@ -270,6 +277,17 @@ function WoWGoldGambler:listBans(info)
         end
     else
         self:Print("There are no players on the ban list.")
+    end
+end
+
+function WoWGoldGambler:toggleRealmFilter(info)
+    -- Toggles the realm filter on/off, determining whether or not players from other realms are allowed to register
+    if (self.db.global.game.realmFilter) then
+        self.db.global.game.realmFilter = false
+        self:Print("Realm filter has been turned OFF.")
+    else
+        self.db.global.game.realmFilter = true
+        self:Print("Realm filter has been turned ON.")
     end
 end
 
@@ -629,7 +647,7 @@ function WoWGoldGambler:registerPlayer(playerName, playerRealm, playerRoll)
     -- Add a new player to the game if they meet the entry conditions. [playerRoll] can optionally be provided to pre-record a roll for the player.
 
     -- Check to make sure the player is on the correct realm
-    if (playerRealm ~= self.session.dealer.realm) then
+    if (self.db.global.game.realmFilter and playerRealm ~= self.session.dealer.realm) then
         SendChatMessage("Sorry " .. playerName .. ", you need to be on " .. self.session.dealer.name .. "'s realm (" .. self.session.dealer.realm .. ") to play." , self.db.global.game.chatChannel)
         return
     end

@@ -132,4 +132,10 @@ WoWGoldGambler can also automatically perform rolls for the Dealer when they cli
 
 If a player refuses to pay their losses, or if they engage in griefing behaviour (ie. registering for a game and never rolling), the Dealer can ban them from playing using the **/wgg ban [player]** command. This will prevent the given player from being able to register for future games. To undo the ban, the Dealer can use the **/wgg unban [player]** command.
 
+### Realm Filtering
 
+Since players cannot trade gold between realms, WoWGoldGambler will disallow players from other realms (ie. not the Dealer's realm) from registering for games. This prevents scenarios where a losing player can't physically trade their owed amount to a winning player.
+
+However, there can be situations where the Dealer may want to allow players from other realms to participate in games. For example: players from connected realms, or players who have an alt on the Dealer's realm and can still pay their losses at a later time. The Dealer can turn off Realm Filtering using the **/wgg realmfilter** command if such a scenario were to arise.
+
+To turn the Realm Filter back on, the Dealer should simply use the **/wgg realmfilter** command once again to toggle it back on.

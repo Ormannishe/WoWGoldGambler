@@ -173,7 +173,6 @@ function WoWGoldGambler:OnInitialize()
         state = gameStates[1],
         dealer = {
             name = UnitName("player"),
-            realm = GetRealmName(),
             roll = nil
         },
         players = {},
@@ -194,7 +193,7 @@ end
 function WoWGoldGambler:handleChatMessage(_, text, playerName)
     -- Parses chat messages recieved by one of the chat Event Listeners to record player registration
     if (self.session.state == gameStates[2]) then
-        local playerName, playerRealm = strsplit("-", playerName)
+        local playerName, playerRealm = strsplit("-", playerName, 2)
 
         -- All game modes except roulette use the same registration rules
         if (self.db.global.game.mode == gameModes[3]) then
@@ -647,8 +646,8 @@ function WoWGoldGambler:registerPlayer(playerName, playerRealm, playerRoll)
     -- Add a new player to the game if they meet the entry conditions. [playerRoll] can optionally be provided to pre-record a roll for the player.
 
     -- Check to make sure the player is on the correct realm
-    if (self.db.global.game.realmFilter and playerRealm ~= self.session.dealer.realm) then
-        SendChatMessage("Sorry " .. playerName .. ", you need to be on " .. self.session.dealer.name .. "'s realm (" .. self.session.dealer.realm .. ") to play." , self.db.global.game.chatChannel)
+    if (self.db.global.game.realmFilter and playerRealm ~= GetNormalizedRealmName()) then
+        SendChatMessage("Sorry " .. playerName .. ", you need to be on " .. self.session.dealer.name .. "'s realm (" .. GetNormalizedRealmName() .. ") to play." , self.db.global.game.chatChannel)
         return
     end
 

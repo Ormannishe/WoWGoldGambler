@@ -11,7 +11,8 @@ local gameModes = {
     "CLASSIC",
     "COINFLIP",
     "ROULETTE",
-    "PRICE IS RIGHT"
+    "PRICE IS RIGHT",
+    "POKER"
 }
 
 local chatChannels = {
@@ -217,6 +218,8 @@ function WoWGoldGambler:handleSystemMessage(_, text)
         self:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     elseif (self.db.global.game.mode == gameModes[4]) then
         self:priceIsRightRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[5]) then
+        self:pokerRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     end
 
     -- If all registered players have rolled, calculate the result
@@ -452,6 +455,8 @@ function WoWGoldGambler:startRolls()
                 self:rouletteStartRolls()
             elseif (self.db.global.game.mode == gameModes[4]) then
                 self:priceIsRightStartRolls()
+            elseif (self.db.global.game.mode == gameModes[5]) then
+                self:pokerStartRolls()
             end
 
             -- Update UI Widgets
@@ -477,13 +482,19 @@ function WoWGoldGambler:rollMe(maxAmount, minAmount)
     if (maxAmount == nil) then
         if (self.db.global.game.mode == gameModes[2]) then
             maxAmount = 2
+        elseif (self.db.global.game.mode == gameModes[5]) then
+            maxAmount = 99999
         else
             maxAmount = self.db.global.game.wager
         end
     end
 
     if (minAmount == nil) then
-        minAmount = 1
+        if (self.db.global.game.mode == gameModes[5]) then
+            minAmount = 11111
+        else
+            minAmount = 1
+        end
     end
 
     RandomRoll(minAmount, maxAmount)
@@ -510,6 +521,8 @@ function WoWGoldGambler:calculateResult()
         result = self:rouletteCalculateResult()
     elseif (self.db.global.game.mode == gameModes[4]) then
         result = self:priceIsRightCalculateResult()
+    elseif (self.db.global.game.mode == gameModes[5]) then
+        result = self:pokerCalculateResult()
     else
         self:Print(self.db.global.game.mode .. " is not a valid game mode.")
         self.session.result = nil
@@ -566,6 +579,8 @@ function WoWGoldGambler:detectTie()
             self:rouletteDetectTie()
         elseif (self.db.global.game.mode == gameModes[4]) then
             self:priceIsRightDetectTie()
+        elseif (self.db.global.game.mode == gameModes[5]) then
+            self:pokerDetectTie()
         else
             self:classicDetectTie()
         end

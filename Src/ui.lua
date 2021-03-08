@@ -274,7 +274,7 @@ function WoWGoldGambler:createFrameWidget(parent)
     widget.titleLabel:SetPoint("TOP", title, "TOP", 0, -8)
     widget.titleLabel:SetTextColor(1, 229 / 255, 153 / 255)
     widget.titleLabel:SetJustifyH("CENTER")
-    widget.titleLabel:SetText("WoWGoldGambler v1.0")
+    widget.titleLabel:SetText("WoWGoldGambler")
 
     optionsButton = CreateFrame("Button", nil, widget, BackdropTemplateMixin and "BackdropTemplate" or nil)
     optionsButton:SetSize(75, 20)

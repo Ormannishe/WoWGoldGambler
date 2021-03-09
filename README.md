@@ -44,7 +44,7 @@ To set a House Cut, the Dealer must first click the 'Options' button in the bott
 
 ## Game Modes
 
-There are currently four supported Game Modes for WoWGoldGambler. More Game Modes will likely be added in the future (I am open to suggestions!).
+There are currently five supported Game Modes for WoWGoldGambler. More Game Modes will likely be added in the future (I am open to suggestions!).
 
 ### Classic
 
@@ -101,6 +101,20 @@ All players can then /roll any amount they want with the goal of rolling as clos
 **Loser**: The player whose roll was furthest from the Dealer's roll (in either direction - under or over)
 
 **Payment Amount**: The difference between the loser's roll and the Dealer's roll
+
+### Poker
+
+This game mode changes up the way rolls are scored by introducing a Poker theme and ups the risk with a 'winner-take-all' payout method.
+
+When the rolling phase of a game session begins, all players must /roll 11111-99999. As rolls come in, WoWGoldGambler will translate your 5-digit roll into a 5-card poker hand, with each digit representing a 'card' ranking from 0-9 with no suits.
+
+All five 'cards' are used when comparing hands (ie. A pair of 8's with kickers 7, 6 and 5 beats a pair of 8's with kickers 7, 6 and 4).
+
+**Winner**: The player who rolled the best poker hand
+
+**Loser**: The player who rolled the worst poker hand
+
+**Payment Amount**: The wager amount
 
 ## Other Features
 

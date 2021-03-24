@@ -12,7 +12,8 @@ local gameModes = {
     "COINFLIP",
     "ROULETTE",
     "PRICE IS RIGHT",
-    "POKER"
+    "POKER",
+    "CHICKEN"
 }
 
 local chatChannels = {
@@ -523,6 +524,10 @@ function WoWGoldGambler:calculateResult()
         result = self:priceIsRightCalculateResult()
     elseif (self.db.global.game.mode == gameModes[5]) then
         result = self:pokerCalculateResult()
+    elseif (self.db.global.game.mode == gameModes[6]) then
+        -- Resolve the result through custom functions
+        self:chickenCalculateResult()
+        return
     else
         self:Print(self.db.global.game.mode .. " is not a valid game mode.")
         self.session.result = nil

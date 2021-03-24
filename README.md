@@ -120,7 +120,7 @@ All five 'cards' are used when comparing hands (ie. A pair of 8's with kickers 7
 
 ### Stat Tracking
 
-WoWGoldGambler keeps track of winnings and losses from all game sessions to see who the real winners and losers are. All-time stats can be posted to the chat channel using the **/wgg allstats** command, and session stats (winnings/losses since the Dealer last logged in) can be shared with the **/wgg stats** command. The amount of gold taken by the house (via configuring a House Cut amount) is also tracked alongside player stats.
+WoWGoldGambler keeps track of winnings and losses from all game sessions to see who the real winners and losers are. All-time stats can be posted to the chat channel using the **/wgg allstats** command, and session stats (winnings/losses since the Dealer last logged in) can be shared with the **/wgg stats** command. The amount of gold taken by the house (via configuring a House Cut amount) is also tracked alongside player stats. House cut stats will be tracked on a per-player basis in the session stats so players can easily see how much in total they owe the guild bank at the end of a session.
 
 The Dealer can also record a list of aliases for players who participate on multiple characters using the **/wgg joinstats [main] [alt]** command. When this is done, stats for [alt] will be reported together under the name of [main]. A [main] can have multiple aliases, so players can play on any number of alts and have all of their stats tracked together. The Dealer can view a list of all configured aliases using the **/wgg listaliases** command.
 

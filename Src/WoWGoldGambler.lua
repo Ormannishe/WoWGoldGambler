@@ -180,7 +180,7 @@ function WoWGoldGambler:OnInitialize()
         result = nil,
         stats = {
             player = {},
-            house = 0
+            house = {}
         }
     }
 
@@ -604,13 +604,20 @@ function WoWGoldGambler:endGame()
 
             -- Notify players of the results and update player/house stats
             for i = 1, #self.session.result.losers do
-                SendChatMessage(self.session.result.losers[i].name .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self:formatInt(self.session.result.amountOwed) .. " gold!" , self.db.global.game.chatChannel)
-                self:updatePlayerStat(self.session.result.losers[i].name, self.session.result.amountOwed * -1)
+                local loserName = self.session.result.losers[i].name
+
+                SendChatMessage(loserName .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self:formatInt(self.session.result.amountOwed) .. " gold!" , self.db.global.game.chatChannel)
+                self:updatePlayerStat(loserName, self.session.result.amountOwed * -1)
 
                 if (self.db.global.game.houseCut > 0) then
-                    SendChatMessage(self.session.result.losers[i].name .. " owes the guild bank " .. self:formatInt(houseAmount) .. " gold!" , self.db.global.game.chatChannel)
+                    SendChatMessage(loserName .. " owes the guild bank " .. self:formatInt(houseAmount) .. " gold!" , self.db.global.game.chatChannel)
                     self.db.global.stats.house = self.db.global.stats.house + houseAmount
-                    self.session.stats.house = self.session.stats.house + houseAmount
+                    
+                    if (self.session.stats.house[loserName] == nil) then
+                        self.session.stats.house[loserName] = 0
+                    end
+                    
+                    self.session.stats.house[loserName] = self.session.stats.house[loserName] + houseAmount
                 end
             end
             

@@ -155,14 +155,21 @@ end
 
 function WoWGoldGambler:reportStats(sessionFlag)
     -- Post all player stats to the chat channel, ordered from highest winnings to lowest losings.
-    -- If the sessionFlag is true, print session stats instead of all-time stats
+    -- If the sessionFlag is true, print session stats instead of all-time stats and track house stats per-player
     local sortedPlayers = {}
     local stats = {}
+    local houseStats = {}
+    local houseTotal = 0
 
     -- Create a copy of the appropriate stats
     if (sessionFlag) then
         for player, winnings in pairs(self.session.stats.player) do
             stats[player] = winnings
+        end
+
+        for player, owings in pairs(self.session.stats.house) do
+            houseStats[player] = owings
+            houseTotal = houseTotal + owings
         end
     else
         for player, winnings in pairs(self.db.global.stats.player) do
@@ -179,6 +186,15 @@ function WoWGoldGambler:reportStats(sessionFlag)
                 if (stats[alias] ~= nil) then
                     stats[player] = stats[player] + stats[alias]
                     stats[alias] = nil
+
+                    if (houseStats[alias] ~= nil) then
+                        if (houseStats[player] == nil) then
+                            houseStats[player] = 0
+                        end
+
+                        houseStats[player] = houseStats[player] + houseStats[alias]
+                        houseStats[alias] = nil
+                    end
                 end
             end
         end
@@ -201,7 +217,7 @@ function WoWGoldGambler:reportStats(sessionFlag)
     -- Post the stats to the chat channel
     if (sessionFlag) then
         SendChatMessage("-- WoWGoldGambler Session Stats --", self.db.global.game.chatChannel)
-        SendChatMessage("The house has taken " .. self:formatInt(self.session.stats.house) .. " gold!", self.db.global.game.chatChannel)
+        SendChatMessage("The house has taken " .. self:formatInt(houseTotal) .. " gold!", self.db.global.game.chatChannel)
     else
         SendChatMessage("-- WoWGoldGambler All Time Stats --", self.db.global.game.chatChannel)
         SendChatMessage("The house has taken " .. self:formatInt(self.db.global.stats.house) .. " gold!", self.db.global.game.chatChannel)
@@ -216,6 +232,10 @@ function WoWGoldGambler:reportStats(sessionFlag)
             amount = amount * -1
         end
 
-        SendChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold!", self.db.global.game.chatChannel)
+        if (houseStats[sortedPlayers[i]] ~= nil) then
+            SendChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold and owes the guild bank " .. houseStats[sortedPlayers[i]] .. " gold!", self.db.global.game.chatChannel)
+        else
+            SendChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold!", self.db.global.game.chatChannel)
+        end
     end
 end

@@ -104,7 +104,7 @@ All players can then /roll any amount they want with the goal of rolling as clos
 
 ### Poker
 
-This game mode changes up the way rolls are scored by introducing a Poker theme and ups the risk with a 'winner-take-all' payout method.
+This game mode changes up the way rolls are scored by introducing a Poker theme.
 
 When the rolling phase of a game session begins, all players must /roll 11111-99999. As rolls come in, WoWGoldGambler will translate your 5-digit roll into a 5-card poker hand, with each digit representing a 'card' ranking from 0-9 with no suits.
 
@@ -144,7 +144,7 @@ WoWGoldGambler can also automatically perform rolls for the Dealer when they cli
 
 ### Player Banning
 
-If a player refuses to pay their losses, or if they engage in griefing behaviour (ie. registering for a game and never rolling), the Dealer can ban them from playing using the **/wgg ban [player]** command. This will prevent the given player from being able to register for future games. To undo the ban, the Dealer can use the **/wgg unban [player]** command.
+If a player refuses to pay their losses, or if they engage in griefing behaviour (ie. registering for a game and never rolling), the Dealer can ban them from playing using the **/wgg ban [player]** command. This will prevent the given player from being able to register for future games. To undo the ban, the Dealer can use the **/wgg unban [player]** command. The Dealer can view a list of all banned players using the **/wgg listbans** command.
 
 ### Realm Filtering
 

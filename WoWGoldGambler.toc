@@ -10,6 +10,7 @@
 embeds.xml
 
 Src/WoWGoldGambler.lua
+Src/ModeChicken.lua
 Src/ModeClassic.lua
 Src/ModeCoinflip.lua
 Src/ModeRoulette.lua

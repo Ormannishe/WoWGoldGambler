@@ -56,7 +56,7 @@ function WoWGoldGambler:chickenCalculateResult()
     -- Calculation logic for the Chicken game mode. Ties are allowed.
     -- Winner: The player(s) with the highest roll while not being larger than the wager amount
     -- Loser: ALL player(s) who's roll is higher than the wager amount. If no player's roll exceeds the wager amount, then the player(s) with the lowest roll.
-    -- Payment Amount: The wager amount OR if no player's roll exeeds the wager amount, the difference between the losing and winning rolls
+    -- Payment Amount: The wager amount OR if no player's roll exceeds the wager amount, the difference between the losing and winning rolls
     local winners = {}
     local losers = {}
     local bestRoll = 0

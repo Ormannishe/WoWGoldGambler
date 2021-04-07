@@ -5,7 +5,7 @@ function WoWGoldGambler:classicGameStart()
 end
 
 function WoWGoldGambler:classicRegister(text, playerName, playerRealm)
-    -- Registration for non-roulette game modes
+    -- Basic registration for most game modes
     if (text == "1") then
         self:registerPlayer(playerName, playerRealm)
     elseif (text == "-1") then

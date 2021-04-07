@@ -12,7 +12,8 @@ local gameModes = {
     "COINFLIP",
     "ROULETTE",
     "PRICE IS RIGHT",
-    "POKER"
+    "POKER",
+    "CHICKEN"
 }
 
 local chatChannels = {
@@ -193,14 +194,19 @@ end
 
 function WoWGoldGambler:handleChatMessage(_, text, playerName)
     -- Parses chat messages recieved by one of the chat Event Listeners to record player registration
-    if (self.session.state == gameStates[2]) then
-        local playerName, playerRealm = strsplit("-", playerName, 2)
+    local playerName, playerRealm = strsplit("-", playerName, 2)
 
+    if (self.session.state == gameStates[2]) then
         -- All game modes except roulette use the same registration rules
         if (self.db.global.game.mode == gameModes[3]) then
             self:rouletteRegister(text, playerName, playerRealm)
         else
             self:classicRegister(text, playerName, playerRealm)
+        end
+    elseif (self.session.state == gameStates[3]) then
+        -- If we're still listening to chat messages during the rolling phase of a game, perform game-mode specific actions
+        if (self.db.global.game.mode == gameModes[6]) then
+            self:chickenOptOut(text, playerName, playerRealm)
         end
     end
 end
@@ -220,6 +226,8 @@ function WoWGoldGambler:handleSystemMessage(_, text)
         self:priceIsRightRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     elseif (self.db.global.game.mode == gameModes[5]) then
         self:pokerRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[6]) then
+        self:chickenRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     end
 
     -- If all registered players have rolled, calculate the result
@@ -411,6 +419,7 @@ end
 
 function WoWGoldGambler:enterMe(leaveFlag)
     -- Post a '1' in the chat channel for the dealer to register for a game.
+    -- If the current game mode is roulette, register with the dealer's configured roulette number.
     -- If [leaveFlag] is given, post a '-1' to the chat instead to unregister for the game.
     local message = "1"
 
@@ -433,12 +442,14 @@ function WoWGoldGambler:startRolls()
     if (self.session.state == gameStates[2]) then
         -- At least two players are required to play
         if (#self.session.players > 1) then
-            -- Stop listening to chat messages
-            self:UnregisterEvent("CHAT_MSG_PARTY")
-            self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
-            self:UnregisterEvent("CHAT_MSG_RAID")
-            self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
-            self:UnregisterEvent("CHAT_MSG_GUILD")
+            -- Stop listening to chat messages unless they are required for the game mode
+            if (self.db.global.game.mode ~= gameModes[6]) then
+                self:UnregisterEvent("CHAT_MSG_PARTY")
+                self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
+                self:UnregisterEvent("CHAT_MSG_RAID")
+                self:UnregisterEvent("CHAT_MSG_RAID_LEADER")
+                self:UnregisterEvent("CHAT_MSG_GUILD")
+            end
 
             -- Start listening to system messages to recieve rolls
             self:RegisterEvent("CHAT_MSG_SYSTEM", "handleSystemMessage")
@@ -457,6 +468,8 @@ function WoWGoldGambler:startRolls()
                 self:priceIsRightStartRolls()
             elseif (self.db.global.game.mode == gameModes[5]) then
                 self:pokerStartRolls()
+            elseif (self.db.global.game.mode == gameModes[6]) then
+                self:chickenStartRolls()
             end
 
             -- Update UI Widgets
@@ -484,6 +497,8 @@ function WoWGoldGambler:rollMe(maxAmount, minAmount)
             maxAmount = 2
         elseif (self.db.global.game.mode == gameModes[5]) then
             maxAmount = 99999
+        elseif (self.db.global.game.mode == gameModes[6]) then
+            maxAmount = self.session.dealer.roll
         else
             maxAmount = self.db.global.game.wager
         end
@@ -523,6 +538,8 @@ function WoWGoldGambler:calculateResult()
         result = self:priceIsRightCalculateResult()
     elseif (self.db.global.game.mode == gameModes[5]) then
         result = self:pokerCalculateResult()
+    elseif (self.db.global.game.mode == gameModes[6]) then
+        result = self:chickenCalculateResult()
     else
         self:Print(self.db.global.game.mode .. " is not a valid game mode.")
         self.session.result = nil
@@ -581,6 +598,8 @@ function WoWGoldGambler:detectTie()
             self:priceIsRightDetectTie()
         elseif (self.db.global.game.mode == gameModes[5]) then
             self:pokerDetectTie()
+        elseif (self.db.global.game.mode == gameModes[6]) then
+            self:chickenDetectTie()
         else
             self:classicDetectTie()
         end

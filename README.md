@@ -116,6 +116,26 @@ All five 'cards' are used when comparing hands (ie. A pair of 8's with kickers 7
 
 **Payment Amount**: The wager amount
 
+### Chicken
+
+Chicken is a game mode that adds a layer of strategy to the game similar to that of a game of Blackjack.
+
+When the rolling phase of a game session begins, WoWGoldGambler will determine a Bust Amount and a Roll Amount. The Bust Amount will always be equal to the Wager amount, meanwhile the Roll Amount will be a randomly selected amount between 50% and 120% of the Wager amount.
+
+All players can then /roll the Roll Amount as many times as they like. Each of their results will be added together to determine their Roll Total. If a player's Roll Total exceeds the Bust Amount, they will automatically lose!
+
+When a player is happy with their Roll Total, they can enter '-1' into the appropriate chat cannel to lock in their roll. They will not be eligible for more rolls.
+
+Once all players have either Busted or locked in their rolls, WoWGoldGambler will calculate the results.
+
+There are no tie-breaker rounds in Chicken. In the case of a low-end tie, all losers must pay the winner the amount owed. In the case of a high-end tie, all winners will split the winnings.
+
+**Winner**: The player(s) with the highest roll total which does not exceed the bust amount.
+
+**Loser**: **ALL** player(s) who's roll total exceeds the bust amount. If no player's roll total exceeds the bust amount, then the player(s) with the lowest roll total.
+
+**Payment Amount**: If at least one player's roll total exceeds the bust amount, the full wager amount is owed. If no player's roll total exceeds the bust amount, the difference between the losing and winning roll totals is owed.
+
 ## Other Features
 
 ### Stat Tracking

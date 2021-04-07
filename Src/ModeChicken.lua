@@ -14,13 +14,12 @@ function WoWGoldGambler:chickenStartRolls()
 end
 
 function WoWGoldGambler:chickenOptOut(text, playerName, playerRealm)
-    -- If a registered player who has not yet locked in their rolls enters "-1" in the chat, lock in their roll
+    -- If a registered player who has not yet locked in their roll enters "-1" in the chat, lock in their roll
     if (text == "-1") then
         for i = 1, #self.session.players do
-            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then -- TODO: error? fixed with return?
+            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
                 self.session.players[i].roll = self.session.players[i].rollTotal
                 SendChatMessage(self.session.players[i].name .. " is done rolling!" , self.db.global.game.chatChannel)
-                -- TODO: Report highest and lowest rollTotals
 
                 if (#self:checkPlayerRolls() == 0) then
                     self:calculateResult()
@@ -54,9 +53,9 @@ function WoWGoldGambler:chickenRecordRoll(playerName, actualRoll, minRoll, maxRo
 end
 
 function WoWGoldGambler:chickenCalculateResult()
-    -- Calculation logic for the Chicken game mode. Ties are allowed?
+    -- Calculation logic for the Chicken game mode. Ties are allowed.
     -- Winner: The player(s) with the highest roll while not being larger than the wager amount
-    -- Loser: ALL player(s) who's roll is higher than the wager amount. If no player's roll exceeds the wager amount, then the player with the lowest roll.
+    -- Loser: ALL player(s) who's roll is higher than the wager amount. If no player's roll exceeds the wager amount, then the player(s) with the lowest roll.
     -- Payment Amount: The wager amount OR if no player's roll exeeds the wager amount, the difference between the losing and winning rolls
     local winners = {}
     local losers = {}
@@ -98,24 +97,24 @@ function WoWGoldGambler:chickenCalculateResult()
         end
     end
 
-    -- In a scenario where all players tie, it's possible to run in to this edge case. Void out the losers so the round can end in a draw.
-    -- TODO: Winners can be empty (potential error here)
-    if (winners[1].name == losers[1].name) then
+    -- Handle cases where there are no winners, no losers, or everyone is tied.
+    if (#winners == 0 or #losers == 0 or winners[1].name == losers[1].name) then
+        winners = {}
         losers = {}
     else
         if (losers[1].roll > self.db.global.game.wager) then
-            -- If a player exceeded the wager amount, they owe the full wager
-            amountOwed = self.db.global.game.wager
+            -- If a player exceeded the wager amount, they owe the full amount split among all winners
+            amountOwed = math.floor(self.db.global.game.wager / #winners)
         else
-            -- If no player exceeded the wager amount, they owe the difference between the winning and losing rolls
-            amountOwed = winners[1].roll - losers[1].roll
+            -- If no player exceeded the wager amount, they owe the difference between the winning and losing rolls, split among all winners
+            amountOwed = math.floor((winners[1].roll - losers[1].roll) / #winners)
         end
     end
 
     return {
         winners = winners,
         losers = losers,
-        amountOwed = amountOwed -- TODO: if there are multiple winners, split the amount owed
+        amountOwed = amountOwed
     }
 end
 

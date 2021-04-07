@@ -44,7 +44,7 @@ To set a House Cut, the Dealer must first click the 'Options' button in the bott
 
 ## Game Modes
 
-There are currently five supported Game Modes for WoWGoldGambler. More Game Modes will likely be added in the future (I am open to suggestions!).
+There are currently six supported Game Modes for WoWGoldGambler. More Game Modes will likely be added in the future (I am open to suggestions!).
 
 ### Classic
 

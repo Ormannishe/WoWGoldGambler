@@ -314,11 +314,11 @@ function WoWGoldGambler:createEditBoxWidget(parent, labelText, text, size)
     if (size == "large") then
         widget:SetHeight(30)
 	    widget:SetWidth(260)
-        widget:SetFont("Fonts\\FRIZQT__.TTF", 16)
+        widget:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
     elseif (size == "small") then
         widget:SetHeight(25)
 	    widget:SetWidth(150)
-        widget:SetFont("Fonts\\FRIZQT__.TTF", 14)
+        widget:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
     end
 
     return widget

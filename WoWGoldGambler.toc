@@ -1,7 +1,7 @@
-## Interface: 90005
+## Interface: 100005
 ## Title: WoWGoldGambler
 ## Author: Ormannishe
-## Version: v1.3
+## Version: v1.3.1
 ## Notes: May RNG be ever in your favor.
 ## SavedVariables: WoWGoldGamblerDB
 ## OptionalDeps: Ace3

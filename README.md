@@ -136,6 +136,20 @@ There are no tie-breaker rounds in Chicken. In the case of a low-end tie, all lo
 
 **Payment Amount**: If at least one player's roll total exceeds the bust amount, the full wager amount is owed. If no player's roll total exceeds the bust amount, the difference between the losing and winning roll totals is owed.
 
+### 1v1 Death Roll
+
+Death Roll is played head-to-head between two players. During registration, only two players will be allowed to join.
+
+When the rolling phase of a game session begins, WoWGoldGambler will automatically perform a roll (/roll 2) to determine which of the two players will go first.
+
+The current player must then perform a /roll for the wager amount. If a 1 is rolled, they lose. Otherwise, the other player must perform a /roll for the result of the previous roll (ie. if a 12 was rolled, the next player will /roll 12). This continues until one of the players roll a 1.
+
+**Winner**: The player who did NOT roll a 1
+
+**Loser**: The player who rolled a 1
+
+**Payment Amount**: The wager amount
+
 ## Other Features
 
 ### Stat Tracking

@@ -16,5 +16,6 @@ Src/ModeCoinflip.lua
 Src/ModeRoulette.lua
 Src/ModePriceIsRight.lua
 Src/ModePoker.lua
+Src/ModeDeathRoll.lua
 Src/Stats.lua
 Src/ui.lua

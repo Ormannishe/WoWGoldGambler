@@ -13,7 +13,8 @@ local gameModes = {
     "ROULETTE",
     "PRICE IS RIGHT",
     "POKER",
-    "CHICKEN"
+    "CHICKEN",
+    "1v1 DEATH ROLL"
 }
 
 local chatChannels = {
@@ -175,8 +176,8 @@ function WoWGoldGambler:OnInitialize()
         state = gameStates[1],
         dealer = {
             name = UnitName("player"),
-            roll = nil
         },
+        modeData = {}, -- arbitrary data used to run game modes
         players = {},
         result = nil,
         stats = {
@@ -197,9 +198,11 @@ function WoWGoldGambler:handleChatMessage(_, text, playerName)
     local playerName, playerRealm = strsplit("-", playerName, 2)
 
     if (self.session.state == gameStates[2]) then
-        -- All game modes except roulette use the same registration rules
+        -- All game modes except roulette and death roll use the same registration rules
         if (self.db.global.game.mode == gameModes[3]) then
             self:rouletteRegister(text, playerName, playerRealm)
+        elseif (self.db.global.game.mode == gameModes[7]) then
+            self:deathRollRegister(text, playerName, playerRealm)
         else
             self:classicRegister(text, playerName, playerRealm)
         end
@@ -228,6 +231,8 @@ function WoWGoldGambler:handleSystemMessage(_, text)
         self:pokerRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     elseif (self.db.global.game.mode == gameModes[6]) then
         self:chickenRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+    elseif (self.db.global.game.mode == gameModes[7]) then
+        self:deathRollRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     end
 
     -- If all registered players have rolled, calculate the result
@@ -399,6 +404,8 @@ function WoWGoldGambler:startGame()
         -- Perform game-mode specific tasks required to start the game
         if (self.db.global.game.mode == gameModes[3]) then
             self:rouletteGameStart()
+        elseif (self.db.global.game.mode == gameModes[7]) then
+            self:deathRollGameStart()
         else
             self:classicGameStart()
         end
@@ -470,6 +477,8 @@ function WoWGoldGambler:startRolls()
                 self:pokerStartRolls()
             elseif (self.db.global.game.mode == gameModes[6]) then
                 self:chickenStartRolls()
+            elseif (self.db.global.game.mode == gameModes[7]) then
+                self:deathRollStartRolls()
             end
 
             -- Update UI Widgets
@@ -498,7 +507,9 @@ function WoWGoldGambler:rollMe(maxAmount, minAmount)
         elseif (self.db.global.game.mode == gameModes[5]) then
             maxAmount = 99999
         elseif (self.db.global.game.mode == gameModes[6]) then
-            maxAmount = self.session.dealer.roll
+            maxAmount = self.session.modeData.rollAmount
+        elseif (self.db.global.game.mode == gameModes[7]) then
+            maxAmount = self.session.modeData.currentRoll
         else
             maxAmount = self.db.global.game.wager
         end
@@ -540,6 +551,8 @@ function WoWGoldGambler:calculateResult()
         result = self:pokerCalculateResult()
     elseif (self.db.global.game.mode == gameModes[6]) then
         result = self:chickenCalculateResult()
+    elseif (self.db.global.game.mode == gameModes[7]) then
+        result = self:deathRollCalculateResult()
     else
         self:Print(self.db.global.game.mode .. " is not a valid game mode.")
         self.session.result = nil
@@ -590,18 +603,17 @@ function WoWGoldGambler:detectTie()
         end
 
         -- Perform game-mode specific tasks when entering a tie-breaker
-        if (self.db.global.game.mode == gameModes[2]) then
+        if (self.db.global.game.mode == gameModes[1]) then
+            self:classicDetectTie()
+        elseif (self.db.global.game.mode == gameModes[2]) then
             self:coinflipDetectTie()
-        elseif (self.db.global.game.mode == gameModes[3]) then
-            self:rouletteDetectTie()
         elseif (self.db.global.game.mode == gameModes[4]) then
             self:priceIsRightDetectTie()
         elseif (self.db.global.game.mode == gameModes[5]) then
             self:pokerDetectTie()
-        elseif (self.db.global.game.mode == gameModes[6]) then
-            self:chickenDetectTie()
         else
-            self:classicDetectTie()
+            -- If a game mode allows for ties, simply end the game and calculate the results
+            self:endGame()
         end
     else
          -- If a tie is not detected, the game is ended
@@ -658,7 +670,7 @@ function WoWGoldGambler:endGame()
     self.session.state = gameStates[1]
     self.session.players = {}
     self.session.result = nil
-    self.session.dealer.roll = nil
+    self.session.modeData = {}
 
     -- Update UI Widgets
     self:updateUi(self.session.state, gameStates)
@@ -747,4 +759,4 @@ function WoWGoldGambler:formatInt(number)
     int = int:reverse():gsub("(%d%d%d)", "%1,")
 
     return minus .. int:reverse():gsub("^,", "") .. fraction
-  end
+end

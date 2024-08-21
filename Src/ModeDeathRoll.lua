@@ -66,7 +66,7 @@ function WoWGoldGambler:deathRollRecordRoll(playerName, actualRoll, minRoll, max
 
             SendChatMessage(playerName .. " survived their roll! " .. nextPlayerName .. ", now it's your turn. /roll " .. result .. " now!", self.db.global.game.chatChannel)
         else
-            SendChatMessage("May you Rest In Peace, " .. playerName .. ".", self.db.global.game.chatChannel)
+            SendChatMessage("May You Rest In Peace, " .. playerName .. ".", self.db.global.game.chatChannel)
         end
     end
 end

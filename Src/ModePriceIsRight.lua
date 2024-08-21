@@ -10,10 +10,10 @@ function WoWGoldGambler:priceIsRightRecordRoll(playerName, actualRoll, minRoll, 
     -- If the dealer made the wager roll and the 'price' has not yet been set, record it as the 'price'
     -- If a registered player made any roll with a minRoll of 1 and has not yet rolled, record the roll
     if (tonumber(minRoll) == 1) then
-        if (self.session.dealer.roll == nil) then
+        if (self.session.modeData.price == nil) then
             if (playerName == self.session.dealer.name and tonumber(maxRoll) == self.db.global.game.wager) then
-                self.session.dealer.roll = tonumber(actualRoll)
-                SendChatMessage("The price is " .. self:formatInt(self.session.dealer.roll) .. "! Be careful not to go over!" , self.db.global.game.chatChannel)
+                self.session.modeData.price = tonumber(actualRoll)
+                SendChatMessage("The price is " .. self:formatInt(self.session.modeData.price) .. "! Be careful not to go over!" , self.db.global.game.chatChannel)
             end
         else
             for i = 1, #self.session.players do
@@ -37,15 +37,15 @@ function WoWGoldGambler:priceIsRightCalculateResult()
 
     for i = 1, #self.session.players do
         local playerRoll = self.session.players[i].roll
-        local playerDiff = math.abs(playerRoll - self.session.dealer.roll)
+        local playerDiff = math.abs(playerRoll - self.session.modeData.price)
 
         -- Tied Winner
-        if (playerDiff == smallestDiff and playerRoll <= self.session.dealer.roll) then
+        if (playerDiff == smallestDiff and playerRoll <= self.session.modeData.price) then
             tinsert(winners, self.session.players[i])
         end
 
         -- New Winner
-        if (playerDiff < smallestDiff and playerRoll <= self.session.dealer.roll) then
+        if (playerDiff < smallestDiff and playerRoll <= self.session.modeData.price) then
             winners = {self.session.players[i]}
             smallestDiff = playerDiff
         end
@@ -79,8 +79,8 @@ end
 function WoWGoldGambler:priceIsRightDetectTie()
     -- Output a message to the chat channel informing players of a tie (and which end the tie is on)
     if (#self.session.result.winners > 1) then
-        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.session.dealer.roll) .. "!", self.db.global.game.chatChannel)
+        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.session.modeData.price) .. "!", self.db.global.game.chatChannel)
     elseif (#self.session.result.losers > 1) then
-        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.session.dealer.roll) .. "!", self.db.global.game.chatChannel)
+        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.session.modeData.price) .. "!", self.db.global.game.chatChannel)
     end
 end

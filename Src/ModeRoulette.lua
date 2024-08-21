@@ -23,8 +23,8 @@ end
 
 function WoWGoldGambler:rouletteRecordRoll(playerName, actualRoll, minRoll, maxRoll)
     -- If the dealer performed a /roll 36, record it as the result of the roulette round
-    if (self.session.dealer.name == playerName and self.session.dealer.roll == nil and tonumber(minRoll) == 1 and tonumber(maxRoll) == 36) then
-        self.session.dealer.roll = tonumber(actualRoll)
+    if (self.session.dealer.name == playerName and self.session.modeData.rouletteResult == nil and tonumber(minRoll) == 1 and tonumber(maxRoll) == 36) then
+        self.session.modeData.rouletteResult = tonumber(actualRoll)
         SendChatMessage("The ball has landed on " .. actualRoll .. "!", self.db.global.game.chatChannel)
     end
 end
@@ -39,7 +39,7 @@ function WoWGoldGambler:rouletteCalculateResult()
     local amountOwed = nil
 
     for i = 1, #self.session.players do
-        if (self.session.players[i].roll == self.session.dealer.roll) then
+        if (self.session.players[i].roll == self.session.modeData.rouletteResult) then
             tinsert(winners, self.session.players[i])
         else
             tinsert(losers, self.session.players[i])

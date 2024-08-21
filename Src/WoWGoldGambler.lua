@@ -176,10 +176,8 @@ function WoWGoldGambler:OnInitialize()
         state = gameStates[1],
         dealer = {
             name = UnitName("player"),
-            roll = nil -- This typically stores dealer rolls used to determine game mode behavior, such as the roullette number rolled
-                       -- or Bust number in chicken. It should probably be moved into the modeData data structure
         },
-        modeData = {}, -- arbitrary data used to manage game modes
+        modeData = {}, -- arbitrary data used to run game modes
         players = {},
         result = nil,
         stats = {
@@ -509,7 +507,7 @@ function WoWGoldGambler:rollMe(maxAmount, minAmount)
         elseif (self.db.global.game.mode == gameModes[5]) then
             maxAmount = 99999
         elseif (self.db.global.game.mode == gameModes[6]) then
-            maxAmount = self.session.dealer.roll
+            maxAmount = self.session.modeData.rollAmount
         elseif (self.db.global.game.mode == gameModes[7]) then
             maxAmount = self.session.modeData.currentRoll
         else
@@ -672,7 +670,6 @@ function WoWGoldGambler:endGame()
     self.session.state = gameStates[1]
     self.session.players = {}
     self.session.result = nil
-    self.session.dealer.roll = nil
     self.session.modeData = {}
 
     -- Update UI Widgets

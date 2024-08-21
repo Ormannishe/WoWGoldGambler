@@ -56,8 +56,3 @@ function WoWGoldGambler:rouletteCalculateResult()
         amountOwed = amountOwed
     }
 end
-
-function WoWGoldGambler:rouletteDetectTie()
-    -- Ties are allowed in Roulette, so simply end the game.
-    self:endGame()
-end

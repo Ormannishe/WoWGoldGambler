@@ -117,8 +117,3 @@ function WoWGoldGambler:chickenCalculateResult()
         amountOwed = amountOwed
     }
 end
-
-function WoWGoldGambler:chickenDetectTie()
-    -- Ties are allowed in Chicken, so simply end the game.
-    self:endGame()
-end

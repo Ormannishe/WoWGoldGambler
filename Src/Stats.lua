@@ -131,7 +131,8 @@ function WoWGoldGambler:resetStats(info)
     }
 
     self.session.stats = {
-        player = {}
+        player = {},
+        house = {}
     }
 
     self:Print("Stats have been reset!")

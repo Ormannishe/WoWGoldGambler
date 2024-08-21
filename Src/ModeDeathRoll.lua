@@ -9,7 +9,7 @@ function WoWGoldGambler:deathRollRegister(text, playerName, playerRealm)
     -- Same as regular registration, but capped at only two players
     if (text == "1" and #self.session.players < 2) then
         self:registerPlayer(playerName, playerRealm)
-    elseif (text == "1" and #self.session.players = 2) then
+    elseif (text == "1" and #self.session.players == 2) then
         SendChatMessage("Sorry " .. playerName .. ", both spots have already been claimed! Maybe next time!" , self.db.global.game.chatChannel)
     elseif (text == "-1") then
         self:unregisterPlayer(playerName, playerRealm)
@@ -65,6 +65,8 @@ function WoWGoldGambler:deathRollRecordRoll(playerName, actualRoll, minRoll, max
             self.session.players[nextPlayerIndex].roll = nil
 
             SendChatMessage(playerName .. " survived their roll! " .. nextPlayerName .. ", now it's your turn. /roll " .. result .. " now!", self.db.global.game.chatChannel)
+        else
+            SendChatMessage("May you Rest In Peace, " .. playerName .. ".", self.db.global.game.chatChannel)
         end
     end
 end
@@ -76,7 +78,7 @@ function WoWGoldGambler:deathRollCalculateResult()
     -- Payment Amount: The wager amount
     local winners = {}
     local losers = {}
-    local amountOwed = 0
+    local amountOwed = self.db.global.game.wager
 
     for i = 1, #self.session.players do
         -- New loser
@@ -85,6 +87,7 @@ function WoWGoldGambler:deathRollCalculateResult()
         -- New winner
         else
             tinsert(winners, self.session.players[i])
+        end
     end
 
     return {

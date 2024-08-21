@@ -13,7 +13,7 @@ local gameModes = {
     "ROULETTE",
     "PRICE IS RIGHT",
     "POKER",
-    "CHICKEN"
+    "CHICKEN",
     "1v1 DEATH ROLL"
 }
 
@@ -406,7 +406,7 @@ function WoWGoldGambler:startGame()
         -- Perform game-mode specific tasks required to start the game
         if (self.db.global.game.mode == gameModes[3]) then
             self:rouletteGameStart()
-        if (self.db.global.game.mode == gameModes[7]) then
+        elseif (self.db.global.game.mode == gameModes[7]) then
             self:deathRollGameStart()
         else
             self:classicGameStart()
@@ -762,4 +762,4 @@ function WoWGoldGambler:formatInt(number)
     int = int:reverse():gsub("(%d%d%d)", "%1,")
 
     return minus .. int:reverse():gsub("^,", "") .. fraction
-  end
+end

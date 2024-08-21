@@ -10,7 +10,9 @@ function WoWGoldGambler:deathRollRegister(text, playerName, playerRealm)
     if (text == "1" and #self.session.players < 2) then
         self:registerPlayer(playerName, playerRealm)
     elseif (text == "1" and #self.session.players == 2) then
-        SendChatMessage("Sorry " .. playerName .. ", both spots have already been claimed! Maybe next time!" , self.db.global.game.chatChannel)
+        if (playerName ~= self.session.players[1].name and playerName ~= self.session.players[2].name) then
+            SendChatMessage("Sorry " .. playerName .. ", both spots have already been claimed! Maybe next time!" , self.db.global.game.chatChannel)
+        end
     elseif (text == "-1") then
         self:unregisterPlayer(playerName, playerRealm)
         SendChatMessage(playerName .. " has backed out! Will anyone else claim their spot?" , self.db.global.game.chatChannel)

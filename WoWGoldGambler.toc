@@ -14,7 +14,7 @@ Src/ModeDefaults.lua
 Src/ModeChicken.lua
 Src/ModeClassic.lua
 Src/ModeCoinflip.lua
-Src/ModeRoulette.lua
+Src/ModeLottery.lua
 Src/ModePriceIsRight.lua
 Src/ModePoker.lua
 Src/ModeDeathRoll.lua

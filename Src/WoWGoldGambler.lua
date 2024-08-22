@@ -10,7 +10,7 @@ local gameStates = {
 local gameModes = {
     "CLASSIC",
     "COINFLIP",
-    "ROULETTE",
+    "LOTTERY",
     "PRICE IS RIGHT",
     "POKER",
     "CHICKEN",
@@ -28,9 +28,6 @@ local defaults = {
     global = {
         minimap = {
             hide = false,
-        },
-        dealer = {
-            rouletteNumber = 36
         },
         game = {
             mode = gameModes[1],
@@ -65,12 +62,6 @@ local options = {
             desc = "Hide the WoWGoldGambler UI",
             type = "execute",
             func = "hideUi"
-        },
-        setroulettenumber = {
-            name = "Set Roulette Number",
-            desc = "[number] - Sets your default roulette number to [number] (must be between 1 and 36).",
-            type = "input",
-            set = "setRouletteNumber"
         },
         realmfilter = {
             name = "Toggle Realm Filter",
@@ -221,19 +212,6 @@ function WoWGoldGambler:handleSystemMessage(_, text)
 end
 
 -- Slash Command Handlers --
-
-function WoWGoldGambler:setRouletteNumber(info, rouletteNumber)
-    -- Sets the Dealer's default roulette number to [number] if it is between 1 and 36
-    -- This number will be used to register the dealer for Roulette games
-    local rouletteNumber = tonumber(rouletteNumber)
-
-    if (rouletteNumber ~= nil and rouletteNumber > 0 and rouletteNumber < 37) then
-        self.db.global.dealer.rouletteNumber = rouletteNumber
-        self:Print("Your default roulette number is now " .. rouletteNumber .. ".")
-    else
-        self:Print("Default roulette number was not set due to invalid input.")
-    end
-end
 
 function WoWGoldGambler:banPlayer(info, playerName)
     -- Adds the given [playerName] to the list of banned players if they are not already on the list
@@ -399,14 +377,11 @@ end
 
 function WoWGoldGambler:enterMe(leaveFlag)
     -- Post a '1' in the chat channel for the dealer to register for a game.
-    -- If the current game mode is roulette, register with the dealer's configured roulette number.
     -- If [leaveFlag] is given, post a '-1' to the chat instead to unregister for the game.
     local message = "1"
 
     if (leaveFlag) then
         message = "-1"
-    elseif (self.db.global.game.mode == "ROULETTE") then
-        message = self.db.global.dealer.rouletteNumber
     end
 
     SendChatMessage(message, self.db.global.game.chatChannel)

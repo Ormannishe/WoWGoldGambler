@@ -1,24 +1,16 @@
 -- Classic Game Mode --
+WoWGoldGambler.CLASSIC = {}
 
-function WoWGoldGambler:classicGameStart()
-    SendChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
-end
+-- Default Game Start
+WoWGoldGambler.CLASSIC.gameStart = WoWGoldGambler.DEFAULT.gameStart
 
-function WoWGoldGambler:classicRegister(text, playerName, playerRealm)
-    -- Basic registration for most game modes
-    if (text == "1") then
-        self:registerPlayer(playerName, playerRealm)
-    elseif (text == "-1") then
-        self:unregisterPlayer(playerName, playerRealm)
-    end
-end
+-- Default Registration
+WoWGoldGambler.CLASSIC.register = WoWGoldGambler.DEFAULT.register
 
-function WoWGoldGambler:classicStartRolls()
-    -- Informs players that the registration phase has ended
-    SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
-end
+-- Default Roll Start
+WoWGoldGambler.CLASSIC.startRolls = WoWGoldGambler.DEFAULT.startRolls
 
-function WoWGoldGambler:classicRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+WoWGoldGambler.CLASSIC.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
     -- If a registered player made the wager roll and has not yet rolled, record the roll
     if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.db.global.game.wager) then
         for i = 1, #self.session.players do
@@ -29,7 +21,7 @@ function WoWGoldGambler:classicRecordRoll(playerName, actualRoll, minRoll, maxRo
     end
 end
 
-function WoWGoldGambler:classicCalculateResult()
+WoWGoldGambler.CLASSIC.calculateResult = function(self)
     -- Calculation logic for the Classic game mode. A tie-breaker round will resolve ties.
     -- Winner: The player(s) with the highest roll
     -- Loser: The player(s) with the lowest roll
@@ -71,7 +63,7 @@ function WoWGoldGambler:classicCalculateResult()
     }
 end
 
-function WoWGoldGambler:classicDetectTie()
+WoWGoldGambler.CLASSIC.detectTie = function(self)
     -- Output a message to the chat channel informing players of a tie (and which end the tie is on)
     if (#self.session.result.winners > 1) then
         SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll " .. self.db.global.game.wager .. " now!", self.db.global.game.chatChannel)

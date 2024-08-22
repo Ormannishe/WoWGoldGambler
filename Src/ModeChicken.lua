@@ -1,6 +1,13 @@
 -- Chicken Game Mode --
+WoWGoldGambler.CHICKEN = {}
 
-function WoWGoldGambler:chickenStartRolls()
+-- Default Game Start
+WoWGoldGambler.CHICKEN.gameStart = WoWGoldGambler.DEFAULT.gameStart
+
+-- Default Registration
+WoWGoldGambler.CHICKEN.register = WoWGoldGambler.DEFAULT.register
+
+WoWGoldGambler.CHICKEN.startRolls = function(self)
     -- Informs players that the registration phase has ended and determines the roll amount (50% - 120% of the wager amount)
     SendChatMessage("Registration has ended. The bust amount is " ..  self:formatInt(self.db.global.game.wager) ..". Deciding the roll amount..." , self.db.global.game.chatChannel)
 
@@ -13,7 +20,7 @@ function WoWGoldGambler:chickenStartRolls()
     end
 end
 
-function WoWGoldGambler:chickenOptOut(text, playerName, playerRealm)
+WoWGoldGambler.CHICKEN.optOut = function(self, text, playerName, playerRealm)
     -- If a registered player who has not yet locked in their roll enters "-1" in the chat, lock in their roll
     if (text == "-1") then
         for i = 1, #self.session.players do
@@ -31,7 +38,7 @@ function WoWGoldGambler:chickenOptOut(text, playerName, playerRealm)
     end
 end
 
-function WoWGoldGambler:chickenRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+WoWGoldGambler.CHICKEN.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
     -- If a registered player rolled the correct amount and has not opted out of rolling, add the roll amount to their rollTotal
     -- If their rollTotal exceeds the wager amount, they bust and cannot continue rolling
     if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.session.modeData.rollAmount) then
@@ -52,7 +59,7 @@ function WoWGoldGambler:chickenRecordRoll(playerName, actualRoll, minRoll, maxRo
     end
 end
 
-function WoWGoldGambler:chickenCalculateResult()
+WoWGoldGambler.CHICKEN.calculateResult = function(self)
     -- Calculation logic for the Chicken game mode. Ties are allowed.
     -- Winner: The player(s) with the highest roll while not being larger than the wager amount
     -- Loser: ALL player(s) who's roll is higher than the wager amount. If no player's roll exceeds the wager amount, then the player(s) with the lowest roll.
@@ -117,3 +124,6 @@ function WoWGoldGambler:chickenCalculateResult()
         amountOwed = amountOwed
     }
 end
+
+-- Default Tie Resolution
+WoWGoldGambler.CHICKEN.detectTie = WoWGoldGambler.DEFAULT.detectTie

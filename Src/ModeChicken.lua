@@ -20,24 +20,6 @@ WoWGoldGambler.CHICKEN.startRolls = function(self)
     end
 end
 
-WoWGoldGambler.CHICKEN.optOut = function(self, text, playerName, playerRealm)
-    -- If a registered player who has not yet locked in their roll enters "-1" in the chat, lock in their roll
-    if (text == "-1") then
-        for i = 1, #self.session.players do
-            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
-                self.session.players[i].roll = self.session.players[i].rollTotal
-                SendChatMessage(self.session.players[i].name .. " is done rolling!" , self.db.global.game.chatChannel)
-
-                if (#self:checkPlayerRolls() == 0) then
-                    self:calculateResult()
-                end
-
-                return
-            end
-        end
-    end
-end
-
 WoWGoldGambler.CHICKEN.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
     -- If a registered player rolled the correct amount and has not opted out of rolling, add the roll amount to their rollTotal
     -- If their rollTotal exceeds the wager amount, they bust and cannot continue rolling
@@ -127,3 +109,25 @@ end
 
 -- Default Tie Resolution
 WoWGoldGambler.CHICKEN.detectTie = WoWGoldGambler.DEFAULT.detectTie
+
+-- Custom implementation for Chicken game mode
+-- During this game mode, we continue listening to chat messages during the rolling phase
+-- Players will use the chat to let us know when they're done rolling
+
+function WoWGoldGambler:chickenOut(text, playerName, playerRealm)
+    -- If a registered player who has not yet locked in their roll enters "-1" in the chat, lock in their roll
+    if (text == "-1") then
+        for i = 1, #self.session.players do
+            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
+                self.session.players[i].roll = self.session.players[i].rollTotal
+                SendChatMessage(self.session.players[i].name .. " is done rolling!" , self.db.global.game.chatChannel)
+
+                if (#self:checkPlayerRolls() == 0) then
+                    self:calculateResult()
+                end
+
+                return
+            end
+        end
+    end
+end

@@ -1,4 +1,6 @@
 -- Poker Game Mode --
+WoWGoldGambler.POKER = {}
+
 local handRankings = {
     ["Five Of A Kind"] = 1,
     ["Four Of A Kind"] = 2,
@@ -10,12 +12,18 @@ local handRankings = {
     ["High Card"] = 8
 }
 
-function WoWGoldGambler:pokerStartRolls()
+-- Default Game Start
+WoWGoldGambler.POKER.gameStart = WoWGoldGambler.DEFAULT.gameStart
+
+-- Default Registration
+WoWGoldGambler.POKER.register = WoWGoldGambler.DEFAULT.register
+
+WoWGoldGambler.POKER.startRolls = function(self)
     -- Informs players that the registration phase has ended.
     SendChatMessage("Registration has ended. All players /roll 11111-99999 now!" , self.db.global.game.chatChannel)
 end
 
-function WoWGoldGambler:pokerRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+WoWGoldGambler.POKER.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
     -- If a registered player made the wager roll and has not yet rolled, record the roll
     if (tonumber(minRoll) == 11111 and tonumber(maxRoll) == 99999) then
         for i = 1, #self.session.players do
@@ -30,6 +38,72 @@ function WoWGoldGambler:pokerRecordRoll(playerName, actualRoll, minRoll, maxRoll
         end
     end
 end
+
+WoWGoldGambler.POKER.calculateResult = function(self)
+    -- Calculation logic for the Poker game mode. A tie breaker round will resolve ties
+    -- Winner: The player that rolled the best poker hand
+    -- Loser: The player that rolled the worst poker hand
+    -- Payment Amount: The wager amount
+    local winners = {}
+    local losers = {}
+    local bestHand = {
+        type = "High Card",
+        cardRanks = {1}
+    }
+    local worstHand = {
+        type = "Five Of A Kind",
+        cardRanks = {9}
+    }
+
+    for i = 1, #self.session.players do
+        local playerHand = self.session.players[i].pokerHand
+        local betterThanBest = self:comparePokerHands(playerHand, bestHand)
+        local betterThanWorst = self:comparePokerHands(playerHand, worstHand)
+
+        if (betterThanBest == nil) then
+            -- Tied Winner
+            tinsert(winners, self.session.players[i])
+        elseif (betterThanBest == true) then
+            -- New Winner
+            winners = {self.session.players[i]}
+            bestHand = playerHand
+        end
+
+        if (betterThanWorst == nil) then
+            -- Tied Loser
+            tinsert(losers, self.session.players[i])
+        elseif (betterThanWorst == false) then
+            -- New Loser
+            losers = {self.session.players[i]}
+            worstHand = playerHand
+        end
+    end
+
+    -- In a scenario where all players tie, it's possible to run in to this edge case. Void out the losers so the round can end in a draw.
+    if (#winners > 0 and
+        #losers > 0 and
+        winners[1].name == losers[1].name) then
+        losers = {}
+    end
+
+    return {
+        winners = winners,
+        losers = losers,
+        amountOwed = self.db.global.game.wager
+    }
+end
+
+WoWGoldGambler.POKER.detectTie = function(self)
+    -- Output a message to the chat channel informing players of which tournament bracket is being resolved
+    if (#self.session.result.winners > 1) then
+        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!", self.db.global.game.chatChannel)
+    elseif (#self.session.result.losers > 1) then
+        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!", self.db.global.game.chatChannel)
+    end
+end
+
+-- Custom implementation for Poker game mode
+-- These helper functions help us convert player rolls into poker hands and score them
 
 function WoWGoldGambler:getPokerHand(roll)
     -- Transforms the given roll into a poker hand.
@@ -102,81 +176,6 @@ function WoWGoldGambler:getPokerHand(roll)
     return hand
 end
 
-function WoWGoldGambler:postPokerResult(playerName, hand)
-    -- Inform players of the best poker hand taken from their roll
-    if (hand.type == "Five Of A Kind") then
-        SendChatMessage("JACKPOT!! " .. playerName .. " has rolled a Five Of A Kind (" .. hand.cardRanks[1] .. "'s)!!!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Four Of A Kind") then
-        SendChatMessage("Incredible! " .. playerName .. " has rolled a Four Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Full House") then
-        SendChatMessage("Awesome roll! " .. playerName .. " has rolled a Full House (" .. hand.cardRanks[1] .. "'s over " .. hand.cardRanks[2] .. "'s)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Straight") then
-        SendChatMessage("Nice Save! " .. playerName .. " has rolled a Straight (" .. hand.cardRanks[5] .. " to " .. hand.cardRanks[1] .. ")!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Three Of A Kind") then
-        SendChatMessage("Great roll! " .. playerName .. " has rolled a Three Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Two Pair") then
-        SendChatMessage("Double nice! " .. playerName .. " has rolled a Two Pair (" .. hand.cardRanks[1] .. "'s and " .. hand.cardRanks[2] .. "'s with " .. hand.cardRanks[3] .. " kicker)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Pair") then
-        SendChatMessage("Nice pair! " .. playerName .. " has rolled a Pair (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "High Card") then
-        SendChatMessage("Yikes! " .. playerName .. " has rolled a High Card (" .. hand.cardRanks[1] .. ")!", self.db.global.game.chatChannel)
-    end
-end
-
-function WoWGoldGambler:pokerCalculateResult()
-    -- Calculation logic for the Poker game mode. A tie breaker round will resolve ties
-    -- Winner: The player that rolled the best poker hand
-    -- Loser: The player that rolled the worst poker hand
-    -- Payment Amount: The wager amount
-    local winners = {}
-    local losers = {}
-    local bestHand = {
-        type = "High Card",
-        cardRanks = {1}
-    }
-    local worstHand = {
-        type = "Five Of A Kind",
-        cardRanks = {9}
-    }
-
-    for i = 1, #self.session.players do
-        local playerHand = self.session.players[i].pokerHand
-        local betterThanBest = self:comparePokerHands(playerHand, bestHand)
-        local betterThanWorst = self:comparePokerHands(playerHand, worstHand)
-
-        if (betterThanBest == nil) then
-            -- Tied Winner
-            tinsert(winners, self.session.players[i])
-        elseif (betterThanBest == true) then
-            -- New Winner
-            winners = {self.session.players[i]}
-            bestHand = playerHand
-        end
-
-        if (betterThanWorst == nil) then
-            -- Tied Loser
-            tinsert(losers, self.session.players[i])
-        elseif (betterThanWorst == false) then
-            -- New Loser
-            losers = {self.session.players[i]}
-            worstHand = playerHand
-        end
-    end
-
-    -- In a scenario where all players tie, it's possible to run in to this edge case. Void out the losers so the round can end in a draw.
-    if (#winners > 0 and
-        #losers > 0 and
-        winners[1].name == losers[1].name) then
-        losers = {}
-    end
-
-    return {
-        winners = winners,
-        losers = losers,
-        amountOwed = self.db.global.game.wager
-    }
-end
-
 function WoWGoldGambler:comparePokerHands(hand1, hand2)
     -- Compares two poker hands, returning true if [hand1] is better than [hand2], false if [hand2] is better than [hand1], and nil if the hands are identical.
 
@@ -200,11 +199,23 @@ function WoWGoldGambler:comparePokerHands(hand1, hand2)
     end
 end
 
-function WoWGoldGambler:pokerDetectTie()
-    -- Output a message to the chat channel informing players of which tournament bracket is being resolved
-    if (#self.session.result.winners > 1) then
-        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!", self.db.global.game.chatChannel)
-    elseif (#self.session.result.losers > 1) then
-        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!", self.db.global.game.chatChannel)
+function WoWGoldGambler:postPokerResult(playerName, hand)
+    -- Inform players of the best poker hand taken from their roll
+    if (hand.type == "Five Of A Kind") then
+        SendChatMessage("JACKPOT!! " .. playerName .. " has rolled a Five Of A Kind (" .. hand.cardRanks[1] .. "'s)!!!", self.db.global.game.chatChannel)
+    elseif (hand.type == "Four Of A Kind") then
+        SendChatMessage("Incredible! " .. playerName .. " has rolled a Four Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
+    elseif (hand.type == "Full House") then
+        SendChatMessage("Awesome roll! " .. playerName .. " has rolled a Full House (" .. hand.cardRanks[1] .. "'s over " .. hand.cardRanks[2] .. "'s)!", self.db.global.game.chatChannel)
+    elseif (hand.type == "Straight") then
+        SendChatMessage("Nice Save! " .. playerName .. " has rolled a Straight (" .. hand.cardRanks[5] .. " to " .. hand.cardRanks[1] .. ")!", self.db.global.game.chatChannel)
+    elseif (hand.type == "Three Of A Kind") then
+        SendChatMessage("Great roll! " .. playerName .. " has rolled a Three Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
+    elseif (hand.type == "Two Pair") then
+        SendChatMessage("Double nice! " .. playerName .. " has rolled a Two Pair (" .. hand.cardRanks[1] .. "'s and " .. hand.cardRanks[2] .. "'s with " .. hand.cardRanks[3] .. " kicker)!", self.db.global.game.chatChannel)
+    elseif (hand.type == "Pair") then
+        SendChatMessage("Nice pair! " .. playerName .. " has rolled a Pair (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
+    elseif (hand.type == "High Card") then
+        SendChatMessage("Yikes! " .. playerName .. " has rolled a High Card (" .. hand.cardRanks[1] .. ")!", self.db.global.game.chatChannel)
     end
 end

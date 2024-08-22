@@ -193,7 +193,7 @@ function WoWGoldGambler:handleChatMessage(_, text, playerName)
     elseif (self.session.state == gameStates[3]) then
         -- If we're still listening to chat messages during the rolling phase of a game, perform game-mode specific actions
         if (self.db.global.game.mode == "CHICKEN") then
-            self.CHICKEN.optOut(WoWGoldGambler, text, playerName, playerRealm)
+            self:chickenOut(text, playerName, playerRealm)
         end
     end
 end

@@ -9,7 +9,11 @@ WoWGoldGambler.DEFAULT.gameStart = function(self)
     local newPlayer = {
         name = "Tester",
         realm = "Ravencrest",
-        roll = 1
+        roll = 1,
+        pokerHand = {
+            type = "High Card",
+            cardRanks = {1}
+        }
     }
 
     tinsert(self.session.players, newPlayer)
@@ -17,7 +21,11 @@ WoWGoldGambler.DEFAULT.gameStart = function(self)
     local newPlayer2 = {
         name = "Tester2",
         realm = "Ravencrest",
-        roll = 2
+        roll = 2,
+        pokerHand = {
+            type = "High Card",
+            cardRanks = {2}
+        }
     }
 
     tinsert(self.session.players, newPlayer2)

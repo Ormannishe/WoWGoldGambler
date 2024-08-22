@@ -86,15 +86,13 @@ When the rolling phase of the game session begins, WoWGoldGambler will automatic
 
 The Price Is Right Game Mode adds an interesting layer of strategy to the game and can make high rolls costly!
 
-When the rolling phase of the game session begins, WoWGoldGambler will automatically perform a /roll for the wager amount. The result of this roll will determine the 'price'.
+When the rolling phase of the game session begins, all players can /roll any amount they want with the goal of rolling as close to the 'price' as possible, without going over. The 'price' will be the wager amount.
 
-All players can then /roll any amount they want with the goal of rolling as close to the 'price' as possible, without going over.
+**Winner**: The player whose roll was closest to the 'price' without going over
 
-**Winner**: The player whose roll was closest to the Dealer's roll while not being larger than the Dealer's roll
+**Loser**: The player whose roll was furthest from 'price' (in either direction - under or over)
 
-**Loser**: The player whose roll was furthest from the Dealer's roll (in either direction - under or over)
-
-**Payment Amount**: The difference between the loser's roll and the Dealer's roll
+**Payment Amount**: The difference between the loser's roll and the 'price', up to the wager amount
 
 ### Poker
 

@@ -27,7 +27,7 @@ WoWGoldGambler["PRICE IS RIGHT"].calculateResult = function(self)
     -- Calculation logic for the Price Is Right game mode. A tie-breaker round will resolve ties.
     -- Winner: The player who rolled closest to the price without going over
     -- Loser: The player who's roll was furthest from the price (either over or under)
-    -- Payment Amount: The wager amount
+    -- Payment Amount: The difference between the loser's roll and the 'price', up to the wager amount
     local winners = {}
     local losers = {}
     local smallestDiff = 1000000 -- The biggest number that can be rolled is /roll 999999

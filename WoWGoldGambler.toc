@@ -10,13 +10,13 @@
 embeds.xml
 
 Src/WoWGoldGambler.lua
-Src/ModeDefaults.lua
-Src/ModeChicken.lua
-Src/ModeClassic.lua
-Src/ModeCoinflip.lua
-Src/ModeLottery.lua
-Src/ModePriceIsRight.lua
-Src/ModePoker.lua
-Src/ModeDeathRoll.lua
+Src/GameMode/Defaults.lua
+Src/GameMode/Chicken.lua
+Src/GameMode/Classic.lua
+Src/GameMode/Coinflip.lua
+Src/GameMode/Lottery.lua
+Src/GameMode/PriceIsRight.lua
+Src/GameMode/Poker.lua
+Src/GameMode/DeathRoll.lua
 Src/Stats.lua
 Src/ui.lua

@@ -127,7 +127,8 @@ function WoWGoldGambler:resetStats(info)
     -- Deletes all stats!
     self.db.global.stats = {
         player = {},
-        aliases = {}
+        aliases = {},
+        house = 0
     }
 
     self.session.stats = {

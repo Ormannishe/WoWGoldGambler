@@ -1,7 +1,7 @@
 ## Interface: 110002
 ## Title: WoWGoldGambler
 ## Author: Ormannishe
-## Version: v1.3.2
+## Version: v2.0.0
 ## Notes: May RNG be ever in your favor.
 ## SavedVariables: WoWGoldGamblerDB
 ## OptionalDeps: Ace3
@@ -10,12 +10,13 @@
 embeds.xml
 
 Src/WoWGoldGambler.lua
-Src/ModeChicken.lua
-Src/ModeClassic.lua
-Src/ModeCoinflip.lua
-Src/ModeRoulette.lua
-Src/ModePriceIsRight.lua
-Src/ModePoker.lua
-Src/ModeDeathRoll.lua
+Src/GameMode/Defaults.lua
+Src/GameMode/Chicken.lua
+Src/GameMode/Classic.lua
+Src/GameMode/Coinflip.lua
+Src/GameMode/Lottery.lua
+Src/GameMode/PriceIsRight.lua
+Src/GameMode/Poker.lua
+Src/GameMode/DeathRoll.lua
 Src/Stats.lua
 Src/ui.lua

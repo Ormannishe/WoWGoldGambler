@@ -70,21 +70,15 @@ Once a winner is determined, players in the Loser's Bracket will also have to /r
 
 **Payment Amount**: The wager amount
 
-### Roulette
+### Lottery
 
-The Roulette Game Mode is a low-odds, high-payout game mode. It can also have low barrier to entry (ie. a low wager can be set, while still paying out well).
+The Lottery Game Mode is a low-odds, high-payout game mode. It can also have low barrier to entry (ie. a low wager can be set, while still paying out well).
 
-During the registration phase of a Roulette game players enter by typing any number between 1 and 36 (inclusive) in the appropriate chat channel. The number they enter becomes their 'roll' (ie. They are betting on that number).
+When the rolling phase of the game session begins, WoWGoldGambler will automatically perform a /roll for the number of players. Each player's 'lotto number' is their player index, determined by the order they registered for the game. The results are then immediately calculated (players do not have to /roll).
 
-When the rolling phase of the game session begins, WoWGoldGambler will automatically perform a /roll 36. The results are then immediately calculated (players do not have to /roll).
+**Winner**: The player whose 'lotto number' was drawn (ie. their player index was rolled by the Dealer)
 
-There are no tie-breaker rounds in Roulette. In the case of a tie, all winners will split the winnings.
-
-If no player guessed the Dealer roll correctly, the round is a draw (nobody wins or loses).
-
-**Winner**: The player(s) whose entry number was rolled by the Dealer
-
-**Loser**: **ALL** players whose entry number was not rolled by the Dealer
+**Loser**: **ALL** players whose 'lotto numbers' were NOT drawn
 
 **Payment Amount**: The wager amount
 
@@ -92,15 +86,13 @@ If no player guessed the Dealer roll correctly, the round is a draw (nobody wins
 
 The Price Is Right Game Mode adds an interesting layer of strategy to the game and can make high rolls costly!
 
-When the rolling phase of the game session begins, WoWGoldGambler will automatically perform a /roll for the wager amount. The result of this roll will determine the 'price'.
+When the rolling phase of the game session begins, all players can /roll any amount they want with the goal of rolling as close to the 'price' as possible, without going over. The 'price' will be the wager amount.
 
-All players can then /roll any amount they want with the goal of rolling as close to the 'price' as possible, without going over.
+**Winner**: The player whose roll was closest to the 'price' without going over
 
-**Winner**: The player whose roll was closest to the Dealer's roll while not being larger than the Dealer's roll
+**Loser**: The player whose roll was furthest from 'price' (in either direction - under or over)
 
-**Loser**: The player whose roll was furthest from the Dealer's roll (in either direction - under or over)
-
-**Payment Amount**: The difference between the loser's roll and the Dealer's roll
+**Payment Amount**: The difference between the loser's roll and the 'price', up to the wager amount
 
 ### Poker
 
@@ -171,8 +163,6 @@ Lastly, the Dealer can remove a player entirely from the stats by using the **/w
 Alongside the Game Options and Controls, the WoWGoldGambler UI also has a number of features which make it easier for the Dealer to play.
 
 To automatically join a game session, the Dealer can click the 'Join Game' button to automatically post a '1' in the appropriate chat channel. After joining, the 'Join Game' button will become a 'Leave Game' button, which can now be clicked to automatically unregister from the game by posting a '-1' to the chat.
-
-When playing the Roulette game mode, WoWGoldGambler will always register with the number 36 by default. This default can be changed to a number of your choice (between 1 and 36) using the **/wgg setroulettenumber [number]** command.
 
 WoWGoldGambler can also automatically perform rolls for the Dealer when they click the 'Roll For Me' button. The roll performed will always be appropriate for the selected Game Mode (ie. the wager amount for the Classic game mode, or 2 for the Coinflip game mode).
 

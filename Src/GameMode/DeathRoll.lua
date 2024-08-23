@@ -1,11 +1,12 @@
 -- 1v1 Death Roll Game Mode --
+WoWGoldGambler["1v1 DEATH ROLL"] = {}
 
-function WoWGoldGambler:deathRollGameStart()
+WoWGoldGambler["1v1 DEATH ROLL"].gameStart = function(self)
     SendChatMessage("WoWGoldGambler: A new 1v1 Death Roll game has been started! The first two players to type 1 will 1v1 roll to the death! (-1 to withdraw)" , self.db.global.game.chatChannel)
     self.session.modeData.currentRoll = self.db.global.game.wager
 end
 
-function WoWGoldGambler:deathRollRegister(text, playerName, playerRealm)
+WoWGoldGambler["1v1 DEATH ROLL"].register = function(self, text, playerName, playerRealm)
     -- Same as regular registration, but capped at only two players
     if (text == "1" and #self.session.players < 2) then
         self:registerPlayer(playerName, playerRealm)
@@ -24,13 +25,13 @@ function WoWGoldGambler:deathRollRegister(text, playerName, playerRealm)
     end
 end
 
-function WoWGoldGambler:deathRollStartRolls()
-    -- Informs players that the registration phase has ended
+WoWGoldGambler["1v1 DEATH ROLL"].startRolls = function(self)
+    -- Informs players that the registration phase has ended and performs a /roll 2 to determine which player goes first
     SendChatMessage("Registration has ended. Let's see who goes first. " .. self.session.players[1].name .. " (1) or " .. self.session.players[2].name .. " (2)!", self.db.global.game.chatChannel)
     self:rollMe(2)
 end
 
-function WoWGoldGambler:deathRollRecordRoll(playerName, actualRoll, minRoll, maxRoll)
+WoWGoldGambler["1v1 DEATH ROLL"].recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
     -- If the dealer performed a /roll 2 and player turn order has not been decided yet, use the result to determine which player goes first
     if (self.session.dealer.name == playerName and self.session.modeData.currentPlayerIndex == nil and tonumber(minRoll) == 1 and tonumber(maxRoll) == 2) then
         local result = tonumber(actualRoll)
@@ -53,7 +54,7 @@ function WoWGoldGambler:deathRollRecordRoll(playerName, actualRoll, minRoll, max
         
         self.session.players[self.session.modeData.currentPlayerIndex].roll = result
 
-        -- If the roll is not 1, it's now the other player's turn to roll. Their previous roll is voided and they are prompted to roll again with the new roll amount.
+        -- If the roll is not 1, it's now the other player's turn to roll. Their previous roll is voided and they are prompted to roll again with the new roll amount
         if (result ~= 1) then
             local nextPlayerName
             local nextPlayerIndex
@@ -78,7 +79,7 @@ function WoWGoldGambler:deathRollRecordRoll(playerName, actualRoll, minRoll, max
     end
 end
 
-function WoWGoldGambler:deathRollCalculateResult()
+WoWGoldGambler["1v1 DEATH ROLL"].calculateResult = function(self)
     -- Calculation logic for the 1v1 Death Roll game mode. Ties should not be possible.
     -- Winner: The player who did not roll 1
     -- Loser: The player who rolled 1
@@ -103,3 +104,6 @@ function WoWGoldGambler:deathRollCalculateResult()
         amountOwed = amountOwed
     }
 end
+
+-- Default Tie Resolution
+WoWGoldGambler["1v1 DEATH ROLL"].detectTie = WoWGoldGambler.DEFAULT.detectTie

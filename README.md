@@ -74,9 +74,9 @@ Once a winner is determined, players in the Loser's Bracket will also have to /r
 
 The Lottery Game Mode is a low-odds, high-payout game mode. It can also have low barrier to entry (ie. a low wager can be set, while still paying out well).
 
-When the rolling phase of the game session begins, WoWGoldGambler will automatically perform a /roll for the number of players. Each player's 'lotto number' is their player order, determined by the order they registered for the game. The results are then immediately calculated (players do not have to /roll).
+When the rolling phase of the game session begins, WoWGoldGambler will automatically perform a /roll for the number of players. Each player's 'lotto number' is their player index, determined by the order they registered for the game. The results are then immediately calculated (players do not have to /roll).
 
-**Winner**: The player whose 'lotto number' was drawn (rolled by the Dealer)
+**Winner**: The player whose 'lotto number' was drawn (ie. their player index was rolled by the Dealer)
 
 **Loser**: **ALL** players whose 'lotto numbers' were NOT drawn
 

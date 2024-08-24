@@ -10,6 +10,7 @@ WoWGoldGambler.COINFLIP.register = WoWGoldGambler.DEFAULT.register
 WoWGoldGambler.COINFLIP.startRolls = function(self)
     -- Informs players that the registration phase has ended.
     SendChatMessage("Registration has ended. All players /roll 2 now!" , self.db.global.game.chatChannel)
+    self.session.modeData.currentRoll = 2
 end
 
 WoWGoldGambler.COINFLIP.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)

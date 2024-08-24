@@ -11,9 +11,9 @@ WoWGoldGambler.CHICKEN.startRolls = function(self)
     -- Informs players that the registration phase has ended and determines the roll amount (50% - 120% of the wager amount)
     SendChatMessage("Registration has ended. The bust amount is " ..  self:formatInt(self.db.global.game.wager) ..". Deciding the roll amount..." , self.db.global.game.chatChannel)
 
-    self.session.modeData.rollAmount = math.floor(self.db.global.game.wager * (math.random(50, 120) / 100))
+    self.session.modeData.currentRoll = math.floor(self.db.global.game.wager * (math.random(50, 120) / 100))
 
-    SendChatMessage("All players /roll " .. self.session.modeData.rollAmount .. " now! Be careful not to bust!" , self.db.global.game.chatChannel)
+    SendChatMessage("All players /roll " .. self.session.modeData.currentRoll .. " now! Be careful not to bust!" , self.db.global.game.chatChannel)
 
     for i = 1, #self.session.players do
         self.session.players[i].rollTotal = 0
@@ -23,7 +23,7 @@ end
 WoWGoldGambler.CHICKEN.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
     -- If a registered player rolled the correct amount and has not opted out of rolling, add the roll amount to their rollTotal
     -- If their rollTotal exceeds the wager amount, they bust and cannot continue rolling
-    if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.session.modeData.rollAmount) then
+    if (tonumber(minRoll) == 1 and tonumber(maxRoll) == self.session.modeData.currentRoll) then
         for i = 1, #self.session.players do
             if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
                 self.session.players[i].rollTotal = self.session.players[i].rollTotal + tonumber(actualRoll)

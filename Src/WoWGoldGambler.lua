@@ -437,13 +437,7 @@ function WoWGoldGambler:rollMe(maxAmount, minAmount)
     -- Automatically performs a roll between [minAmount] and [maxAmount] for the dealer.
     -- If [maxValue] or [minValue] are nil, they are defaulted to appropriate values for the game mode
     if (maxAmount == nil) then
-        if (self.db.global.game.mode == "COINFLIP") then
-            maxAmount = 2
-        elseif (self.db.global.game.mode == "POKER") then
-            maxAmount = 99999
-        elseif (self.db.global.game.mode == "CHICKEN") then
-            maxAmount = self.session.modeData.rollAmount
-        elseif (self.db.global.game.mode == "1v1 DEATH ROLL") then
+        if (self.session.modeData.currentRoll ~= nil) then
             maxAmount = self.session.modeData.currentRoll
         else
             maxAmount = self.db.global.game.wager
@@ -451,8 +445,8 @@ function WoWGoldGambler:rollMe(maxAmount, minAmount)
     end
 
     if (minAmount == nil) then
-        if (self.db.global.game.mode == "POKER") then
-            minAmount = 11111
+        if (self.session.modeData.currentMinRoll ~= nil) then
+            minAmount = self.session.modeData.currentMinRoll
         else
             minAmount = 1
         end

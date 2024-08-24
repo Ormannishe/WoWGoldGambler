@@ -7,11 +7,11 @@ WoWGoldGambler.EXCHANGE.gameStart = WoWGoldGambler.DEFAULT.gameStart
 -- Default Registration
 WoWGoldGambler.EXCHANGE.register = WoWGoldGambler.DEFAULT.register
 
-WoWGoldGambler.EXCHANGE.startRolls = function(self) {
+WoWGoldGambler.EXCHANGE.startRolls = function(self)
     -- Informs players that the registration phase has ended and performs a /roll 2 to select the first of two players to play
     SendChatMessage("Registration has ended. Let's see which players will be making an exchange!" , self.db.global.game.chatChannel)
     self:rollMe(#self.session.players)
-}
+end
 
 WoWGoldGambler.EXCHANGE.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
     -- If the dealer made a roll for the number of players, use it to determine the first player
@@ -27,7 +27,8 @@ WoWGoldGambler.EXCHANGE.recordRoll = function(self, playerName, actualRoll, minR
         self.session.modeData.currentRoll = #self.session.players
 
         SendChatMessage(firstPlayerName .. ", you have been selected to make an exchange! Now, /roll " .. #self.session.players .. " to determine your opponent!", self.db.global.game.chatChannel)
-    elseif (self.session.modeData.firstPlayerName == playerName and self.session.modeData.secondPlayerIndex == nil and
+    -- TODO: Revert to self.session.modeData.firstPlayerName
+    elseif (self.session.dealer.name == playerName and self.session.modeData.secondPlayerIndex == nil and
             tonumber(minRoll) == 1 and tonumber(maxRoll) == #self.session.players) then
         local secondPlayerIndex = tonumber(actualRoll)
 
@@ -38,19 +39,20 @@ WoWGoldGambler.EXCHANGE.recordRoll = function(self, playerName, actualRoll, minR
             self.session.modeData.secondPlayerName = secondPlayerName
 
             SendChatMessage("Alright, " .. playerName .. " and ".. secondPlayerName .. " are about to make an exchange! Here are the possible outcomes!", self.db.global.game.chatChannel)
-            SendChatMessage("{Skull} " .. playerName .. " owes " .. secondPlayerName .. " " .. self.db.global.game.wager .. " gold", self.db.global.game.chatChannel)
+            SendChatMessage("{Skull} " .. playerName .. " owes " .. secondPlayerName .. " " .. self:formatInt(self.db.global.game.wager) .. " gold", self.db.global.game.chatChannel)
             SendChatMessage("{Cross} " .. playerName .. " owes " .. secondPlayerName .. " a rolled amount of gold", self.db.global.game.chatChannel)
             SendChatMessage("{Circle} " .. playerName .. " and " .. secondPlayerName .. " must /hug", self.db.global.game.chatChannel)
             SendChatMessage("{Diamond} " .. secondPlayerName .. " owes " .. playerName .. " a rolled amount of gold", self.db.global.game.chatChannel)
-            SendChatMessage("{Star} " .. secondPlayerName .. " owes " .. playerName .. " " .. self.db.global.game.wager .. " gold", self.db.global.game.chatChannel)
+            SendChatMessage("{Star} " .. secondPlayerName .. " owes " .. playerName .. " " .. self:formatInt(self.db.global.game.wager) .. " gold", self.db.global.game.chatChannel)
 
-            self:cycleRaidIconToggle(true)
+            self:cycleRaidIcon(true)
 
             SendChatMessage("Now, " .. playerName .. ", notice the raid icons cycling above my head. When you're ready, type STOP in chat to determine the outcome!", self.db.global.game.chatChannel)
         else
             SendChatMessage("You can't play against yourself! Let's try that again. " .. playerName .. ", /roll ".. #self.session.players .. " to determine your opponent!", self.db.global.game.chatChannel)
         end
-    elseif (self.session.modeData.loserName == playerName and self.session.modeData.amountOwed == nil and
+        -- TODO: Revert to self.session.modeData.loserName
+    elseif (self.session.dealer.name == playerName and self.session.modeData.amountOwed == nil and
             tonumber(minRoll) == 1 and tonumber(maxRoll) == self.db.global.game.wager) then
         self.session.modeData.amountOwed = tonumber(actualRoll)
 
@@ -64,7 +66,8 @@ end
 WoWGoldGambler.EXCHANGE.handleChatMessage = function(self, text, playerName, playerRealm)
     -- During this game mode, we continue listening to chat messages during the rolling phase
     -- Player 1 will use the chat to let us know when to stop cycling raid icons, determining the outcome
-    if (self.session.modeData.firstPlayerName == playerName and self.session.modeData.loserName == nil and string.upper(text) == "STOP") then
+    -- TODO: Revert to self.session.modeData.firstPlayerName
+    if (self.session.dealer.name == playerName and self.session.modeData.loserName == nil and string.upper(text) == "STOP") then
         -- If Player 1 has sent the message "STOP", and we have not yet determined the outcome,
         -- stop cycling raid icons and use the current raid icon to determine the outcome
         self:cycleRaidIcon(false)
@@ -75,16 +78,16 @@ WoWGoldGambler.EXCHANGE.handleChatMessage = function(self, text, playerName, pla
             -- Star Outcome
             self.session.modeData.loserName = self.session.modeData.secondPlayerName
             self.session.modeData.amountOwed = self.db.global.game.wager
-        else if (raidIcon == 2) then
+        elseif (raidIcon == 2) then
             -- Circle Outcome
             self.session.modeData.amountOwed = 0
-        else if (raidIcon == 3) then
+        elseif (raidIcon == 3) then
             -- Diamond Outcome
             self.session.modeData.loserName = self.session.modeData.secondPlayerName
-        else if (raidIcon == 7) then
+        elseif (raidIcon == 7) then
             -- Cross Outcome
             self.session.modeData.loserName = self.session.modeData.firstPlayerName
-        else if (raidIcon == 8) then
+        elseif (raidIcon == 8) then
             -- Skull Outcome
             self.session.modeData.loserName = self.session.modeData.firstPlayerName
             self.session.modeData.amountOwed = self.db.global.game.wager 
@@ -95,6 +98,7 @@ WoWGoldGambler.EXCHANGE.handleChatMessage = function(self, text, playerName, pla
             self:calculateResult()
         else
             SendChatMessage("It looks like " .. self.session.modeData.loserName .. " is feeling generous! ".. self.session.modeData.loserName .. ", /roll " .. self.db.global.game.wager .. " now to see how much you'll lose!", self.db.global.game.chatChannel)
+            self.session.modeData.currentRoll = self.db.global.game.wager
         end
     end
 end

@@ -14,7 +14,8 @@ local gameModes = {
     "PRICE IS RIGHT",
     "POKER",
     "CHICKEN",
-    "1v1 DEATH ROLL"
+    "1v1 DEATH ROLL",
+    "EXCHANGE"
 }
 
 local chatChannels = {
@@ -192,8 +193,8 @@ function WoWGoldGambler:handleChatMessage(_, text, playerName)
         WoWGoldGambler[self.db.global.game.mode].register(WoWGoldGambler, text, playerName, playerRealm)
     elseif (self.session.state == gameStates[3]) then
         -- If we're still listening to chat messages during the rolling phase of a game, perform game-mode specific actions
-        if (self.db.global.game.mode == "CHICKEN") then
-            self:chickenOut(text, playerName, playerRealm)
+        if (WoWGoldGambler[self.db.global.game.mode].handleChatMessage ~= nil) then
+            WoWGoldGambler[self.db.global.game.mode].handleChatMessage(WoWGoldGambler, text, playerName, playerRealm)
         end
     end
 end
@@ -398,7 +399,7 @@ function WoWGoldGambler:startRolls()
         -- At least two players are required to play
         if (#self.session.players > 1) then
             -- Stop listening to chat messages unless they are required for the game mode
-            if (self.db.global.game.mode ~= "CHICKEN") then
+            if (WoWGoldGambler[self.db.global.game.mode].handleChatMessage == nil) then
                 self:UnregisterEvent("CHAT_MSG_PARTY")
                 self:UnregisterEvent("CHAT_MSG_PARTY_LEADER")
                 self:UnregisterEvent("CHAT_MSG_RAID")
@@ -576,6 +577,7 @@ function WoWGoldGambler:endGame()
     self.session.players = {}
     self.session.result = nil
     self.session.modeData = {}
+    self:cycleRaidIcon(false)
 
     -- Update UI Widgets
     self:updateUi(self.session.state, gameStates)

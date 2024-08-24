@@ -184,6 +184,41 @@ function WoWGoldGambler:updateUi(currentState, gameStates)
     end
 end
 
+local currentIcon = nil
+local raidIcons = {
+    1, -- Star
+    2, -- Circle
+    3, -- Diamond
+    7, -- Cross
+    8  -- Skull
+}
+
+function WoWGoldGambler:cycleRaidIcon(startOrStop)
+    -- Starts or stops raid icon cycling on the Dealer
+    if (startOrStop == false) then
+        -- Stop cycling raid icons unless already stopped
+        if (currentIcon ~= nil) then
+            tinsert(raidIcons, currentIcon)
+            currentIcon = nil
+            container:SetScript("OnUpdate", nil)
+        end
+    elseif (startOrStop == true) then
+        -- Start cycling raid icons unless already started
+        if (currentIcon == nil) then
+            container:SetScript("OnUpdate", function()
+                local randomIndex = math.random(#raidIcons)
+                local randomIcon = raidIcons[randomIndex]
+    
+                tremove(raidIcons, randomIndex)
+                tinsert(raidIcons, currentIcon)
+                currentIcon = randomIcon
+    
+                SetRaidTarget("player", randomIcon)
+            end)
+        end
+    end
+end
+
 -- Implementation Functions --
 
 function WoWGoldGambler:enableWidget(widget)

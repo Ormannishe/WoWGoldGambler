@@ -41,6 +41,26 @@ WoWGoldGambler.CHICKEN.recordRoll = function(self, playerName, actualRoll, minRo
     end
 end
 
+-- During this game mode, we continue listening to chat messages during the rolling phase
+-- Players will use the chat to let us know when they're done rolling
+WoWGoldGambler.CHICKEN.handleChatMessage = function(self, text, playerName, playerRealm)
+    -- If a registered player who has not yet locked in their roll enters "-1" in the chat, lock in their roll
+    if (text == "-1") then
+        for i = 1, #self.session.players do
+            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
+                self.session.players[i].roll = self.session.players[i].rollTotal
+                SendChatMessage(self.session.players[i].name .. " is done rolling!" , self.db.global.game.chatChannel)
+
+                if (#self:checkPlayerRolls() == 0) then
+                    self:calculateResult()
+                end
+
+                return
+            end
+        end
+    end
+end
+
 WoWGoldGambler.CHICKEN.calculateResult = function(self)
     -- Calculation logic for the Chicken game mode. Ties are allowed.
     -- Winner: The player(s) with the highest roll while not being larger than the wager amount
@@ -109,25 +129,3 @@ end
 
 -- Default Tie Resolution
 WoWGoldGambler.CHICKEN.detectTie = WoWGoldGambler.DEFAULT.detectTie
-
--- Custom implementation for Chicken game mode
--- During this game mode, we continue listening to chat messages during the rolling phase
--- Players will use the chat to let us know when they're done rolling
-
-function WoWGoldGambler:chickenOut(text, playerName, playerRealm)
-    -- If a registered player who has not yet locked in their roll enters "-1" in the chat, lock in their roll
-    if (text == "-1") then
-        for i = 1, #self.session.players do
-            if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
-                self.session.players[i].roll = self.session.players[i].rollTotal
-                SendChatMessage(self.session.players[i].name .. " is done rolling!" , self.db.global.game.chatChannel)
-
-                if (#self:checkPlayerRolls() == 0) then
-                    self:calculateResult()
-                end
-
-                return
-            end
-        end
-    end
-end

@@ -21,6 +21,8 @@ WoWGoldGambler.POKER.register = WoWGoldGambler.DEFAULT.register
 WoWGoldGambler.POKER.startRolls = function(self)
     -- Informs players that the registration phase has ended.
     SendChatMessage("Registration has ended. All players /roll 11111-99999 now!" , self.db.global.game.chatChannel)
+    self.session.modeData.currentMinRoll = 11111
+    self.session.modeData.currentRoll = 99999
 end
 
 WoWGoldGambler.POKER.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)

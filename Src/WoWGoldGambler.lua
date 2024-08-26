@@ -534,6 +534,14 @@ function WoWGoldGambler:endGame()
         if (#self.session.result.losers > 0 and #self.session.result.winners > 0) then
             local houseAmount = 0
 
+            -- Update game mode agnostic records
+            WoWGoldGambler.DEFAULT.setRecords(WoWGoldGambler)
+
+            -- Update game mode specific records
+            if (WoWGoldGambler[self.db.global.game.mode].setRecords ~= nil) then
+                WoWGoldGambler[self.db.global.game.mode].setRecords(WoWGoldGambler)
+            end
+
             -- If a house cut is set, determine the amount owed to the house and adjust the amountOwed to the winner(s)
             if (self.db.global.game.houseCut > 0) then
                 houseAmount = math.floor(self.session.result.amountOwed * (self.db.global.game.houseCut / 100))
@@ -561,14 +569,6 @@ function WoWGoldGambler:endGame()
             
             for i = 1, #self.session.result.winners do
                 self:updatePlayerStat(self.session.result.winners[i].name, self.session.result.amountOwed * #self.session.result.losers)
-            end
-
-            -- Update game mode agnostic records
-            WoWGoldGambler.DEFAULT.setRecords(WoWGoldGambler)
-
-            -- Update game mode specific records
-            if (WoWGoldGambler[self.db.global.game.mode].setRecords ~= nil) then
-                WoWGoldGambler[self.db.global.game.mode].setRecords(WoWGoldGambler)
             end
         else
             SendChatMessage("Looks like nobody wins this round!" , self.db.global.game.chatChannel)
@@ -675,4 +675,13 @@ function WoWGoldGambler:formatInt(number)
     int = int:reverse():gsub("(%d%d%d)", "%1,")
 
     return minus .. int:reverse():gsub("^,", "") .. fraction
+end
+
+function WoWGoldGambler:formatFloat(float)
+    -- Formats a given [float], returning it as a string, rounded to the 10th decimal with no trailing zeroes
+    local formatted_float = string.format("%.10f", float)
+    formatted_float = string.gsub(formatted_float, "0+$", "")  -- Remove trailing zeros
+    formatted_float = string.gsub(formatted_float, "%.$", "")  -- Remove trailing decimal point if any
+
+    return formatted_float
 end

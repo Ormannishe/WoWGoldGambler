@@ -148,7 +148,7 @@ Exchage is a user-requested game mode which attempts to capture the spirit of th
 
 When the rolling phase of a game session begins, WoWGoldGambler will automatically perform a /roll for the number of players. The player who's player index was rolled will be 'Player 1'. Player index is determined by the order in which players registered for the game mode.
 
-'Player 1' will then be prompted to perform another /roll for the number of players to determine their opponent, 'Player 2'.
+Player 1 will then be prompted to perform another /roll for the number of players to determine their opponent, 'Player 2'.
 
 Once both players are determined, Raid Icons will begin cycling rapidly over the Dealer. Player 1 must type "STOP" in the appropriate chat channel to stop the icons from cycling. Whichever icon is on the Dealer after stopping determines the outcome of the exchange.
 

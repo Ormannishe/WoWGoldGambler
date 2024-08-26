@@ -142,6 +142,31 @@ The current player must then perform a /roll for the wager amount. If a 1 is rol
 
 **Payment Amount**: The wager amount
 
+### Exchange
+
+Exchage is a user-requested game mode which attempts to capture the spirit of the 'Chance Time' or 'Reversal of Fortune' events from Mario Party. Players may register for the game normally, but only two players will be selected to make an exchange. All other players are spectators to the exchange.
+
+When the rolling phase of a game session begins, WoWGoldGambler will automatically perform a /roll for the number of players. The player who's player index was rolled will be 'Player 1'. Player index is determined by the order in which players registered for the game mode.
+
+'Player 1' will then be prompted to perform another /roll for the number of players to determine their opponent, 'Player 2'.
+
+Once both players are determined, Raid Icons will begin cycling rapidly over the Dealer. Player 1 must type "STOP" in the appropriate chat channel to stop the icons from cycling. Whichever icon is on the Dealer after stopping determines the outcome of the exchange.
+
+Possible Outcomes:
+- SKULL: Player 1 owes Player 2 the full wager amount
+- CROSS: Player 1 owes Player 2 a rolled amount
+- CIRCLE: Player 1 and Player 2 must /hug eachother
+- DIAMOND: Player 2 owes Player 1 a rolled amount
+- STAR: Player 2 owes Player 1 the full wager amount
+
+If a Cross or Diamond raid icon are selected, the losing player will be prompted to perform a /roll for the wager amount, determining how much gold they'll owe the opposing player.
+
+**Winner**: Player 1 on Star or Diamond, Player 2 on Skull or Cross
+
+**Loser**: Player 2 on Star or Diamond, Player 1 on Skull or Cross
+
+**Payment Amount**: Either the wager amount or a rolled amount less than the wager
+
 ## Other Features
 
 ### Stat Tracking

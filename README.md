@@ -153,19 +153,13 @@ Player 1 will then be prompted to perform another /roll for the number of player
 Once both players are determined, Raid Icons will begin cycling rapidly over the Dealer. Player 1 must type "STOP" in the appropriate chat channel to stop the icons from cycling. Whichever icon is on the Dealer after stopping determines the outcome of the exchange.
 
 Possible Outcomes:
-- SKULL: Player 1 owes Player 2 the full wager amount
-- CROSS: Player 1 owes Player 2 a rolled amount
-- CIRCLE: Player 1 and Player 2 must /hug eachother
-- DIAMOND: Player 2 owes Player 1 a rolled amount
-- STAR: Player 2 owes Player 1 the full wager amount
+- **SKULL**: Player 1 owes Player 2 the full wager amount
+- **CROSS**: Player 1 owes Player 2 a rolled amount
+- **CIRCLE**: Player 1 and Player 2 must /hug eachother
+- **DIAMOND**: Player 2 owes Player 1 a rolled amount
+- **STAR**: Player 2 owes Player 1 the full wager amount
 
 If a Cross or Diamond raid icon are selected, the losing player will be prompted to perform a /roll for the wager amount, determining how much gold they'll owe the opposing player.
-
-**Winner**: Player 1 on Star or Diamond, Player 2 on Skull or Cross
-
-**Loser**: Player 2 on Star or Diamond, Player 1 on Skull or Cross
-
-**Payment Amount**: Either the wager amount or a rolled amount less than the wager
 
 ## Other Features
 

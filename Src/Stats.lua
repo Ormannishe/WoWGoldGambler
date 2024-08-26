@@ -10,6 +10,21 @@ function WoWGoldGambler:sessionStats()
     WoWGoldGambler:reportStats(true)
 end
 
+function WoWGoldGambler:reportRecords()
+    -- Post all records in the db to the chat channel
+    SendChatMessage("-- WoWGoldGambler All Time Records --", self.db.global.game.chatChannel)
+
+    for category, result in pairs(self.db.global.stats.records) do
+        local resultString = category .. ": " .. result.record
+
+        if (result.holders ~= nil) then
+            resultString = resultString .. " by " .. result.holders
+        end
+
+        SendChatMessage(resultString, self.db.global.game.chatChannel)
+    end
+end
+
 function WoWGoldGambler:joinStats(info, args)
     -- Set up an alias of [newAlt] for [newMain]. Players with one or more aliases will have the aliased players' stats joined with their own at reporting time.
     -- [newMain] and [newAlt] are parsed out of the given [args] via a string split on the space character
@@ -128,6 +143,7 @@ function WoWGoldGambler:resetStats(info)
     self.db.global.stats = {
         player = {},
         aliases = {},
+        records = {},
         house = 0
     }
 

@@ -40,6 +40,7 @@ local defaults = {
         stats = {
             player = {},
             aliases = {},
+            records = {},
             house = 0
         },
         bannedPlayers = {},
@@ -81,6 +82,12 @@ local options = {
             desc = "Output player stats from the current session to the chat channel",
             type = "execute",
             func = "sessionStats"
+        },
+        records = {
+            name = "Records",
+            desc = "Output all-time records to the chat channel",
+            type = "execute",
+            func = "reportRecords"
         },
         joinstats = {
             name = "Join Stats",
@@ -522,7 +529,7 @@ function WoWGoldGambler:detectTie()
 end
 
 function WoWGoldGambler:endGame()
-    -- Posts the result of the game session to the chat channel and updates stats before terminating the game session
+    -- Posts the result of the game session to the chat channel and updates stats and records before terminating the game session
     if (self.session.result ~= nil) then
         if (#self.session.result.losers > 0 and #self.session.result.winners > 0) then
             local houseAmount = 0
@@ -554,6 +561,14 @@ function WoWGoldGambler:endGame()
             
             for i = 1, #self.session.result.winners do
                 self:updatePlayerStat(self.session.result.winners[i].name, self.session.result.amountOwed * #self.session.result.losers)
+            end
+
+            -- Update game mode agnostic records
+            WoWGoldGambler.DEFAULT.setRecords(WoWGoldGambler)
+
+            -- Update game mode specific records
+            if (WoWGoldGambler[self.db.global.game.mode].setRecords ~= nil) then
+                WoWGoldGambler[self.db.global.game.mode].setRecords(WoWGoldGambler)
             end
         else
             SendChatMessage("Looks like nobody wins this round!" , self.db.global.game.chatChannel)

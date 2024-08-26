@@ -24,3 +24,48 @@ WoWGoldGambler.DEFAULT.detectTie = function(self)
     -- Ties are assumed to be allowed unless a game mode implements its own tie resolution
     self:endGame()
 end
+
+WoWGoldGambler.DEFAULT.setRecords = function(self)
+    -- Updates game mode agnostic records and reports when records are broken
+    self:gamesPlayedRecord()
+    self:biggestWagerRecord()
+    self:biggestWinRecord()
+end
+
+-- Implementation for records
+
+function WoWGoldGambler:gamesPlayedRecord()
+    if (self.db.global.stats.records["Games Played"] == nil) then
+        self.db.global.stats.records["Games Played"] = {
+            record = 1
+        }
+    else
+        self.db.global.stats.records["Games Played"].record = self.db.global.stats.records["Games Played"].record + 1
+    end
+end
+
+function WoWGoldGambler:biggestWagerRecord()
+    if (self.db.global.stats.records["Biggest Wager"] == nil or
+        self.db.global.game.wager > self.db.global.stats.records["Biggest Wager"].record) then
+
+        self.db.global.stats.records["Biggest Wager"] = {
+            record = self.db.global.game.wager,
+            holders = self:makeNameString(self.session.players)
+        }
+
+        SendChatMessage("New Record! " .. self:formatInt(self.db.global.game.wager) .. "g is the most money I've ever seen wagered!", self.db.global.game.chatChannel)
+    end
+end
+
+function WoWGoldGambler:biggestWinRecord()
+    if (self.db.global.stats.records["Biggest Win"] == nil or
+        self.session.result.amountOwed > self.db.global.stats.records["Biggest Win"].record) then
+
+        self.db.global.stats.records["Biggest Win"] = {
+            record = self.session.result.amountOwed,
+            holders = self:makeNameString(self.session.result.winners)
+        }
+
+        SendChatMessage("New Record! " .. self:formatInt(self.session.result.amountOwed) .. "g is the most money I've ever seen won in a single wager!", self.db.global.game.chatChannel)
+    end
+end

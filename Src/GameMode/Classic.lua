@@ -71,3 +71,36 @@ WoWGoldGambler.CLASSIC.detectTie = function(self)
         SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll " .. self.db.global.game.wager .. " now!", self.db.global.game.chatChannel)
     end
 end
+
+WoWGoldGambler.CLASSIC.setRecords = function(self)
+    -- Updates game mode agnostic records and reports when records are broken
+    self:unluckiestRollRecord()
+end
+
+-- Implementation for records
+
+function WoWGoldGambler:unluckiestRollRecord()
+    local currentPercentile
+    local percentile = self.session.result.losers[1].roll / self.db.global.game.wager * 100
+
+    if (self.db.global.stats.records["Most Unlucky Classic Roll"] == nil) then
+        currentPercentile = 1
+    else
+        currentRecord = self.db.global.stats.records["Most Unlucky Classic Roll"].record
+        currentPercentile, _ = strsplit(" ", currentRecord, 2)
+        currentPercentile = tonumber(currentPercentile)
+    end
+
+    if (percentile < currentPercentile) then
+        local formatted_percentile = string.format("%.10f", percentile)
+        formatted_percentile = string.gsub(formatted_percentile, "0+$", "")  -- Remove trailing zeros
+        formatted_percentile = string.gsub(formatted_percentile, "%.$", "")  -- Remove trailing decimal point if any
+
+        self.db.global.stats.records["Most Unlucky Classic Roll"] = {
+            record = tostring(formatted_percentile) .. " percentile loss",
+            holders = self:makeNameString(self.session.result.losers)
+        }
+
+        SendChatMessage("New Record! That was the unluckiest Classic roll I've ever seen! That roll was in the bottom " .. formatted_percentile .. "% of possible rolls!", self.db.global.game.chatChannel)
+    end
+end

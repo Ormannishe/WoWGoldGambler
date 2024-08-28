@@ -20,7 +20,7 @@ WoWGoldGambler.POKER.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.POKER.startRolls = function(self)
     -- Informs players that the registration phase has ended.
-    SendChatMessage("Registration has ended. All players /roll 11111-99999 now!" , self.db.global.game.chatChannel)
+    ChatMessage("Registration has ended. All players /roll 11111-99999 now!")
     self.session.modeData.currentMinRoll = 11111
     self.session.modeData.currentRoll = 99999
 end
@@ -98,9 +98,9 @@ end
 WoWGoldGambler.POKER.detectTie = function(self)
     -- Output a message to the chat channel informing players of which tournament bracket is being resolved
     if (#self.session.result.winners > 1) then
-        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!", self.db.global.game.chatChannel)
+        ChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!")
     elseif (#self.session.result.losers > 1) then
-        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!", self.db.global.game.chatChannel)
+        ChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!")
     end
 end
 
@@ -204,20 +204,20 @@ end
 function WoWGoldGambler:postPokerResult(playerName, hand)
     -- Inform players of the best poker hand taken from their roll
     if (hand.type == "Five Of A Kind") then
-        SendChatMessage("JACKPOT!! " .. playerName .. " has rolled a Five Of A Kind (" .. hand.cardRanks[1] .. "'s)!!!", self.db.global.game.chatChannel)
+        ChatMessage("JACKPOT!! " .. playerName .. " has rolled a Five Of A Kind (" .. hand.cardRanks[1] .. "'s)!!!")
     elseif (hand.type == "Four Of A Kind") then
-        SendChatMessage("Incredible! " .. playerName .. " has rolled a Four Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
+        ChatMessage("Incredible! " .. playerName .. " has rolled a Four Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!")
     elseif (hand.type == "Full House") then
-        SendChatMessage("Awesome roll! " .. playerName .. " has rolled a Full House (" .. hand.cardRanks[1] .. "'s over " .. hand.cardRanks[2] .. "'s)!", self.db.global.game.chatChannel)
+        ChatMessage("Awesome roll! " .. playerName .. " has rolled a Full House (" .. hand.cardRanks[1] .. "'s over " .. hand.cardRanks[2] .. "'s)!")
     elseif (hand.type == "Straight") then
-        SendChatMessage("Nice Save! " .. playerName .. " has rolled a Straight (" .. hand.cardRanks[5] .. " to " .. hand.cardRanks[1] .. ")!", self.db.global.game.chatChannel)
+        ChatMessage("Nice Save! " .. playerName .. " has rolled a Straight (" .. hand.cardRanks[5] .. " to " .. hand.cardRanks[1] .. ")!")
     elseif (hand.type == "Three Of A Kind") then
-        SendChatMessage("Great roll! " .. playerName .. " has rolled a Three Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
+        ChatMessage("Great roll! " .. playerName .. " has rolled a Three Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!")
     elseif (hand.type == "Two Pair") then
-        SendChatMessage("Double nice! " .. playerName .. " has rolled a Two Pair (" .. hand.cardRanks[1] .. "'s and " .. hand.cardRanks[2] .. "'s with " .. hand.cardRanks[3] .. " kicker)!", self.db.global.game.chatChannel)
+        ChatMessage("Double nice! " .. playerName .. " has rolled a Two Pair (" .. hand.cardRanks[1] .. "'s and " .. hand.cardRanks[2] .. "'s with " .. hand.cardRanks[3] .. " kicker)!")
     elseif (hand.type == "Pair") then
-        SendChatMessage("Nice pair! " .. playerName .. " has rolled a Pair (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
+        ChatMessage("Nice pair! " .. playerName .. " has rolled a Pair (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!")
     elseif (hand.type == "High Card") then
-        SendChatMessage("Yikes! " .. playerName .. " has rolled a High Card (" .. hand.cardRanks[1] .. ")!", self.db.global.game.chatChannel)
+        ChatMessage("Yikes! " .. playerName .. " has rolled a High Card (" .. hand.cardRanks[1] .. ")!")
     end
 end

@@ -9,11 +9,11 @@ WoWGoldGambler.CHICKEN.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.CHICKEN.startRolls = function(self)
     -- Informs players that the registration phase has ended and determines the roll amount (50% - 120% of the wager amount)
-    SendChatMessage("Registration has ended. The bust amount is " ..  self:formatInt(self.db.global.game.wager) ..". Deciding the roll amount..." , self.db.global.game.chatChannel)
+    ChatMessage("Registration has ended. The bust amount is " ..  self:formatInt(self.db.global.game.wager) ..". Deciding the roll amount...")
 
     self.session.modeData.currentRoll = math.floor(self.db.global.game.wager * (math.random(50, 120) / 100))
 
-    SendChatMessage("All players /roll " .. self.session.modeData.currentRoll .. " now! Be careful not to bust!" , self.db.global.game.chatChannel)
+    ChatMessage("All players /roll " .. self.session.modeData.currentRoll .. " now! Be careful not to bust!")
 
     for i = 1, #self.session.players do
         self.session.players[i].rollTotal = 0
@@ -29,10 +29,10 @@ WoWGoldGambler.CHICKEN.recordRoll = function(self, playerName, actualRoll, minRo
                 self.session.players[i].rollTotal = self.session.players[i].rollTotal + tonumber(actualRoll)
 
                 if (self.session.players[i].rollTotal > self.db.global.game.wager) then
-                    SendChatMessage("BUST! " .. self.session.players[i].name .. " has exceeded the maximum roll amount!" , self.db.global.game.chatChannel)
+                    ChatMessage("BUST! " .. self.session.players[i].name .. " has exceeded the maximum roll amount!")
                     self.session.players[i].roll = self.session.players[i].rollTotal
                 else
-                    SendChatMessage(self.session.players[i].name .. ", your total roll so far is " .. self:formatInt(self.session.players[i].rollTotal) .. ". Keep rolling or lock in your roll by typing '-1' in chat." , self.db.global.game.chatChannel)
+                    ChatMessage(self.session.players[i].name .. ", your total roll so far is " .. self:formatInt(self.session.players[i].rollTotal) .. ". Keep rolling or lock in your roll by typing '-1' in chat.")
                 end
 
                 return
@@ -49,7 +49,7 @@ WoWGoldGambler.CHICKEN.handleChatMessage = function(self, text, playerName, play
         for i = 1, #self.session.players do
             if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
                 self.session.players[i].roll = self.session.players[i].rollTotal
-                SendChatMessage(self.session.players[i].name .. " is done rolling!" , self.db.global.game.chatChannel)
+                ChatMessage(self.session.players[i].name .. " is done rolling!")
 
                 if (#self:checkPlayerRolls() == 0) then
                     self:calculateResult()

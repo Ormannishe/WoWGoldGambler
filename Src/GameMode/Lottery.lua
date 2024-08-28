@@ -9,7 +9,7 @@ WoWGoldGambler.LOTTERY.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.LOTTERY.startRolls = function(self)
     -- Informs players that the registration phase has ended. Performs a /roll for the number of players to determine the winner
-    SendChatMessage("Registration has ended. Drawing the winning ticket...", self.db.global.game.chatChannel)
+    ChatMessage("Registration has ended. Drawing the winning ticket...")
     self:rollMe(#self.session.players)
 end
 
@@ -20,7 +20,7 @@ WoWGoldGambler.LOTTERY.recordRoll = function(self, playerName, actualRoll, minRo
 
         self.session.modeData.lotteryResult = winnerIndex
 
-        SendChatMessage("The winning ticket is " .. actualRoll .. "! Congratulations " .. self.session.players[winnerIndex].name .. "!", self.db.global.game.chatChannel)
+        ChatMessage("The winning ticket is " .. actualRoll .. "! Congratulations " .. self.session.players[winnerIndex].name .. "!")
     
         -- Since all players must have a recorded roll for the game to end, simply give players a default roll
         for i = 1, #self.session.players do

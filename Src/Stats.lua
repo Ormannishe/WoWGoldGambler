@@ -12,7 +12,7 @@ end
 
 function WoWGoldGambler:reportRecords()
     -- Post all records in the db to the chat channel
-    SendChatMessage("-- WoWGoldGambler All Time Records --", self.db.global.game.chatChannel)
+    ChatMessage("-- WoWGoldGambler All Time Records --")
 
     for category, result in pairs(self.db.global.stats.records) do
         local resultString = category .. ": " .. result.record
@@ -21,7 +21,7 @@ function WoWGoldGambler:reportRecords()
             resultString = resultString .. " by " .. result.holders
         end
 
-        SendChatMessage(resultString, self.db.global.game.chatChannel)
+        ChatMessage(resultString)
     end
 end
 
@@ -226,7 +226,7 @@ function WoWGoldGambler:reportStats(sessionFlag)
     end
 
     -- Sort the sortedPlayers array by their winnings
-    -- BUG: When using SendChatMessage on the guild channel, the messages lose their order. This appears to be an issue with the Blizzard API
+    -- BUG: When using ChatMessage on the guild channel, the messages lose their order. This appears to be an issue with the Blizzard API
     -- To work around this, we would have to confirm each stat has been sent before sending the next one. Seems like a lot of work.
     table.sort(sortedPlayers, function(a, b)
         return stats[a] > stats[b]
@@ -234,11 +234,11 @@ function WoWGoldGambler:reportStats(sessionFlag)
 
     -- Post the stats to the chat channel
     if (sessionFlag) then
-        SendChatMessage("-- WoWGoldGambler Session Stats --", self.db.global.game.chatChannel)
-        SendChatMessage("The house has taken " .. self:formatInt(houseTotal) .. " gold!", self.db.global.game.chatChannel)
+        ChatMessage("-- WoWGoldGambler Session Stats --")
+        ChatMessage("The house has taken " .. self:formatInt(houseTotal) .. " gold!")
     else
-        SendChatMessage("-- WoWGoldGambler All Time Stats --", self.db.global.game.chatChannel)
-        SendChatMessage("The house has taken " .. self:formatInt(self.db.global.stats.house) .. " gold!", self.db.global.game.chatChannel)
+        ChatMessage("-- WoWGoldGambler All Time Stats --")
+        ChatMessage("The house has taken " .. self:formatInt(self.db.global.stats.house) .. " gold!")
     end
 
     for i = 1, #sortedPlayers do
@@ -251,9 +251,9 @@ function WoWGoldGambler:reportStats(sessionFlag)
         end
 
         if (houseStats[sortedPlayers[i]] ~= nil) then
-            SendChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold and owes the guild bank " .. houseStats[sortedPlayers[i]] .. " gold!", self.db.global.game.chatChannel)
+            ChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold and owes the guild bank " .. houseStats[sortedPlayers[i]] .. " gold!")
         else
-            SendChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold!", self.db.global.game.chatChannel)
+            ChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold!")
         end
     end
 end

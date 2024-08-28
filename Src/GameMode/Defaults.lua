@@ -3,7 +3,7 @@ WoWGoldGambler.DEFAULT = {}
 
 WoWGoldGambler.DEFAULT.gameStart = function(self)
     -- Basic game start notification for most game modes
-    SendChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
+    ChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)")
 
     -- TODO: Remove me
     local newPlayer = {
@@ -42,7 +42,7 @@ end
 
 WoWGoldGambler.DEFAULT.startRolls = function(self)
     -- Informs players that the registration phase has ended
-    SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
+    ChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!")
 end
 
 WoWGoldGambler.DEFAULT.detectTie = function(self)
@@ -78,7 +78,7 @@ function WoWGoldGambler:biggestWagerRecord()
             holders = self:makeNameString(self.session.players)
         }
 
-        SendChatMessage("New Record! " .. self:formatInt(self.db.global.game.wager) .. "g is the most money I've ever seen wagered!", self.db.global.game.chatChannel)
+        ChatMessage("New Record! " .. self:formatInt(self.db.global.game.wager) .. "g is the most money I've ever seen wagered!")
     end
 end
 
@@ -93,6 +93,6 @@ function WoWGoldGambler:biggestWinRecord()
             holders = self:makeNameString(self.session.result.winners)
         }
 
-        SendChatMessage("New Record! " .. self:formatInt(self.session.result.amountOwed) .. "g is the most money I've ever seen won in a single wager!", self.db.global.game.chatChannel)
+        ChatMessage("New Record! " .. self:formatInt(self.session.result.amountOwed) .. "g is the most money I've ever seen won in a single wager!")
     end
 end

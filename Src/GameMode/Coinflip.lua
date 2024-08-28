@@ -11,6 +11,7 @@ WoWGoldGambler.COINFLIP.startRolls = function(self)
     -- Informs players that the registration phase has ended.
     SendChatMessage("Registration has ended. All players /roll 2 now!" , self.db.global.game.chatChannel)
     self.session.modeData.currentRoll = 2
+    self.session.modeData.roundNumber = 1
 end
 
 WoWGoldGambler.COINFLIP.recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
@@ -53,5 +54,28 @@ WoWGoldGambler.COINFLIP.detectTie = function(self)
         SendChatMessage("Winner's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!", self.db.global.game.chatChannel)
     elseif (#self.session.result.losers > 1) then
         SendChatMessage("Loser's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!", self.db.global.game.chatChannel)
+    end
+
+    self.session.modeData.roundNumber = self.session.modeData.roundNumber + 1
+end
+
+WoWGoldGambler.COINFLIP.setRecords = function(self)
+    -- Updates records for the Coinflip game mode and reports when records are broken
+    self:longestCoinflipRecord()
+end
+
+-- Implementation for records
+
+function WoWGoldGambler:longestCoinflipRecord()
+    -- TODO: Test this
+    if (self.db.global.stats.records["Longest Coinflip"] == nil or
+        self.session.modeData.roundNumber > self.db.global.stats.records["Longest Coinflip"].record) then
+
+        self.db.global.stats.records["Longest Coinflip"] = {
+            record = self.session.modeData.roundNumber,
+            holders = self:makeNameString(self.session.players) -- Record holders should be just the players involved in the final round
+        }
+
+        SendChatMessage("New Record! That was the longest coinflip game I've ever seen (" .. self.session.modeData.roundNumber .. " rounds)!", self.db.global.game.chatChannel)
     end
 end

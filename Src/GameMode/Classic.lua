@@ -73,7 +73,7 @@ WoWGoldGambler.CLASSIC.detectTie = function(self)
 end
 
 WoWGoldGambler.CLASSIC.setRecords = function(self)
-    -- Updates game mode agnostic records and reports when records are broken
+    -- Updates records for the Classic game mode and reports when records are broken
     self:luckiestRollRecord()
     self:unluckiestRollRecord()
 end

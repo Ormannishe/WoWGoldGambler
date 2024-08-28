@@ -83,11 +83,13 @@ function WoWGoldGambler:biggestWagerRecord()
 end
 
 function WoWGoldGambler:biggestWinRecord()
+    local amountWon = (self.session.result.amountOwed * #self.session.result.losers)
+
     if (self.db.global.stats.records["Biggest Win"] == nil or
-        self.session.result.amountOwed > self.db.global.stats.records["Biggest Win"].record) then
+        amountWon > self.db.global.stats.records["Biggest Win"].record) then
 
         self.db.global.stats.records["Biggest Win"] = {
-            record = self.session.result.amountOwed,
+            record = amountWon,
             holders = self:makeNameString(self.session.result.winners)
         }
 

@@ -76,6 +76,6 @@ function WoWGoldGambler:longestCoinflipRecord()
             holders = self:makeNameString(self.session.players) -- Record holders should be just the players involved in the final round
         }
 
-        SendChatMessage("New Record! That was the longest coinflip game I've ever seen (" .. self.session.modeData.roundNumber .. " rounds)!", self.db.global.game.chatChannel)
+        SendChatMessage("New Record! That was the longest coinflip game I've ever seen, lasting " .. self.session.modeData.roundNumber .. " rounds!", self.db.global.game.chatChannel)
     end
 end

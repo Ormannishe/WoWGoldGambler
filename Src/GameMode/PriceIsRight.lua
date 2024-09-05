@@ -95,12 +95,20 @@ function WoWGoldGambler:biggestPriceDiff()
     local loserName = self.session.result.losers[1].name
     local loserDiff = math.abs(loserRoll - self.db.global.game.wager)
 
-    if (self.db.global.stats.records["PRICE IS RIGHT"]["Worst Roll"] == nil or
-        loserDiff > self.db.global.stats.records["PRICE IS RIGHT"]["Worst Roll"].record) then
+    if (self.db.global.stats.records["PRICE IS RIGHT"]["Furthest From Price"] == nil or
+        loserDiff > self.db.global.stats.records["PRICE IS RIGHT"]["Furthest From Price"].recordData) then
+            local record
 
-        self.db.global.stats.records["PRICE IS RIGHT"]["Worst Roll"] = {
-            record = loserDiff,
-            holders = loserName
+            if (loserRoll < self.db.global.game.wager) then
+                record = "Under by " .. loserDiff
+            else
+                record = "Over by " .. loserDiff
+            end
+
+        self.db.global.stats.records["PRICE IS RIGHT"]["Furthest From Price"] = {
+            record = record,
+            holders = loserName,
+            recordData = loserDiff
         }
 
         self:ChatMessage("New Record! That was the worst Price Is Right roll I've ever seen! " .. loserName .. ", you were off by " .. self:formatInt(loserDiff) .. "!")

@@ -17,6 +17,7 @@ WoWGoldGambler.CHICKEN.startRolls = function(self)
 
     for i = 1, #self.session.players do
         self.session.players[i].rollTotal = 0
+        self.session.players[i].numRolls = 0
     end
 end
 
@@ -27,6 +28,7 @@ WoWGoldGambler.CHICKEN.recordRoll = function(self, playerName, actualRoll, minRo
         for i = 1, #self.session.players do
             if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
                 self.session.players[i].rollTotal = self.session.players[i].rollTotal + tonumber(actualRoll)
+                self.session.players[i].numRolls = self.session.players[i].numRolls + 1
 
                 if (self.session.players[i].rollTotal > self.db.global.game.wager) then
                     self:ChatMessage("BUST! " .. self.session.players[i].name .. " has exceeded the maximum roll amount!")
@@ -140,7 +142,6 @@ end
 -- Game-mode specific records
 
 function WoWGoldGambler:biggestBustRecord()
-    -- TODO: Test this
     -- This record can only be broken if the losers busted
     if (self.session.result.losers[1].roll > self.db.global.game.wager) then
         local worstDiff = self.session.result.losers[1].roll - self.db.global.game.wager
@@ -171,27 +172,7 @@ function WoWGoldGambler:biggestBustRecord()
     end
 end
 
-function WoWGoldGambler:mostBustsRecord()
-    -- TODO: Test this
-    -- This record can only be broken if the losers busted
-    if (self.session.result.losers[1].roll > self.db.global.game.wager) then
-        local totalBusts = #self.session.result.losers
-
-        if (self.db.global.stats.records.CHICKEN["Most Busts"] == nil or
-            totalBusts > self.db.global.stats.records.CHICKEN["Most Busts"].record) then
-
-            self.db.global.stats.records.CHICKEN["Most Busts"] = {
-                record = totalBusts,
-                holders = self:makeNameString(self.session.result.losers)
-            }
-
-            self:ChatMessage("New Record! That was the most amount of busts I've ever seen in a game of Chicken! " .. totalBusts .. " of you totally blew it!")
-        end
-    end
-end
-
 function WoWGoldGambler:mostRollsRecord()
-    -- TODO: Test this
     local mostRolls = self.session.players[1].numRolls
     local playerName = self.session.players[1].name
 

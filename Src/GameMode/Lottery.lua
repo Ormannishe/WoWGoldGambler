@@ -54,3 +54,39 @@ end
 
 -- Default Tie Resolution
 WoWGoldGambler.LOTTERY.detectTie = WoWGoldGambler.DEFAULT.detectTie
+
+WoWGoldGambler.LOTTERY.setRecords = function(self)
+    -- Updates records for the Lottery game mode
+    self:luckiestLotteryNumber()
+end
+
+-- Game-mode specific records
+
+function WoWGoldGambler:luckiestLotteryNumber()
+    -- TODO: Test This
+    local counts
+    local luckiestNumber
+    local winningNumber = self.session.modeData.lotteryResult
+
+    if (self.db.global.stats.records.LOTTERY["Luckiest Number"] == nil) then
+        counts = {}
+    else
+        counts = self.db.global.stats.records.LOTTERY["Luckiest Number"].recordData
+        luckiestNumber = counts.luckiestNumber
+    end
+
+    if (counts[winningNumber] == nil) then
+        counts[winningNumber] == 1
+    else
+        counts[winningNumber] = counts[winningNumber] + 1
+    end
+
+    if (luckiestNumber == nil or counts[winningNumber] > counts[luckiestNumber]) then
+        counts.luckiestNumber = winningNumber
+
+        self.db.global.stats.records.LOTTERY["Luckiest Number"] = {
+            record = winningNumber .. " (drawn " .. self:formatInt(counts[winningNumber]) .. " times)",
+            recordData = counts
+        }
+    end
+end

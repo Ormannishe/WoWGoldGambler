@@ -75,23 +75,28 @@ WoWGoldGambler.EXCHANGE.handleChatMessage = function(self, text, playerName, pla
             -- Star Outcome
             self.session.modeData.loserName = self.session.modeData.secondPlayerName
             self.session.modeData.amountOwed = self.db.global.game.wager
+            self.session.modeData.raidIcon = "{Star}"
             ChatMessage("{Star} How lucky! It looks like " .. self.session.modeData.loserName .. " will be donating the full wager amount!")
         elseif (raidIcon == 2) then
             -- Circle Outcome
             self.session.modeData.amountOwed = 0
+            self.session.modeData.raidIcon = "{Circle}"
             ChatMessage("{Circle} Aww, it looks like " .. self.session.modeData.firstPlayerName .. " and ".. self.session.modeData.secondPlayerName .. " have to exchange hugs!")
         elseif (raidIcon == 3) then
             -- Diamond Outcome
             self.session.modeData.loserName = self.session.modeData.secondPlayerName
+            self.session.modeData.raidIcon = "{Diamond}"
             ChatMessage("{Diamond} It looks like " .. self.session.modeData.loserName .. " is feeling generous! ".. self.session.modeData.loserName .. ", /roll " .. self.db.global.game.wager .. " now to see how much you'll lose!")
         elseif (raidIcon == 7) then
             -- Cross Outcome
             self.session.modeData.loserName = self.session.modeData.firstPlayerName
+            self.session.modeData.raidIcon = "{Cross}"
             ChatMessage("{Cross} It looks like " .. self.session.modeData.loserName .. " is feeling generous! ".. self.session.modeData.loserName .. ", /roll " .. self.db.global.game.wager .. " now to see how much you'll lose!")
         elseif (raidIcon == 8) then
             -- Skull Outcome
             self.session.modeData.loserName = self.session.modeData.firstPlayerName
             self.session.modeData.amountOwed = self.db.global.game.wager
+            self.session.modeData.raidIcon = "{Skull}"
             ChatMessage("{Skull} How generous! It looks like " .. self.session.modeData.loserName .. " will be donating the full wager amount!")
         end
         
@@ -129,3 +134,39 @@ end
 
 -- Default Tie Resolution
 WoWGoldGambler.EXCHANGE.detectTie = WoWGoldGambler.DEFAULT.detectTie
+
+WoWGoldGambler.EXCHANGE.setRecords = function(self)
+    -- Updates records for the Lottery game mode
+    self:mostFrequentExchangeResult()
+end
+
+-- Game-mode specific records
+
+function WoWGoldGambler:mostFrequentExchangeResult()
+    -- TODO: Test This
+    local counts
+    local mostFrequentIcon
+    local currentIcon = self.session.modeData.raidIcon
+
+    if (self.db.global.stats.records.EXCHANGE["Most Frequent Result"] == nil) then
+        counts = {}
+    else
+        counts = self.db.global.stats.records.EXCHANGE["Most Frequent Result"].recordData
+        mostFrequentIcon = counts.mostFrequentIcon
+    end
+
+    if (counts[currentIcon] == nil) then
+        counts[currentIcon] == 1
+    else
+        counts[currentIcon] = counts[currentIcon] + 1
+    end
+
+    if (mostFrequentIcon == nil or counts[currentIcon] > counts[mostFrequentIcon]) then
+        counts.mostFrequentIcon = currentIcon
+
+        self.db.global.stats.records.EXCHANGE["Most Frequent Result"] = {
+            record = currentIcon .. " (selected " .. self:formatInt(counts[currentIcon]) .. " times)",
+            recordData = counts
+        }
+    end
+end

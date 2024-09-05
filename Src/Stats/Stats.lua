@@ -10,18 +10,22 @@ function WoWGoldGambler:sessionStats()
     WoWGoldGambler:reportStats(true)
 end
 
-function WoWGoldGambler:reportRecords()
+function reportRecords()
     -- Post all records in the db to the chat channel
     ChatMessage("-- WoWGoldGambler All Time Records --")
 
-    for category, result in pairs(self.db.global.stats.records) do
-        local resultString = category .. ": " .. result.record
+    for category, records in pairs(self.db.global.stats.records) do
+        ChatMessage("-" .. category .. "-")
 
-        if (result.holders ~= nil) then
-            resultString = resultString .. " by " .. result.holders
+        for subcategory, record in pairs(records) do
+            local resultString = subcategory .. ": " .. record.record
+
+            if (record.holders ~= nil) then
+                resultString = resultString .. " by " .. record.holders
+            end
+    
+            ChatMessage(resultString)
         end
-
-        ChatMessage(resultString)
     end
 end
 

@@ -78,26 +78,25 @@ WoWGoldGambler.CLASSIC.setRecords = function(self)
     self:unluckiestRollRecord()
 end
 
--- Implementation for records
+-- Game-mode specific records
 
 function WoWGoldGambler:luckiestRollRecord()
     local currentPercentile
     local percentile = (self.db.global.game.wager - self.session.result.winners[1].roll + 1) / self.db.global.game.wager * 100
 
-    if (self.db.global.stats.records["Luckiest Classic Roll"] == nil) then
+    if (self.db.global.stats.records.CLASSIC["Luckiest Roll"] == nil) then
         currentPercentile = 100
     else
-        currentRecord = self.db.global.stats.records["Luckiest Classic Roll"].record
-        currentPercentile, _ = strsplit(" ", currentRecord, 2)
-        currentPercentile = tonumber(currentPercentile)
+        currentPercentile = self.db.global.stats.records.CLASSIC["Luckiest Roll"].recordData
     end
 
     if (percentile < currentPercentile) then
         local formatted_percentile = self:formatFloat(percentile)
 
-        self.db.global.stats.records["Luckiest Classic Roll"] = {
+        self.db.global.stats.records.CLASSIC["Luckiest Roll"] = {
             record = tostring(formatted_percentile) .. " percentile win",
-            holders = self:makeNameString(self.session.result.winners)
+            holders = self:makeNameString(self.session.result.winners),
+            recordData = currentPercentile
         }
 
         ChatMessage("New Record! That was the luckiest Classic roll I've ever seen! That roll was in the top " .. formatted_percentile .. "% of possible rolls!")
@@ -108,20 +107,19 @@ function WoWGoldGambler:unluckiestRollRecord()
     local currentPercentile
     local percentile = self.session.result.losers[1].roll / self.db.global.game.wager * 100
 
-    if (self.db.global.stats.records["Unluckiest Classic Roll"] == nil) then
+    if (self.db.global.stats.records.CLASSIC["Unluckiest Roll"] == nil) then
         currentPercentile = 100
     else
-        currentRecord = self.db.global.stats.records["Unluckiest Classic Roll"].record
-        currentPercentile, _ = strsplit(" ", currentRecord, 2)
-        currentPercentile = tonumber(currentPercentile)
+        currentPercentile = self.db.global.stats.records.CLASSIC["Unluckiest Roll"].recordData
     end
 
     if (percentile < currentPercentile) then
         local formatted_percentile = self:formatFloat(percentile)
 
-        self.db.global.stats.records["Unluckiest Classic Roll"] = {
+        self.db.global.stats.records.CLASSIC["Unluckiest Roll"] = {
             record = tostring(formatted_percentile) .. " percentile loss",
-            holders = self:makeNameString(self.session.result.losers)
+            holders = self:makeNameString(self.session.result.losers),
+            recordData = currentPercentile
         }
 
         ChatMessage("New Record! That was the unluckiest Classic roll I've ever seen! That roll was in the bottom " .. formatted_percentile .. "% of possible rolls!")

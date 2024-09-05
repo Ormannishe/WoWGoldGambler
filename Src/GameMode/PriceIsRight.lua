@@ -88,17 +88,17 @@ WoWGoldGambler["PRICE IS RIGHT"].setRecords = function(self)
     self:biggestPriceDiff()
 end
 
--- Implementation for records
+-- Game-mode specific records
 
 function WoWGoldGambler:biggestPriceDiff()
     -- TODO: Test this
     local loserRoll = self.session.result.losers[1].roll
     local loserDiff = math.abs(loserRoll - self.db.global.game.wager)
 
-    if (self.db.global.stats.records["Worst Price Is Right Roll"] == nil or
-        loserDiff > self.db.global.stats.records["Worst Price Is Right Roll"].record) then
+    if (self.db.global.stats.records["PRICE IS RIGHT"]["Worst Roll"] == nil or
+        loserDiff > self.db.global.stats.records["PRICE IS RIGHT"]["Worst Roll"].record) then
 
-        self.db.global.stats.records["Worst Price Is Right Roll"] = {
+        self.db.global.stats.records["PRICE IS RIGHT"]["Worst Roll"] = {
             record = loserDiff,
             holders = self.session.result.losers[1].name
         }

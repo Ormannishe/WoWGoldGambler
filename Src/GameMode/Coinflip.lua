@@ -61,21 +61,5 @@ end
 
 WoWGoldGambler.COINFLIP.setRecords = function(self)
     -- Updates records for the Coinflip game mode and reports when records are broken
-    self:longestCoinflipRecord()
-end
-
--- Implementation for records
-
-function WoWGoldGambler:longestCoinflipRecord()
-    -- TODO: Test this
-    if (self.db.global.stats.records["Longest Coinflip"] == nil or
-        self.session.modeData.roundNumber > self.db.global.stats.records["Longest Coinflip"].record) then
-
-        self.db.global.stats.records["Longest Coinflip"] = {
-            record = self.session.modeData.roundNumber,
-            holders = self:makeNameString(self.session.players) -- Record holders should be just the players involved in the final round
-        }
-
-        ChatMessage("New Record! That was the longest coinflip game I've ever seen, lasting " .. self.session.modeData.roundNumber .. " rounds!")
-    end
+    self:mostRoundsRecord()
 end

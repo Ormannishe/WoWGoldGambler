@@ -534,13 +534,8 @@ function WoWGoldGambler:endGame()
         if (#self.session.result.losers > 0 and #self.session.result.winners > 0) then
             local houseAmount = 0
 
-            -- Update game mode agnostic records
-            WoWGoldGambler.DEFAULT.setRecords(WoWGoldGambler)
-
-            -- Update game mode specific records
-            if (WoWGoldGambler[self.db.global.game.mode].setRecords ~= nil) then
-                WoWGoldGambler[self.db.global.game.mode].setRecords(WoWGoldGambler)
-            end
+            -- Update records
+            self:setRecords()
 
             -- If a house cut is set, determine the amount owed to the house and adjust the amountOwed to the winner(s)
             if (self.db.global.game.houseCut > 0) then
@@ -689,4 +684,11 @@ function WoWGoldGambler:formatFloat(float)
     formatted_float = string.gsub(formatted_float, "%.$", "")  -- Remove trailing decimal point if any
 
     return formatted_float
+end
+
+function WoWGoldGambler:capitalize(str)
+    -- Formats a given [string] to lowercase with the first character of each word capitalized
+    return str:lower():gsub("%a[^%s]*", function (word)
+        return word:sub(1,1):upper() .. word:sub(2)
+    end)
 end

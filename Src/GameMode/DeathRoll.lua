@@ -4,6 +4,7 @@ WoWGoldGambler["1v1 DEATH ROLL"] = {}
 WoWGoldGambler["1v1 DEATH ROLL"].gameStart = function(self)
     ChatMessage("WoWGoldGambler: A new 1v1 Death Roll game has been started! The first two players to type 1 will 1v1 roll to the death! (-1 to withdraw)")
     self.session.modeData.currentRoll = self.db.global.game.wager
+    self.session.modeData.roundNumber = 1
 end
 
 WoWGoldGambler["1v1 DEATH ROLL"].register = function(self, text, playerName, playerRealm)
@@ -70,6 +71,7 @@ WoWGoldGambler["1v1 DEATH ROLL"].recordRoll = function(self, playerName, actualR
             self.session.modeData.currentRoll = result
             self.session.modeData.currentPlayerName = nextPlayerName
             self.session.modeData.currentPlayerIndex = nextPlayerIndex
+            self.session.modeData.roundNumber = self.session.modeData.roundNumber + 1
             self.session.players[nextPlayerIndex].roll = nil
 
             ChatMessage(playerName .. " survived their roll! " .. nextPlayerName .. ", now it's your turn. /roll " .. result .. " now!")
@@ -107,3 +109,8 @@ end
 
 -- Default Tie Resolution
 WoWGoldGambler["1v1 DEATH ROLL"].detectTie = WoWGoldGambler.DEFAULT.detectTie
+
+WoWGoldGambler["1v1 DEATH ROLL"].setRecords = function(self)
+    -- Updates records for the 1v1 Death Roll game mode and reports when records are broken
+    self:mostRoundsRecord()
+end

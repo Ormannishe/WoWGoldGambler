@@ -178,6 +178,7 @@ function WoWGoldGambler:OnInitialize()
         },
         modeData = {}, -- arbitrary data used to run game modes
         players = {},
+        originalPlayers = {}, -- Since players can change over the course of a game mode, this tracks the original set of players
         result = nil,
         stats = {
             player = {},
@@ -420,6 +421,9 @@ function WoWGoldGambler:startRolls()
             -- Change the game state to ROLLING
             self.session.state = gameStates[3]
 
+            -- Lock in the initial set of players
+            self.session.originalPlayers = self.session.players
+
             -- Perform game-mode specific tasks required to start the rolling phase
             WoWGoldGambler[self.db.global.game.mode].startRolls(WoWGoldGambler)
 
@@ -579,6 +583,7 @@ function WoWGoldGambler:endGame()
     self:UnregisterEvent("CHAT_MSG_SYSTEM")
     self.session.state = gameStates[1]
     self.session.players = {}
+    self.session.originalPlayers = {}
     self.session.result = nil
     self.session.modeData = {}
     self:cycleRaidIcon(false)

@@ -62,7 +62,7 @@ function WoWGoldGambler:biggestWagerRecord(category)
 
         self.db.global.stats.records[category]["Biggest Wager"] = {
             record = self.db.global.game.wager,
-            holders = self:makeNameString(self.session.players)
+            holders = self:makeNameString(self.session.originalPlayers)
         }
 
         self:ChatMessage("New Record! " .. self:formatInt(self.db.global.game.wager) .. "g is the most money I've ever seen wagered!")

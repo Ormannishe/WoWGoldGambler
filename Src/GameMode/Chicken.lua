@@ -129,3 +129,92 @@ end
 
 -- Default Tie Resolution
 WoWGoldGambler.CHICKEN.detectTie = WoWGoldGambler.DEFAULT.detectTie
+
+WoWGoldGambler.CHICKEN.setRecords = function(self)
+    -- Updates records for the Chicken game mode and reports when records are broken
+    self:biggestBustRecord()
+    self:mostBustsRecord()
+    self:mostRollsRecord()
+end
+
+-- Game-mode specific records
+
+function WoWGoldGambler:biggestBustRecord()
+    -- TODO: Test this
+    -- This record can only be broken if the losers busted
+    if (self.session.result.losers[1].roll > self.db.global.game.wager) then
+        local worstDiff = self.session.result.losers[1].roll - self.db.global.game.wager
+        local loserName = self.session.result.losers[1].name
+
+        for i = 2, #self.session.result.losers do
+            local diff = self.session.result.losers[i].roll - self.db.global.game.wager
+
+            if (diff > worstDiff) then
+                worstDiff = diff
+                loserName = self.session.result.losers[i].name
+            elseif (diff == worstDiff) then
+                -- It's possible multiple losers broke the record with the same roll, in which case they are all record holders
+                loserName = loserName .. ", " .. self.session.result.losers[i].name
+            end
+        end
+
+        if (self.db.global.stats.records.CHICKEN["Biggest Bust"] == nil or
+            worstDiff > self.db.global.stats.records.CHICKEN["Biggest Bust"].record) then
+
+            self.db.global.stats.records.CHICKEN["Biggest Bust"] = {
+                record = worstDiff,
+                holders = loserName
+            }
+
+            ChatMessage("New Record! That was the biggest Chicken bust I've ever seen! You were over the bust amount by " .. self:formatInt(worstDiff) .. "!")
+        end
+    end
+end
+
+function WoWGoldGambler:mostBustsRecord()
+    -- TODO: Test this
+    -- This record can only be broken if the losers busted
+    if (self.session.result.losers[1].roll > self.db.global.game.wager) then
+        local totalBusts = #self.session.result.losers
+
+        if (self.db.global.stats.records.CHICKEN["Most Busts"] == nil or
+            totalBusts > self.db.global.stats.records.CHICKEN["Most Busts"].record) then
+
+            self.db.global.stats.records.CHICKEN["Most Busts"] = {
+                record = totalBusts,
+                holders = self:makeNameString(self.session.result.losers)
+            }
+
+            ChatMessage("New Record! That was the most amount of busts I've ever seen in a game of Chicken! " .. totalBusts .. " of you totally blew it!")
+        end
+    end
+end
+
+function WoWGoldGambler:mostRollsRecord()
+    -- TODO: Test this
+    local mostRolls = self.session.players[1].numRolls
+    local playerName = self.session.players[1].name
+
+        for i = 2, #self.session.players do
+            local rolls = self.session.players[i].numRolls
+
+            if (rolls > mostRolls) then
+                mostRolls = rolls
+                playerName = self.session.players[i].name
+            elseif (rolls == mostRolls) then
+                -- It's possible multiple players broke the record with the same number of roll, in which case they are all record holders
+                playerName = playerName .. ", " .. self.session.players[i].name
+            end
+        end
+
+        if (self.db.global.stats.records.CHICKEN["Most Rolls"] == nil or
+            mostRolls > self.db.global.stats.records.CHICKEN["Most Rolls"].record) then
+
+            self.db.global.stats.records.CHICKEN["Most Rolls"] = {
+                record = mostRolls,
+                holders = playerName
+            }
+
+            ChatMessage("New Record! That was the highest number of rolls I've ever seen in a game of Chicken! " .. playerName .. ", you rolled " .. mostRolls .. " times!")
+        end
+end

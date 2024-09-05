@@ -125,7 +125,7 @@ function WoWGoldGambler:bestPokerHand()
         bestHand = self.db.global.stats.records.POKER["Best Hand"].recordData
     end
 
-    if (comparePokerHands(winningHand, bestHand) == true) then
+    if (self:comparePokerHands(winningHand, bestHand) == true) then
         local _, translatedHand = self:translateHand(winningHand)
 
         self.db.global.stats.records.POKER["Best Hand"] = {
@@ -151,7 +151,7 @@ function WoWGoldGambler:worstPokerHand()
         worstHand = self.db.global.stats.records.POKER["Worst Hand"].recordData
     end
 
-    if (comparePokerHands(losingHand, worstHand) == false) then
+    if (self:comparePokerHands(losingHand, worstHand) == false) then
         local _, translatedHand = self:translateHand(losingHand)
 
         self.db.global.stats.records.POKER["Worst Hand"] = {

@@ -29,6 +29,7 @@ function WoWGoldGambler:setRecords()
     end
 
     self:gamesPlayedRecord("OVERALL")
+    self:goldTradedRecord("OVERALL")
     self:biggestWagerRecord("OVERALL")
     self:biggestWinRecord("OVERALL")
 
@@ -53,6 +54,18 @@ function WoWGoldGambler:gamesPlayedRecord(category)
         }
     else
         self.db.global.stats.records[category]["Games Played"].record = self.db.global.stats.records[category]["Games Played"].record + 1
+    end
+end
+
+function WoWGoldGambler:goldTradedRecord(category)
+    local amountTraded = (self.session.result.amountOwed * #self.session.result.losers)
+
+    if (self.db.global.stats.records[category]["Gold Traded"] == nil) then
+        self.db.global.stats.records[category]["Gold Traded"] = {
+            record = amountTraded
+        }
+    else
+        self.db.global.stats.records[category]["Gold Traded"].record = self.db.global.stats.records[category]["Gold Traded"].record + amountTraded
     end
 end
 

@@ -48,6 +48,7 @@ end
 -- Generic Records --
 
 function WoWGoldGambler:gamesPlayedRecord(category)
+    -- TODO: Games which result in a tie won't be counted
     if (self.db.global.stats.records[category]["Games Played"] == nil) then
         self.db.global.stats.records[category]["Games Played"] = {
             record = 1

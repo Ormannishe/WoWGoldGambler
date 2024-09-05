@@ -132,8 +132,20 @@ WoWGoldGambler.EXCHANGE.calculateResult = function(self)
     }
 end
 
--- Default Tie Resolution
-WoWGoldGambler.EXCHANGE.detectTie = WoWGoldGambler.DEFAULT.detectTie
+WoWGoldGambler.EXCHANGE.detectTie = function(self)
+    -- This game will resolve in a tie with no winners or losers, so records won't be updated
+    -- To ensure we capture stats for the Cicle outcome, we'll manually update the record instead
+
+    -- Ensure the EXCHANGE subcategory exists
+    if (self.db.global.stats.records.EXCHANGE == nil) then
+        self.db.global.stats.records.EXCHANGE = {}
+    end
+
+    -- TODO: This doesn't seem to be working
+    self:mostFrequentExchangeResult()
+
+    self:endGame()
+end
 
 WoWGoldGambler.EXCHANGE.setRecords = function(self)
     -- Updates records for the Lottery game mode
@@ -143,7 +155,6 @@ end
 -- Game-mode specific records
 
 function WoWGoldGambler:mostFrequentExchangeResult()
-    -- TODO: Test This
     local counts
     local mostFrequentIcon
     local currentIcon = self.session.modeData.raidIcon
@@ -163,10 +174,10 @@ function WoWGoldGambler:mostFrequentExchangeResult()
 
     if (mostFrequentIcon == nil or counts[currentIcon] > counts[mostFrequentIcon]) then
         counts.mostFrequentIcon = currentIcon
-
-        self.db.global.stats.records.EXCHANGE["Most Frequent Result"] = {
-            record = currentIcon .. " (selected " .. self:formatInt(counts[currentIcon]) .. " times)",
-            recordData = counts
-        }
     end
+
+    self.db.global.stats.records.EXCHANGE["Most Frequent Result"] = {
+        record = counts.mostFrequentIcon .. " (selected " .. self:formatInt(counts[counts.mostFrequentIcon]) .. " times)",
+        recordData = counts
+    }
 end

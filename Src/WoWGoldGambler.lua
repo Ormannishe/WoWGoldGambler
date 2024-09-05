@@ -15,7 +15,7 @@ local gameModes = {
     "POKER",
     "CHICKEN",
     "1v1 DEATH ROLL",
-    "EXCHANGE"
+    -- "EXCHANGE" TODO: This is broken in groups. The number of raid icons you can set is rate limited while in a group
 }
 
 local chatChannels = {

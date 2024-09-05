@@ -135,7 +135,6 @@ WoWGoldGambler.CHICKEN.detectTie = WoWGoldGambler.DEFAULT.detectTie
 WoWGoldGambler.CHICKEN.setRecords = function(self)
     -- Updates records for the Chicken game mode and reports when records are broken
     self:biggestBustRecord()
-    self:mostBustsRecord()
     self:mostRollsRecord()
 end
 

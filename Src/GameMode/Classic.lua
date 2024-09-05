@@ -66,9 +66,9 @@ end
 WoWGoldGambler.CLASSIC.detectTie = function(self)
     -- Output a message to the chat channel informing players of a tie (and which end the tie is on)
     if (#self.session.result.winners > 1) then
-        ChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll " .. self.db.global.game.wager .. " now!")
+        self:ChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll " .. self.db.global.game.wager .. " now!")
     elseif (#self.session.result.losers > 1) then
-        ChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll " .. self.db.global.game.wager .. " now!")
+        self:ChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll " .. self.db.global.game.wager .. " now!")
     end
 end
 
@@ -94,12 +94,12 @@ function WoWGoldGambler:luckiestRollRecord()
         local formatted_percentile = self:formatFloat(percentile)
 
         self.db.global.stats.records.CLASSIC["Luckiest Roll"] = {
-            record = tostring(formatted_percentile) .. " percentile win",
+            record = "Top " .. tostring(formatted_percentile) .. " percentile win",
             holders = self:makeNameString(self.session.result.winners),
-            recordData = currentPercentile
+            recordData = percentile
         }
 
-        ChatMessage("New Record! That was the luckiest Classic roll I've ever seen! That roll was in the top " .. formatted_percentile .. "% of possible rolls!")
+        self:ChatMessage("New Record! That was the luckiest Classic roll I've ever seen! That roll was in the top " .. formatted_percentile .. "% of possible rolls!")
     end
 end
 
@@ -117,11 +117,11 @@ function WoWGoldGambler:unluckiestRollRecord()
         local formatted_percentile = self:formatFloat(percentile)
 
         self.db.global.stats.records.CLASSIC["Unluckiest Roll"] = {
-            record = tostring(formatted_percentile) .. " percentile loss",
+            record = "Bottom " .. tostring(formatted_percentile) .. " percentile loss",
             holders = self:makeNameString(self.session.result.losers),
-            recordData = currentPercentile
+            recordData = percentile
         }
 
-        ChatMessage("New Record! That was the unluckiest Classic roll I've ever seen! That roll was in the bottom " .. formatted_percentile .. "% of possible rolls!")
+        self:ChatMessage("New Record! That was the unluckiest Classic roll I've ever seen! That roll was in the bottom " .. formatted_percentile .. "% of possible rolls!")
     end
 end

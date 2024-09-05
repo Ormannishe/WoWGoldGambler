@@ -9,11 +9,11 @@ WoWGoldGambler.CHICKEN.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.CHICKEN.startRolls = function(self)
     -- Informs players that the registration phase has ended and determines the roll amount (50% - 120% of the wager amount)
-    ChatMessage("Registration has ended. The bust amount is " ..  self:formatInt(self.db.global.game.wager) ..". Deciding the roll amount...")
+    self:ChatMessage("Registration has ended. The bust amount is " ..  self:formatInt(self.db.global.game.wager) ..". Deciding the roll amount...")
 
     self.session.modeData.currentRoll = math.floor(self.db.global.game.wager * (math.random(50, 120) / 100))
 
-    ChatMessage("All players /roll " .. self.session.modeData.currentRoll .. " now! Be careful not to bust!")
+    self:ChatMessage("All players /roll " .. self.session.modeData.currentRoll .. " now! Be careful not to bust!")
 
     for i = 1, #self.session.players do
         self.session.players[i].rollTotal = 0
@@ -29,10 +29,10 @@ WoWGoldGambler.CHICKEN.recordRoll = function(self, playerName, actualRoll, minRo
                 self.session.players[i].rollTotal = self.session.players[i].rollTotal + tonumber(actualRoll)
 
                 if (self.session.players[i].rollTotal > self.db.global.game.wager) then
-                    ChatMessage("BUST! " .. self.session.players[i].name .. " has exceeded the maximum roll amount!")
+                    self:ChatMessage("BUST! " .. self.session.players[i].name .. " has exceeded the maximum roll amount!")
                     self.session.players[i].roll = self.session.players[i].rollTotal
                 else
-                    ChatMessage(self.session.players[i].name .. ", your total roll so far is " .. self:formatInt(self.session.players[i].rollTotal) .. ". Keep rolling or lock in your roll by typing '-1' in chat.")
+                    self:ChatMessage(self.session.players[i].name .. ", your total roll so far is " .. self:formatInt(self.session.players[i].rollTotal) .. ". Keep rolling or lock in your roll by typing '-1' in chat.")
                 end
 
                 return
@@ -49,7 +49,7 @@ WoWGoldGambler.CHICKEN.handleChatMessage = function(self, text, playerName, play
         for i = 1, #self.session.players do
             if (self.session.players[i].name == playerName and self.session.players[i].roll == nil) then
                 self.session.players[i].roll = self.session.players[i].rollTotal
-                ChatMessage(self.session.players[i].name .. " is done rolling!")
+                self:ChatMessage(self.session.players[i].name .. " is done rolling!")
 
                 if (#self:checkPlayerRolls() == 0) then
                     self:calculateResult()
@@ -166,7 +166,7 @@ function WoWGoldGambler:biggestBustRecord()
                 holders = loserName
             }
 
-            ChatMessage("New Record! That was the biggest Chicken bust I've ever seen! You were over the bust amount by " .. self:formatInt(worstDiff) .. "!")
+            self:ChatMessage("New Record! That was the biggest Chicken bust I've ever seen! You were over the bust amount by " .. self:formatInt(worstDiff) .. "!")
         end
     end
 end
@@ -185,7 +185,7 @@ function WoWGoldGambler:mostBustsRecord()
                 holders = self:makeNameString(self.session.result.losers)
             }
 
-            ChatMessage("New Record! That was the most amount of busts I've ever seen in a game of Chicken! " .. totalBusts .. " of you totally blew it!")
+            self:ChatMessage("New Record! That was the most amount of busts I've ever seen in a game of Chicken! " .. totalBusts .. " of you totally blew it!")
         end
     end
 end
@@ -215,6 +215,6 @@ function WoWGoldGambler:mostRollsRecord()
                 holders = playerName
             }
 
-            ChatMessage("New Record! That was the highest number of rolls I've ever seen in a game of Chicken! " .. playerName .. ", you rolled " .. mostRolls .. " times!")
+            self:ChatMessage("New Record! That was the highest number of rolls I've ever seen in a game of Chicken! " .. playerName .. ", you rolled " .. mostRolls .. " times!")
         end
 end

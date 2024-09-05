@@ -371,9 +371,9 @@ function WoWGoldGambler:startGame()
 
         -- Inform players of the selected Game Mode and Wager
         if (self.db.global.game.houseCut == 0) then
-            ChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g")
+            self:ChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g")
         else
-            ChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g - House Cut - " .. self.db.global.game.houseCut .. "%")
+            self:ChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g - House Cut - " .. self.db.global.game.houseCut .. "%")
         end
 
         -- Update UI Widgets
@@ -392,12 +392,12 @@ function WoWGoldGambler:enterMe(leaveFlag)
         message = "-1"
     end
 
-    ChatMessage(message)
+    self:ChatMessage(message)
 end
 
 function WoWGoldGambler:lastCall()
     -- Post a message to the chat channel informing players that registration is about to end
-    ChatMessage("Last call to join!")
+    self:ChatMessage("Last call to join!")
 end
 
 function WoWGoldGambler:startRolls()
@@ -426,14 +426,14 @@ function WoWGoldGambler:startRolls()
             -- Update UI Widgets
             self:updateUi(self.session.state, gameStates)
         else
-            ChatMessage("Not enough players have registered to play!")
+            self:ChatMessage("Not enough players have registered to play!")
         end
     elseif (self.session.state == gameStates[3]) then
         -- If a rolling phase is in progress, post the names of the players who have yet to roll in the chat channel
         local playersToRoll = self:checkPlayerRolls(self.session.players)
 
         for i = 1, #playersToRoll do
-            ChatMessage(playersToRoll[i] .. " still needs to roll!")
+            self:ChatMessage(playersToRoll[i] .. " still needs to roll!")
         end
     else
         self:Print("Player registration must be done before rolling can start!")
@@ -465,7 +465,7 @@ end
 function WoWGoldGambler:cancelGame()
     -- Terminates the currently running game session, voiding out any result
     if (self.session.state ~= gameStates[1]) then
-        ChatMessage("Game session has been canceled by " .. self.session.dealer.name)
+        self:ChatMessage("Game session has been canceled by " .. self.session.dealer.name)
         self.session.result = nil
         self:endGame()
     end
@@ -547,11 +547,11 @@ function WoWGoldGambler:endGame()
             for i = 1, #self.session.result.losers do
                 local loserName = self.session.result.losers[i].name
 
-                ChatMessage(loserName .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self:formatInt(self.session.result.amountOwed) .. " gold!")
+                self:ChatMessage(loserName .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self:formatInt(self.session.result.amountOwed) .. " gold!")
                 self:updatePlayerStat(loserName, self.session.result.amountOwed * -1)
 
                 if (self.db.global.game.houseCut > 0) then
-                    ChatMessage(loserName .. " owes the guild bank " .. self:formatInt(houseAmount) .. " gold!")
+                    self:ChatMessage(loserName .. " owes the guild bank " .. self:formatInt(houseAmount) .. " gold!")
                     self.db.global.stats.house = self.db.global.stats.house + houseAmount
                     
                     if (self.session.stats.house[loserName] == nil) then
@@ -566,7 +566,7 @@ function WoWGoldGambler:endGame()
                 self:updatePlayerStat(self.session.result.winners[i].name, self.session.result.amountOwed * #self.session.result.losers)
             end
         else
-            ChatMessage("Looks like nobody wins this round!")
+            self:ChatMessage("Looks like nobody wins this round!")
         end
     end
 
@@ -591,7 +591,7 @@ end
 
 function WoWGoldGambler:ChatMessage(message)
     -- Sends the given message to the appropriate chat channel
-    ChatMessage(message, self.db.global.game.chatChannel)
+    SendChatMessage(message, self.db.global.game.chatChannel)
 end
 
 function WoWGoldGambler:makeNameString(players)
@@ -616,14 +616,14 @@ function WoWGoldGambler:registerPlayer(playerName, playerRealm, playerRoll)
 
     -- Check to make sure the player is on the correct realm
     if (self.db.global.game.realmFilter and playerRealm ~= GetNormalizedRealmName()) then
-        ChatMessage("Sorry " .. playerName .. ", you need to be on " .. self.session.dealer.name .. "'s realm (" .. GetNormalizedRealmName() .. ") to play.")
+        self:ChatMessage("Sorry " .. playerName .. ", you need to be on " .. self.session.dealer.name .. "'s realm (" .. GetNormalizedRealmName() .. ") to play.")
         return
     end
 
     -- Check to make sure the player isn't banned
     for i = 1, #self.db.global.bannedPlayers do
         if (self.db.global.bannedPlayers[i] == playerName) then
-            ChatMessage("Sorry " .. playerName .. ", you've been banned from playing.")
+            self:ChatMessage("Sorry " .. playerName .. ", you've been banned from playing.")
             return
         end
     end

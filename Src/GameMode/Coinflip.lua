@@ -9,7 +9,7 @@ WoWGoldGambler.COINFLIP.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.COINFLIP.startRolls = function(self)
     -- Informs players that the registration phase has ended.
-    ChatMessage("Registration has ended. All players /roll 2 now!")
+    self:ChatMessage("Registration has ended. All players /roll 2 now!")
     self.session.modeData.currentRoll = 2
     self.session.modeData.roundNumber = 1
 end
@@ -51,10 +51,13 @@ end
 WoWGoldGambler.COINFLIP.detectTie = function(self)
     -- Output a message to the chat channel informing players of which tournament bracket is being resolved
     if (#self.session.result.winners > 1) then
-        ChatMessage("Winner's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!")
+        self:ChatMessage("Winner's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!")
     elseif (#self.session.result.losers > 1) then
-        ChatMessage("Loser's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!")
+        self:ChatMessage("Loser's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!")
     end
+
+    -- TODO: REMOVE ME
+    self.session.players[1].roll = 1
 
     self.session.modeData.roundNumber = self.session.modeData.roundNumber + 1
 end

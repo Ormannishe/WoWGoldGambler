@@ -1,4 +1,28 @@
-function WoWGoldGambler:setRecords = function()
+-- Slash Command Handlers --
+
+function WoWGoldGambler:reportRecords()
+    -- Post all records in the db to the chat channel
+    self:ChatMessage("-- WoWGoldGambler All Time Records --")
+    local records = table.sort(self.db.global.stats.records)
+
+    for category, records in pairs(self.db.global.stats.records) do
+        self:ChatMessage("-" .. category .. "-")
+
+        for subcategory, record in pairs(records) do
+            local resultString = subcategory .. ": " .. record.record
+
+            if (record.holders ~= nil) then
+                resultString = resultString .. " by " .. record.holders
+            end
+    
+            self:ChatMessage(resultString)
+        end
+    end
+end
+
+-- Implementation --
+
+function WoWGoldGambler:setRecords()
     -- Performs first-time setup for records, records overall records, and records game-mode specific records
     if (self.db.global.stats.records.OVERALL == nil) then
         self.db.global.stats.records.OVERALL = {}
@@ -20,7 +44,7 @@ function WoWGoldGambler:setRecords = function()
     end
 end
 
--- Implementation for generic records --
+-- Generic Records --
 
 function WoWGoldGambler:gamesPlayedRecord(category)
     if (self.db.global.stats.records[category]["Games Played"] == nil) then
@@ -41,7 +65,7 @@ function WoWGoldGambler:biggestWagerRecord(category)
             holders = self:makeNameString(self.session.players)
         }
 
-        ChatMessage("New Record! " .. self:formatInt(self.db.global.game.wager) .. "g is the most money I've ever seen wagered!")
+        self:ChatMessage("New Record! " .. self:formatInt(self.db.global.game.wager) .. "g is the most money I've ever seen wagered!")
     end
 end
 
@@ -56,15 +80,14 @@ function WoWGoldGambler:biggestWinRecord(category)
             holders = self:makeNameString(self.session.result.winners)
         }
 
-        ChatMessage("New Record! " .. self:formatInt(self.session.result.amountOwed) .. "g is the most money I've ever seen won in a single wager!")
+        self:ChatMessage("New Record! " .. self:formatInt(amountWon) .. "g is the most money I've ever seen won in a single wager!")
     end
 end
 
 function WoWGoldGambler:mostRoundsRecord()
-    -- TODO: Test this
     local category = self.db.global.game.mode
 
-    if (self.session.modeData.roundNumber != nil) then
+    if (self.session.modeData.roundNumber ~= nil) then
         if (self.db.global.stats.records[category]["Most Rounds"] == nil or
             self.session.modeData.roundNumber > self.db.global.stats.records[category]["Most Rounds"].record) then
 
@@ -73,7 +96,7 @@ function WoWGoldGambler:mostRoundsRecord()
                 holders = self:makeNameString(self.session.players) -- Record holders should be just the players involved in the final round
             }
 
-            ChatMessage("New Record! That was the longest" .. self:capitalize(category) .. " game I've ever seen, lasting " .. self.session.modeData.roundNumber .. " rounds!")
+            self:ChatMessage("New Record! That was the longest " .. self:capitalize(category) .. " game I've ever seen, lasting " .. self.session.modeData.roundNumber .. " rounds!")
         end
     end
 end

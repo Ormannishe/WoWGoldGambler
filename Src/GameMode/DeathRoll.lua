@@ -2,7 +2,7 @@
 WoWGoldGambler["1v1 DEATH ROLL"] = {}
 
 WoWGoldGambler["1v1 DEATH ROLL"].gameStart = function(self)
-    ChatMessage("WoWGoldGambler: A new 1v1 Death Roll game has been started! The first two players to type 1 will 1v1 roll to the death! (-1 to withdraw)")
+    self:ChatMessage("WoWGoldGambler: A new 1v1 Death Roll game has been started! The first two players to type 1 will 1v1 roll to the death! (-1 to withdraw)")
     self.session.modeData.currentRoll = self.db.global.game.wager
     self.session.modeData.roundNumber = 1
 end
@@ -13,7 +13,7 @@ WoWGoldGambler["1v1 DEATH ROLL"].register = function(self, text, playerName, pla
         self:registerPlayer(playerName, playerRealm)
     elseif (text == "1" and #self.session.players == 2) then
         if (playerName ~= self.session.players[1].name and playerName ~= self.session.players[2].name) then
-            ChatMessage("Sorry " .. playerName .. ", both spots have already been claimed! Maybe next time!")
+            self:ChatMessage("Sorry " .. playerName .. ", both spots have already been claimed! Maybe next time!")
         end
     elseif (text == "-1") then
         local playerOne = self.session.players[1]
@@ -21,14 +21,14 @@ WoWGoldGambler["1v1 DEATH ROLL"].register = function(self, text, playerName, pla
 
         if ((playerOne ~= nil and playerName == playerOne.name) or (playerTwo ~= nil and playerName == playerTwo.name)) then
             self:unregisterPlayer(playerName, playerRealm)
-            ChatMessage(playerName .. " has backed out! Will anyone else claim their spot?")
+            self:ChatMessage(playerName .. " has backed out! Will anyone else claim their spot?")
         end
     end
 end
 
 WoWGoldGambler["1v1 DEATH ROLL"].startRolls = function(self)
     -- Informs players that the registration phase has ended and performs a /roll 2 to determine which player goes first
-    ChatMessage("Registration has ended. Let's see who goes first. " .. self.session.players[1].name .. " (1) or " .. self.session.players[2].name .. " (2)!")
+    self:ChatMessage("Registration has ended. Let's see who goes first. " .. self.session.players[1].name .. " (1) or " .. self.session.players[2].name .. " (2)!")
     self:rollMe(2)
 end
 
@@ -48,7 +48,7 @@ WoWGoldGambler["1v1 DEATH ROLL"].recordRoll = function(self, playerName, actualR
             self.session.players[1].roll = self.db.global.game.wager
         end
 
-        ChatMessage(chosenPlayerName .. " will go first! " .. chosenPlayerName .. ", /roll " .. self.db.global.game.wager .. " now!")
+        self:ChatMessage(chosenPlayerName .. " will go first! " .. chosenPlayerName .. ", /roll " .. self.db.global.game.wager .. " now!")
     -- If the current player made the current death roll, record the roll and adjust the other player's roll accordingly
     elseif (self.session.modeData.currentPlayerName == playerName and tonumber(minRoll) == 1 and tonumber(maxRoll) == self.session.modeData.currentRoll) then
         local result = tonumber(actualRoll)
@@ -74,9 +74,9 @@ WoWGoldGambler["1v1 DEATH ROLL"].recordRoll = function(self, playerName, actualR
             self.session.modeData.roundNumber = self.session.modeData.roundNumber + 1
             self.session.players[nextPlayerIndex].roll = nil
 
-            ChatMessage(playerName .. " survived their roll! " .. nextPlayerName .. ", now it's your turn. /roll " .. result .. " now!")
+            self:ChatMessage(playerName .. " survived their roll! " .. nextPlayerName .. ", now it's your turn. /roll " .. result .. " now!")
         else
-            ChatMessage("May You Rest In Peace, " .. playerName .. ".")
+            self:ChatMessage("May You Rest In Peace, " .. playerName .. ".")
         end
     end
 end

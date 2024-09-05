@@ -9,7 +9,7 @@ WoWGoldGambler.LOTTERY.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.LOTTERY.startRolls = function(self)
     -- Informs players that the registration phase has ended. Performs a /roll for the number of players to determine the winner
-    ChatMessage("Registration has ended. Drawing the winning ticket...")
+    self:ChatMessage("Registration has ended. Drawing the winning ticket...")
     self:rollMe(#self.session.players)
 end
 
@@ -20,7 +20,7 @@ WoWGoldGambler.LOTTERY.recordRoll = function(self, playerName, actualRoll, minRo
 
         self.session.modeData.lotteryResult = winnerIndex
 
-        ChatMessage("The winning ticket is " .. actualRoll .. "! Congratulations " .. self.session.players[winnerIndex].name .. "!")
+        self:ChatMessage("The winning ticket is " .. actualRoll .. "! Congratulations " .. self.session.players[winnerIndex].name .. "!")
     
         -- Since all players must have a recorded roll for the game to end, simply give players a default roll
         for i = 1, #self.session.players do
@@ -76,17 +76,17 @@ function WoWGoldGambler:luckiestLotteryNumber()
     end
 
     if (counts[winningNumber] == nil) then
-        counts[winningNumber] == 1
+        counts[winningNumber] = 1
     else
         counts[winningNumber] = counts[winningNumber] + 1
     end
 
     if (luckiestNumber == nil or counts[winningNumber] > counts[luckiestNumber]) then
         counts.luckiestNumber = winningNumber
-
-        self.db.global.stats.records.LOTTERY["Luckiest Number"] = {
-            record = winningNumber .. " (drawn " .. self:formatInt(counts[winningNumber]) .. " times)",
-            recordData = counts
-        }
     end
+
+    self.db.global.stats.records.LOTTERY["Luckiest Number"] = {
+        record = counts.luckiestNumber .. " (drawn " .. self:formatInt(counts[counts.luckiestNumber]) .. " times)",
+        recordData = counts
+    }
 end

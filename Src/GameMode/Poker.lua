@@ -20,7 +20,7 @@ WoWGoldGambler.POKER.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.POKER.startRolls = function(self)
     -- Informs players that the registration phase has ended.
-    ChatMessage("Registration has ended. All players /roll 11111-99999 now!")
+    self:ChatMessage("Registration has ended. All players /roll 11111-99999 now!")
     self.session.modeData.currentMinRoll = 11111
     self.session.modeData.currentRoll = 99999
 end
@@ -98,9 +98,9 @@ end
 WoWGoldGambler.POKER.detectTie = function(self)
     -- Output a message to the chat channel informing players of which tournament bracket is being resolved
     if (#self.session.result.winners > 1) then
-        ChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!")
+        self:ChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!")
     elseif (#self.session.result.losers > 1) then
-        ChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!")
+        self:ChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!")
     end
 end
 
@@ -134,7 +134,7 @@ function WoWGoldGambler:bestPokerHand()
             recordData = winningHand
         }
 
-        ChatMessage("New Record! That was the best Poker hand I've ever seen! (" .. translatedHand .. ")")
+        self:ChatMessage("New Record! That was the best Poker hand I've ever seen! (" .. translatedHand .. ")")
     end
 end
 
@@ -160,7 +160,7 @@ function WoWGoldGambler:worstPokerHand()
             recordData = losingHand
         }
 
-        ChatMessage("New Record! That was the worst Poker hand I've ever seen! (" .. translatedHand .. ")")
+        self:ChatMessage("New Record! That was the worst Poker hand I've ever seen! (" .. translatedHand .. ")")
     end
 end
 
@@ -270,7 +270,7 @@ function WoWGoldGambler:postPokerResult(playerName, hand)
         message = message .. "!!"
     end
 
-    ChatMessage(message)
+    self:ChatMessage(message)
 end
 
 function WoWGoldGambler:translateHand(hand)

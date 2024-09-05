@@ -10,25 +10,6 @@ function WoWGoldGambler:sessionStats()
     WoWGoldGambler:reportStats(true)
 end
 
-function reportRecords()
-    -- Post all records in the db to the chat channel
-    ChatMessage("-- WoWGoldGambler All Time Records --")
-
-    for category, records in pairs(self.db.global.stats.records) do
-        ChatMessage("-" .. category .. "-")
-
-        for subcategory, record in pairs(records) do
-            local resultString = subcategory .. ": " .. record.record
-
-            if (record.holders ~= nil) then
-                resultString = resultString .. " by " .. record.holders
-            end
-    
-            ChatMessage(resultString)
-        end
-    end
-end
-
 function WoWGoldGambler:joinStats(info, args)
     -- Set up an alias of [newAlt] for [newMain]. Players with one or more aliases will have the aliased players' stats joined with their own at reporting time.
     -- [newMain] and [newAlt] are parsed out of the given [args] via a string split on the space character
@@ -238,11 +219,11 @@ function WoWGoldGambler:reportStats(sessionFlag)
 
     -- Post the stats to the chat channel
     if (sessionFlag) then
-        ChatMessage("-- WoWGoldGambler Session Stats --")
-        ChatMessage("The house has taken " .. self:formatInt(houseTotal) .. " gold!")
+        self:ChatMessage("-- WoWGoldGambler Session Stats --")
+        self:ChatMessage("The house has taken " .. self:formatInt(houseTotal) .. " gold!")
     else
-        ChatMessage("-- WoWGoldGambler All Time Stats --")
-        ChatMessage("The house has taken " .. self:formatInt(self.db.global.stats.house) .. " gold!")
+        self:ChatMessage("-- WoWGoldGambler All Time Stats --")
+        self:ChatMessage("The house has taken " .. self:formatInt(self.db.global.stats.house) .. " gold!")
     end
 
     for i = 1, #sortedPlayers do
@@ -255,9 +236,9 @@ function WoWGoldGambler:reportStats(sessionFlag)
         end
 
         if (houseStats[sortedPlayers[i]] ~= nil) then
-            ChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold and owes the guild bank " .. houseStats[sortedPlayers[i]] .. " gold!")
+            self:ChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold and owes the guild bank " .. houseStats[sortedPlayers[i]] .. " gold!")
         else
-            ChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold!")
+            self:ChatMessage(i .. ". " .. sortedPlayers[i] .. wonOrLost .. self:formatInt(amount) .. " gold!")
         end
     end
 end

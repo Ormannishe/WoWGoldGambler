@@ -583,11 +583,11 @@ end
 function WoWGoldGambler:endGame()
     -- Posts the result of the game session to the chat channel and updates stats and records before terminating the game session
     if (self.session.result ~= nil) then
+        -- Update records
+        self:setRecords()
+
         if (#self.session.result.losers > 0 and #self.session.result.winners > 0) then
             local houseAmount = 0
-
-            -- Update records
-            self:setRecords()
 
             -- If a house cut is set, determine the amount owed to the house and adjust the amountOwed to the winner(s)
             if (self.db.global.game.houseCut > 0) then

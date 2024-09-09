@@ -66,7 +66,6 @@ end
 -- Generic Records --
 
 function WoWGoldGambler:gamesPlayedRecord(category)
-    -- TODO: Games which result in a tie won't be counted
     if (self.db.global.stats.records[category]["Games Played"] == nil) then
         self.db.global.stats.records[category]["Games Played"] = {
             record = 1
@@ -77,14 +76,16 @@ function WoWGoldGambler:gamesPlayedRecord(category)
 end
 
 function WoWGoldGambler:goldTradedRecord(category)
-    local amountTraded = (self.session.result.amountOwed * #self.session.result.losers)
+    if (self.session.result.losers ~= nil and #self.session.result.losers > 0) then
+        local amountTraded = (self.session.result.amountOwed * #self.session.result.losers)
 
-    if (self.db.global.stats.records[category]["Gold Traded"] == nil) then
-        self.db.global.stats.records[category]["Gold Traded"] = {
-            record = amountTraded
-        }
-    else
-        self.db.global.stats.records[category]["Gold Traded"].record = self.db.global.stats.records[category]["Gold Traded"].record + amountTraded
+        if (self.db.global.stats.records[category]["Gold Traded"] == nil) then
+            self.db.global.stats.records[category]["Gold Traded"] = {
+                record = amountTraded
+            }
+        else
+            self.db.global.stats.records[category]["Gold Traded"].record = self.db.global.stats.records[category]["Gold Traded"].record + amountTraded
+        end
     end
 end
 
@@ -102,17 +103,21 @@ function WoWGoldGambler:biggestWagerRecord(category)
 end
 
 function WoWGoldGambler:biggestWinRecord(category)
-    local amountWon = ((self.session.result.amountOwed * #self.session.result.losers) / #self.session.result.winners)
+    if (self.session.result.winners ~= nil and #self.session.result.winners > 0 and
+        self.session.result.losers ~= nil and #self.session.result.losers > 0) then
 
-    if (self.db.global.stats.records[category]["Biggest Win"] == nil or
-        amountWon > self.db.global.stats.records[category]["Biggest Win"].record) then
+        local amountWon = ((self.session.result.amountOwed * #self.session.result.losers) / #self.session.result.winners)
 
-        self.db.global.stats.records[category]["Biggest Win"] = {
-            record = amountWon,
-            holders = self:makeNameString(self.session.result.winners)
-        }
-
-        self:NewRecordMessage("New Record! " .. self:formatInt(amountWon) .. "g is the most money I've ever seen won in a single wager!")
+        if (self.db.global.stats.records[category]["Biggest Win"] == nil or
+            amountWon > self.db.global.stats.records[category]["Biggest Win"].record) then
+        
+            self.db.global.stats.records[category]["Biggest Win"] = {
+                record = amountWon,
+                holders = self:makeNameString(self.session.result.winners)
+            }
+        
+            self:NewRecordMessage("New Record! " .. self:formatInt(amountWon) .. "g is the most money I've ever seen won in a single wager!")
+        end
     end
 end
 

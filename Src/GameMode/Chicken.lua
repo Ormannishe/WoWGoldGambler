@@ -142,7 +142,9 @@ end
 
 function WoWGoldGambler:biggestBustRecord()
     -- This record can only be broken if the losers busted
-    if (self.session.result.losers[1].roll > self.db.global.game.wager) then
+    if (self.session.result.losers ~= nil and #self.session.result.losers > 0 and
+        self.session.result.losers[1].roll > self.db.global.game.wager) then
+            
         local worstDiff = self.session.result.losers[1].roll - self.db.global.game.wager
         local loserName = self.session.result.losers[1].name
 

@@ -113,54 +113,58 @@ end
 -- Game-mode specific records
 
 function WoWGoldGambler:bestPokerHand()
-    local bestHand
-    local winningHand = self.session.result.winners[1].pokerHand
-
-    if (self.db.global.stats.records.POKER["Best Hand"] == nil) then
-        bestHand = {
-            type = "High Card",
-            cardRanks = {1}
-        }
-    else
-        bestHand = self.db.global.stats.records.POKER["Best Hand"].recordData
-    end
-
-    if (self:comparePokerHands(winningHand, bestHand) == true) then
-        local _, translatedHand = self:translateHand(winningHand)
-
-        self.db.global.stats.records.POKER["Best Hand"] = {
-            record = translatedHand,
-            holders = self:makeNameString(self.session.result.winners),
-            recordData = winningHand
-        }
-
-        self:NewRecordMessage("New Record! That was the best Poker hand I've ever seen! (" .. translatedHand .. ")")
+    if (self.session.result.winners ~= nil and #self.session.result.winners > 0) then
+        local bestHand
+        local winningHand = self.session.result.winners[1].pokerHand
+    
+        if (self.db.global.stats.records.POKER["Best Hand"] == nil) then
+            bestHand = {
+                type = "High Card",
+                cardRanks = {1}
+            }
+        else
+            bestHand = self.db.global.stats.records.POKER["Best Hand"].recordData
+        end
+    
+        if (self:comparePokerHands(winningHand, bestHand) == true) then
+            local _, translatedHand = self:translateHand(winningHand)
+    
+            self.db.global.stats.records.POKER["Best Hand"] = {
+                record = translatedHand,
+                holders = self:makeNameString(self.session.result.winners),
+                recordData = winningHand
+            }
+    
+            self:NewRecordMessage("New Record! That was the best Poker hand I've ever seen! (" .. translatedHand .. ")")
+        end
     end
 end
 
 function WoWGoldGambler:worstPokerHand()
-    local worstHand
-    local losingHand = self.session.result.losers[1].pokerHand
+    if (self.session.result.losers ~= nil and #self.session.result.losers > 0) then
+        local worstHand
+        local losingHand = self.session.result.losers[1].pokerHand
 
-    if (self.db.global.stats.records.POKER["Worst Hand"] == nil) then
-        worstHand = {
-            type = "Five Of A Kind",
-            cardRanks = {9}
-        }
-    else
-        worstHand = self.db.global.stats.records.POKER["Worst Hand"].recordData
-    end
+        if (self.db.global.stats.records.POKER["Worst Hand"] == nil) then
+            worstHand = {
+                type = "Five Of A Kind",
+                cardRanks = {9}
+            }
+        else
+            worstHand = self.db.global.stats.records.POKER["Worst Hand"].recordData
+        end
 
-    if (self:comparePokerHands(losingHand, worstHand) == false) then
-        local _, translatedHand = self:translateHand(losingHand)
+        if (self:comparePokerHands(losingHand, worstHand) == false) then
+            local _, translatedHand = self:translateHand(losingHand)
 
-        self.db.global.stats.records.POKER["Worst Hand"] = {
-            record = translatedHand,
-            holders = self:makeNameString(self.session.result.losers),
-            recordData = losingHand
-        }
+            self.db.global.stats.records.POKER["Worst Hand"] = {
+                record = translatedHand,
+                holders = self:makeNameString(self.session.result.losers),
+                recordData = losingHand
+            }
 
-        self:NewRecordMessage("New Record! That was the worst Poker hand I've ever seen! (" .. translatedHand .. ")")
+            self:NewRecordMessage("New Record! That was the worst Poker hand I've ever seen! (" .. translatedHand .. ")")
+        end
     end
 end
 

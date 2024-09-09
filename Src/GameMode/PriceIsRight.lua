@@ -111,6 +111,6 @@ function WoWGoldGambler:biggestPriceDiff()
             recordData = loserDiff
         }
 
-        self:ChatMessage("New Record! That was the worst Price Is Right roll I've ever seen! " .. loserName .. ", you were off by " .. self:formatInt(loserDiff) .. "!")
+        self:NewRecordMessage("New Record! That was the worst Price Is Right roll I've ever seen! " .. loserName .. ", you were off by " .. self:formatInt(loserDiff) .. "!")
     end
 end

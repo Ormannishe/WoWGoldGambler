@@ -99,7 +99,7 @@ function WoWGoldGambler:luckiestRollRecord()
             recordData = percentile
         }
 
-        self:ChatMessage("New Record! That was the luckiest Classic roll I've ever seen! That roll was in the top " .. formatted_percentile .. "% of possible rolls!")
+        self:NewRecordMessage("New Record! That was the luckiest Classic roll I've ever seen! That roll was in the top " .. formatted_percentile .. "% of possible rolls!")
     end
 end
 
@@ -122,6 +122,6 @@ function WoWGoldGambler:unluckiestRollRecord()
             recordData = percentile
         }
 
-        self:ChatMessage("New Record! That was the unluckiest Classic roll I've ever seen! That roll was in the bottom " .. formatted_percentile .. "% of possible rolls!")
+        self:NewRecordMessage("New Record! That was the unluckiest Classic roll I've ever seen! That roll was in the bottom " .. formatted_percentile .. "% of possible rolls!")
     end
 end

@@ -134,7 +134,7 @@ function WoWGoldGambler:bestPokerHand()
             recordData = winningHand
         }
 
-        self:ChatMessage("New Record! That was the best Poker hand I've ever seen! (" .. translatedHand .. ")")
+        self:NewRecordMessage("New Record! That was the best Poker hand I've ever seen! (" .. translatedHand .. ")")
     end
 end
 
@@ -160,7 +160,7 @@ function WoWGoldGambler:worstPokerHand()
             recordData = losingHand
         }
 
-        self:ChatMessage("New Record! That was the worst Poker hand I've ever seen! (" .. translatedHand .. ")")
+        self:NewRecordMessage("New Record! That was the worst Poker hand I've ever seen! (" .. translatedHand .. ")")
     end
 end
 

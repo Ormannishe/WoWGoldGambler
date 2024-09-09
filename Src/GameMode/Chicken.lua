@@ -166,7 +166,7 @@ function WoWGoldGambler:biggestBustRecord()
                 holders = loserName
             }
 
-            self:ChatMessage("New Record! That was the biggest Chicken bust I've ever seen! You were over the bust amount by " .. self:formatInt(worstDiff) .. "!")
+            self:NewRecordMessage("New Record! That was the biggest Chicken bust I've ever seen! You were over the bust amount by " .. self:formatInt(worstDiff) .. "!")
         end
     end
 end
@@ -195,6 +195,6 @@ function WoWGoldGambler:mostRollsRecord()
                 holders = playerName
             }
 
-            self:ChatMessage("New Record! That was the highest number of rolls I've ever seen in a game of Chicken! " .. playerName .. ", you rolled " .. mostRolls .. " times!")
+            self:NewRecordMessage("New Record! That was the highest number of rolls I've ever seen in a game of Chicken! " .. playerName .. ", you rolled " .. mostRolls .. " times!")
         end
 end

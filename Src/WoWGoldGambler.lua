@@ -38,6 +38,7 @@ local defaults = {
             chatChannel = chatChannels[1],
             houseCut = 0,
             realmFilter = true,
+            announceRecords = true
         },
         stats = {
             player = {},
@@ -69,7 +70,7 @@ local options = {
         },
         realmfilter = {
             name = "Toggle Realm Filter",
-            desc = "Toggles the realm filter on/off, determining whether or not players from other realms can register.",
+            desc = "Toggles the realm filter on/off, determining whether or not players from other realms can register",
             type = "execute",
             func = "toggleRealmFilter"
         },
@@ -90,6 +91,12 @@ local options = {
             desc = "Output all-time records to the chat channel",
             type = "execute",
             func = "reportRecords"
+        },
+        announceRecords = {
+            name = "Toggle Record Announcements",
+            desc = "Toggles new record announcements on/off, determining whether or not chat messages will be sent when records are broken",
+            type = "execute",
+            func = "toggleRecordAnnouncements"
         },
         joinstats = {
             name = "Join Stats",
@@ -285,6 +292,17 @@ function WoWGoldGambler:toggleRealmFilter(info)
     else
         self.db.global.game.realmFilter = true
         self:Print("Realm filter has been turned ON.")
+    end
+end
+
+function WoWGoldGambler:toggleRecordAnnouncements(info)
+    -- Toggles the record announcements on/off, determining whether or a chat message will be sent whenever a record is broken
+    if (self.db.global.game.announceRecords) then
+        self.db.global.game.announceRecords = false
+        self:Print("New record announcements have been turned OFF.")
+    else
+        self.db.global.game.announceRecords = true
+        self:Print("New record announcements have been turned ON.")
     end
 end
 
@@ -623,6 +641,13 @@ end
 function WoWGoldGambler:ChatMessage(message)
     -- Sends the given message to the appropriate chat channel
     SendChatMessage(message, self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:NewRecordMessage(message)
+    -- If new record messages are enabled, sends the given message to the appropriate chat channel
+    if (self.db.global.game.announceRecords) then
+        SendChatMessage(message, self.db.global.game.chatChannel)
+    end
 end
 
 function WoWGoldGambler:makeNameString(players)

@@ -55,10 +55,7 @@ WoWGoldGambler.COINFLIP.detectTie = function(self)
     elseif (#self.session.result.losers > 1) then
         self:ChatMessage("Loser's Bracket: " .. self:makeNameString(self.session.players) .. " /roll 2 now!")
     end
-
-    -- TODO: REMOVE ME
-    self.session.players[1].roll = 1
-
+    
     self.session.modeData.roundNumber = self.session.modeData.roundNumber + 1
 end
 

@@ -132,20 +132,8 @@ WoWGoldGambler.EXCHANGE.calculateResult = function(self)
     }
 end
 
-WoWGoldGambler.EXCHANGE.detectTie = function(self)
-    -- This game will resolve in a tie with no winners or losers, so records won't be updated
-    -- To ensure we capture stats for the Cicle outcome, we'll manually update the record instead
-
-    -- Ensure the EXCHANGE subcategory exists
-    if (self.db.global.stats.records.EXCHANGE == nil) then
-        self.db.global.stats.records.EXCHANGE = {}
-    end
-
-    -- TODO: This doesn't seem to be working
-    self:mostFrequentExchangeResult()
-
-    self:endGame()
-end
+-- Default Tie Resolution
+WoWGoldGambler.EXCHANGE.detectTie = WoWGoldGambler.DEFAULT.detectTie
 
 WoWGoldGambler.EXCHANGE.setRecords = function(self)
     -- Updates records for the Lottery game mode

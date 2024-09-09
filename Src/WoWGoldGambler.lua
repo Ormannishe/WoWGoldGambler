@@ -1,5 +1,7 @@
 WoWGoldGambler = LibStub("AceAddon-3.0"):NewAddon("WoWGoldGambler", "AceConsole-3.0", "AceEvent-3.0")
 
+local debug = true
+
 -- GLOBAL VARS --
 local gameStates = {
     "IDLE",
@@ -121,7 +123,7 @@ local options = {
         },
         resetstats = {
             name = "Reset Stats",
-            desc = "Permanently deletes all existing stats",
+            desc = "Permanently deletes all existing stats and records",
             type = "execute",
             func = "resetStats"
         },
@@ -377,6 +379,11 @@ function WoWGoldGambler:startGame()
             self:ChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g - House Cut - " .. self.db.global.game.houseCut .. "%")
         end
 
+        -- Perform debug tasks if the debug flag is set
+        if (debug == true) then
+            self:addTesters()
+        end
+
         -- Update UI Widgets
         self:updateUi(self.session.state, gameStates)
     else
@@ -526,6 +533,11 @@ function WoWGoldGambler:detectTie()
 
         -- Perform game-mode specific tasks when entering a tie-breaker
         WoWGoldGambler[self.db.global.game.mode].detectTie(WoWGoldGambler)
+
+        -- Perform debug tasks if the debug flag is set
+        if (debug == true) then
+            self:testTies()
+        end
     else
          -- If a tie is not detected, the game is ended
         self:endGame()
@@ -696,4 +708,44 @@ function WoWGoldGambler:capitalize(str)
     return str:lower():gsub("%a[^%s]*", function (word)
         return word:sub(1,1):upper() .. word:sub(2)
     end)
+end
+
+-- DEBUG FUNCTIONS
+
+function WoWGoldGambler:addTesters()
+    -- Adds two dummy players to the current game for testing purposes
+    local newPlayer = {
+        name = "Tester",
+        realm = "Test",
+        roll = 1,
+        numRolls = 1,
+        pokerHand = {
+            type = "High Card",
+            cardRanks = {1}
+        }
+    }
+
+    tinsert(self.session.players, newPlayer)
+
+    local newPlayer2 = {
+        name = "Tester2",
+        realm = "Test",
+        roll = 2,
+        numRolls = 1,
+        pokerHand = {
+            type = "High Card",
+            cardRanks = {2}
+        }
+    }
+
+    tinsert(self.session.players, newPlayer2)
+end
+
+function WoWGoldGambler:testTies()
+    -- Gives dummy players a default roll when they end up in a tie-breaker
+    for i = 1, #self.session.players do
+        if (self.session.players[i].realm == "Test") then
+            self.session.players[i].roll = 1
+        end
+    end
 end

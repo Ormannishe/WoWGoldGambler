@@ -4,33 +4,6 @@ WoWGoldGambler.DEFAULT = {}
 WoWGoldGambler.DEFAULT.gameStart = function(self)
     -- Basic game start notification for most game modes
     self:ChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)")
-
-    -- TODO: Remove me
-    local newPlayer = {
-        name = "Tester",
-        realm = "Ravencrest",
-        roll = 1,
-        numRolls = 1,
-        pokerHand = {
-            type = "High Card",
-            cardRanks = {1}
-        }
-    }
-
-    tinsert(self.session.players, newPlayer)
-
-    local newPlayer2 = {
-        name = "Tester2",
-        realm = "Ravencrest",
-        roll = 2,
-        numRolls = 1,
-        pokerHand = {
-            type = "High Card",
-            cardRanks = {2}
-        }
-    }
-
-    tinsert(self.session.players, newPlayer2)
 end
 
 WoWGoldGambler.DEFAULT.register = function(self, text, playerName, playerRealm)

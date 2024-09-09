@@ -63,7 +63,6 @@ end
 -- Game-mode specific records
 
 function WoWGoldGambler:luckiestLotteryNumber()
-    -- TODO: Test This
     local counts
     local luckiestNumber
     local winningNumber = self.session.modeData.lotteryResult

@@ -108,11 +108,12 @@ WoWGoldGambler.CHICKEN.calculateResult = function(self)
         end
     end
 
-    -- Handle cases where there are no winners, no losers, or everyone is tied.
-    if (#winners == 0 or #losers == 0 or winners[1].name == losers[1].name) then
+    -- Handle the special case where everyone is tied.
+    if (#winners > 0 and #losers > 0 and winners[1].name == losers[1].name) then
         winners = {}
-        losers = {}
-    else
+    end
+
+    if (#winners > 0) then 
         if (losers[1].roll > self.db.global.game.wager) then
             -- If a player exceeded the wager amount, they owe the full amount split among all winners
             amountOwed = math.floor(self.db.global.game.wager / #winners)
@@ -129,9 +130,6 @@ WoWGoldGambler.CHICKEN.calculateResult = function(self)
     }
 end
 
--- Default Tie Resolution
-WoWGoldGambler.CHICKEN.detectTie = WoWGoldGambler.DEFAULT.detectTie
-
 WoWGoldGambler.CHICKEN.setRecords = function(self)
     -- Updates records for the Chicken game mode and reports when records are broken
     self:biggestBustRecord()
@@ -144,7 +142,7 @@ function WoWGoldGambler:biggestBustRecord()
     -- This record can only be broken if the losers busted
     if (self.session.result.losers ~= nil and #self.session.result.losers > 0 and
         self.session.result.losers[1].roll > self.db.global.game.wager) then
-            
+
         local worstDiff = self.session.result.losers[1].roll - self.db.global.game.wager
         local loserName = self.session.result.losers[1].name
 
@@ -168,7 +166,7 @@ function WoWGoldGambler:biggestBustRecord()
                 holders = loserName
             }
 
-            self:NewRecordMessage("New Record! That was the biggest Chicken bust I've ever seen! You were over the bust amount by " .. self:formatInt(worstDiff) .. "!")
+            self:NewRecordMessage("New Record! That was the biggest Chicken bust I've ever seen! " .. loserName .. ", you were over the bust amount by " .. self:formatInt(worstDiff) .. "!")
         end
     end
 end

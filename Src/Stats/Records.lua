@@ -76,7 +76,7 @@ function WoWGoldGambler:gamesPlayedRecord(category)
 end
 
 function WoWGoldGambler:goldTradedRecord(category)
-    if (self.session.result.losers ~= nil and #self.session.result.losers > 0) then
+    if (self.session.result.losers ~= nil and #self.session.result.losers > 0 and self.session.result.amountOwed > 0) then
         local amountTraded = (self.session.result.amountOwed * #self.session.result.losers)
 
         if (self.db.global.stats.records[category]["Gold Traded"] == nil) then

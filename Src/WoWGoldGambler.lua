@@ -213,6 +213,20 @@ function WoWGoldGambler:handleSystemMessage(_, text)
     -- Parses system messages recieved by the Event Listener to find and record player rolls
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
 
+    -- If the debug flag is set, we capture Dealer rolls as if they were player rolls
+    if (debug == true) then
+        if (self.session.modeData.currentPlayerName ~= nil) then
+            -- Death Roll
+            playerName = self.session.modeData.currentPlayerName
+        elseif (self.session.modeData.loserName ~= nil) then
+            -- Exchange
+            playerName = self.session.modeData.loserName
+        elseif (self.session.modeData.firstPlayerName ~= nil) then
+            -- Exchange
+            playerName = self.session.modeData.firstPlayerName
+        end
+    end
+
     -- Perform game mode specific tasks for recording player rolls
     WoWGoldGambler[self.db.global.game.mode].recordRoll(WoWGoldGambler, playerName, actualRoll, minRoll, maxRoll)
 

@@ -19,5 +19,6 @@ Src/GameMode/PriceIsRight.lua
 Src/GameMode/Poker.lua
 Src/GameMode/DeathRoll.lua
 Src/GameMode/Exchange.lua
-Src/Stats.lua
+Src/Stats/Stats.lua
+Src/Stats/Records.lua
 Src/ui.lua

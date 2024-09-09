@@ -3,7 +3,7 @@ WoWGoldGambler.DEFAULT = {}
 
 WoWGoldGambler.DEFAULT.gameStart = function(self)
     -- Basic game start notification for most game modes
-    SendChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)" , self.db.global.game.chatChannel)
+    self:ChatMessage("WoWGoldGambler: A new game has been started! Type 1 to join! (-1 to withdraw)")
 end
 
 WoWGoldGambler.DEFAULT.register = function(self, text, playerName, playerRealm)
@@ -17,10 +17,5 @@ end
 
 WoWGoldGambler.DEFAULT.startRolls = function(self)
     -- Informs players that the registration phase has ended
-    SendChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!" , self.db.global.game.chatChannel)
-end
-
-WoWGoldGambler.DEFAULT.detectTie = function(self)
-    -- Ties are assumed to be allowed unless a game mode implements its own tie resolution
-    self:endGame()
+    self:ChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!")
 end

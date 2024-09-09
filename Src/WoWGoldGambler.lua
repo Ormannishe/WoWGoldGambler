@@ -1,5 +1,7 @@
 WoWGoldGambler = LibStub("AceAddon-3.0"):NewAddon("WoWGoldGambler", "AceConsole-3.0", "AceEvent-3.0")
 
+local debug = false
+
 -- GLOBAL VARS --
 local gameStates = {
     "IDLE",
@@ -15,7 +17,7 @@ local gameModes = {
     "POKER",
     "CHICKEN",
     "1v1 DEATH ROLL",
-    "EXCHANGE"
+    -- "EXCHANGE" TODO: This is broken in groups. The number of raid icons you can set is rate limited while in a group
 }
 
 local chatChannels = {
@@ -36,10 +38,12 @@ local defaults = {
             chatChannel = chatChannels[1],
             houseCut = 0,
             realmFilter = true,
+            announceRecords = true
         },
         stats = {
             player = {},
             aliases = {},
+            records = {},
             house = 0
         },
         bannedPlayers = {},
@@ -66,7 +70,7 @@ local options = {
         },
         realmfilter = {
             name = "Toggle Realm Filter",
-            desc = "Toggles the realm filter on/off, determining whether or not players from other realms can register.",
+            desc = "Toggles the realm filter on/off, determining whether or not players from other realms can register",
             type = "execute",
             func = "toggleRealmFilter"
         },
@@ -81,6 +85,18 @@ local options = {
             desc = "Output player stats from the current session to the chat channel",
             type = "execute",
             func = "sessionStats"
+        },
+        records = {
+            name = "Records",
+            desc = "Output all-time records to the chat channel",
+            type = "execute",
+            func = "printRecords"
+        },
+        announceRecords = {
+            name = "Toggle Record Announcements",
+            desc = "Toggles new record announcements on/off, determining whether or not chat messages will be sent when records are broken",
+            type = "execute",
+            func = "toggleRecordAnnouncements"
         },
         joinstats = {
             name = "Join Stats",
@@ -114,7 +130,7 @@ local options = {
         },
         resetstats = {
             name = "Reset Stats",
-            desc = "Permanently deletes all existing stats",
+            desc = "Permanently deletes all existing stats and records",
             type = "execute",
             func = "resetStats"
         },
@@ -171,6 +187,7 @@ function WoWGoldGambler:OnInitialize()
         },
         modeData = {}, -- arbitrary data used to run game modes
         players = {},
+        originalPlayers = {}, -- Since players can change over the course of a game mode, this tracks the original set of players
         result = nil,
         stats = {
             player = {},
@@ -202,6 +219,20 @@ end
 function WoWGoldGambler:handleSystemMessage(_, text)
     -- Parses system messages recieved by the Event Listener to find and record player rolls
     local playerName, actualRoll, minRoll, maxRoll = strmatch(text, "^([^ ]+) .+ (%d+) %((%d+)-(%d+)%)%.?$")
+
+    -- If the debug flag is set, we capture Dealer rolls as if they were player rolls
+    if (debug == true) then
+        if (self.session.modeData.currentPlayerName ~= nil) then
+            -- Death Roll
+            playerName = self.session.modeData.currentPlayerName
+        elseif (self.session.modeData.loserName ~= nil) then
+            -- Exchange
+            playerName = self.session.modeData.loserName
+        elseif (self.session.modeData.firstPlayerName ~= nil) then
+            -- Exchange
+            playerName = self.session.modeData.firstPlayerName
+        end
+    end
 
     -- Perform game mode specific tasks for recording player rolls
     WoWGoldGambler[self.db.global.game.mode].recordRoll(WoWGoldGambler, playerName, actualRoll, minRoll, maxRoll)
@@ -262,6 +293,21 @@ function WoWGoldGambler:toggleRealmFilter(info)
         self.db.global.game.realmFilter = true
         self:Print("Realm filter has been turned ON.")
     end
+end
+
+function WoWGoldGambler:toggleRecordAnnouncements(info)
+    -- Toggles the record announcements on/off, determining whether or not a chat message will be sent whenever a record is broken
+    if (self.db.global.game.announceRecords) then
+        self.db.global.game.announceRecords = false
+        self:Print("New record announcements have been turned OFF.")
+    else
+        self.db.global.game.announceRecords = true
+        self:Print("New record announcements have been turned ON.")
+    end
+end
+
+function WoWGoldGambler:printRecords(info)
+    self:reportRecords(gameModes)
 end
 
 -- Implementation --
@@ -364,9 +410,14 @@ function WoWGoldGambler:startGame()
 
         -- Inform players of the selected Game Mode and Wager
         if (self.db.global.game.houseCut == 0) then
-            SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g", self.db.global.game.chatChannel)
+            self:ChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g")
         else
-            SendChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g - House Cut - " .. self.db.global.game.houseCut .. "%", self.db.global.game.chatChannel)
+            self:ChatMessage("Game Mode - " .. self.db.global.game.mode .. " - Wager - " .. self:formatInt(self.db.global.game.wager) .. "g - House Cut - " .. self.db.global.game.houseCut .. "%")
+        end
+
+        -- Perform debug tasks if the debug flag is set
+        if (debug == true) then
+            self:addTesters()
         end
 
         -- Update UI Widgets
@@ -385,12 +436,12 @@ function WoWGoldGambler:enterMe(leaveFlag)
         message = "-1"
     end
 
-    SendChatMessage(message, self.db.global.game.chatChannel)
+    self:ChatMessage(message)
 end
 
 function WoWGoldGambler:lastCall()
     -- Post a message to the chat channel informing players that registration is about to end
-    SendChatMessage("Last call to join!", self.db.global.game.chatChannel)
+    self:ChatMessage("Last call to join!")
 end
 
 function WoWGoldGambler:startRolls()
@@ -413,20 +464,23 @@ function WoWGoldGambler:startRolls()
             -- Change the game state to ROLLING
             self.session.state = gameStates[3]
 
+            -- Lock in the initial set of players
+            self.session.originalPlayers = self.session.players
+
             -- Perform game-mode specific tasks required to start the rolling phase
             WoWGoldGambler[self.db.global.game.mode].startRolls(WoWGoldGambler)
 
             -- Update UI Widgets
             self:updateUi(self.session.state, gameStates)
         else
-            SendChatMessage("Not enough players have registered to play!" , self.db.global.game.chatChannel)
+            self:ChatMessage("Not enough players have registered to play!")
         end
     elseif (self.session.state == gameStates[3]) then
         -- If a rolling phase is in progress, post the names of the players who have yet to roll in the chat channel
         local playersToRoll = self:checkPlayerRolls(self.session.players)
 
         for i = 1, #playersToRoll do
-            SendChatMessage(playersToRoll[i] .. " still needs to roll!" , self.db.global.game.chatChannel)
+            self:ChatMessage(playersToRoll[i] .. " still needs to roll!")
         end
     else
         self:Print("Player registration must be done before rolling can start!")
@@ -458,7 +512,7 @@ end
 function WoWGoldGambler:cancelGame()
     -- Terminates the currently running game session, voiding out any result
     if (self.session.state ~= gameStates[1]) then
-        SendChatMessage("Game session has been canceled by " .. self.session.dealer.name , self.db.global.game.chatChannel)
+        self:ChatMessage("Game session has been canceled by " .. self.session.dealer.name)
         self.session.result = nil
         self:endGame()
     end
@@ -505,8 +559,9 @@ function WoWGoldGambler:detectTie()
         tieBreakers = self.session.result.losers
     end
 
-    if (#tieBreakers > 0) then
-        -- If a tie is detected, set up the session for tie-breaking and continue listening for rolls.
+    if (#tieBreakers > 0 and WoWGoldGambler[self.db.global.game.mode].detectTie ~= nil) then
+        -- If a tie is detected, set up the session for tie-breaking and continue listening for rolls
+        -- Tie breaking will not occur if a game mode has not implemented its tie-breaking function
         self.session.players = tieBreakers
 
         for i = 1, #self.session.players do
@@ -515,15 +570,23 @@ function WoWGoldGambler:detectTie()
 
         -- Perform game-mode specific tasks when entering a tie-breaker
         WoWGoldGambler[self.db.global.game.mode].detectTie(WoWGoldGambler)
+
+        -- Perform debug tasks if the debug flag is set
+        if (debug == true) then
+            self:testTies()
+        end
     else
-         -- If a tie is not detected, the game is ended
+         -- If a tie is not detected, or if the game mode allows ties, the game is ended
         self:endGame()
     end
 end
 
 function WoWGoldGambler:endGame()
-    -- Posts the result of the game session to the chat channel and updates stats before terminating the game session
+    -- Posts the result of the game session to the chat channel and updates stats and records before terminating the game session
     if (self.session.result ~= nil) then
+        -- Update records
+        self:setRecords()
+
         if (#self.session.result.losers > 0 and #self.session.result.winners > 0) then
             local houseAmount = 0
 
@@ -537,11 +600,11 @@ function WoWGoldGambler:endGame()
             for i = 1, #self.session.result.losers do
                 local loserName = self.session.result.losers[i].name
 
-                SendChatMessage(loserName .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self:formatInt(self.session.result.amountOwed) .. " gold!" , self.db.global.game.chatChannel)
+                self:ChatMessage(loserName .. " owes " .. self:makeNameString(self.session.result.winners) .. " " .. self:formatInt(self.session.result.amountOwed) .. " gold!")
                 self:updatePlayerStat(loserName, self.session.result.amountOwed * -1)
 
                 if (self.db.global.game.houseCut > 0) then
-                    SendChatMessage(loserName .. " owes the guild bank " .. self:formatInt(houseAmount) .. " gold!" , self.db.global.game.chatChannel)
+                    self:ChatMessage(loserName .. " owes the guild bank " .. self:formatInt(houseAmount) .. " gold!")
                     self.db.global.stats.house = self.db.global.stats.house + houseAmount
                     
                     if (self.session.stats.house[loserName] == nil) then
@@ -556,7 +619,7 @@ function WoWGoldGambler:endGame()
                 self:updatePlayerStat(self.session.result.winners[i].name, self.session.result.amountOwed * #self.session.result.losers)
             end
         else
-            SendChatMessage("Looks like nobody wins this round!" , self.db.global.game.chatChannel)
+            self:ChatMessage("Looks like nobody wins this round!")
         end
     end
 
@@ -569,6 +632,7 @@ function WoWGoldGambler:endGame()
     self:UnregisterEvent("CHAT_MSG_SYSTEM")
     self.session.state = gameStates[1]
     self.session.players = {}
+    self.session.originalPlayers = {}
     self.session.result = nil
     self.session.modeData = {}
     self:cycleRaidIcon(false)
@@ -578,6 +642,18 @@ function WoWGoldGambler:endGame()
 end
 
 -- Helper Functions --
+
+function WoWGoldGambler:ChatMessage(message)
+    -- Sends the given message to the appropriate chat channel
+    SendChatMessage(message, self.db.global.game.chatChannel)
+end
+
+function WoWGoldGambler:NewRecordMessage(message)
+    -- If new record messages are enabled, sends the given message to the appropriate chat channel
+    if (self.db.global.game.announceRecords) then
+        SendChatMessage(message, self.db.global.game.chatChannel)
+    end
+end
 
 function WoWGoldGambler:makeNameString(players)
     -- Given a list of players, returns a string of all player names concatenated together with commas and "and"
@@ -601,14 +677,14 @@ function WoWGoldGambler:registerPlayer(playerName, playerRealm, playerRoll)
 
     -- Check to make sure the player is on the correct realm
     if (self.db.global.game.realmFilter and playerRealm ~= GetNormalizedRealmName()) then
-        SendChatMessage("Sorry " .. playerName .. ", you need to be on " .. self.session.dealer.name .. "'s realm (" .. GetNormalizedRealmName() .. ") to play." , self.db.global.game.chatChannel)
+        self:ChatMessage("Sorry " .. playerName .. ", you need to be on " .. self.session.dealer.name .. "'s realm (" .. GetNormalizedRealmName() .. ") to play.")
         return
     end
 
     -- Check to make sure the player isn't banned
     for i = 1, #self.db.global.bannedPlayers do
         if (self.db.global.bannedPlayers[i] == playerName) then
-            SendChatMessage("Sorry " .. playerName .. ", you've been banned from playing." , self.db.global.game.chatChannel)
+            self:ChatMessage("Sorry " .. playerName .. ", you've been banned from playing.")
             return
         end
     end
@@ -660,4 +736,65 @@ function WoWGoldGambler:formatInt(number)
     int = int:reverse():gsub("(%d%d%d)", "%1,")
 
     return minus .. int:reverse():gsub("^,", "") .. fraction
+end
+
+function WoWGoldGambler:formatFloat(float)
+    -- Formats a given [float], returning it as a string, rounded to the 10th decimal with no trailing zeroes
+    local formatted_float = string.format("%.10f", float)
+    formatted_float = string.gsub(formatted_float, "0+$", "")  -- Remove trailing zeros
+    formatted_float = string.gsub(formatted_float, "%.$", "")  -- Remove trailing decimal point if any
+
+    return formatted_float
+end
+
+function WoWGoldGambler:capitalize(str)
+    -- Formats a given [string] to lowercase with the first character of each word capitalized
+    return str:lower():gsub("%a[^%s]*", function (word)
+        return word:sub(1,1):upper() .. word:sub(2)
+    end)
+end
+
+-- DEBUG FUNCTIONS
+
+function WoWGoldGambler:addTesters()
+    -- Adds two dummy players to the current game for testing purposes
+    local newPlayer = {
+        name = "Tester",
+        realm = "Test",
+        numRolls = 1,
+        pokerHand = {
+            type = "High Card",
+            cardRanks = {1}
+        }
+    }
+
+    tinsert(self.session.players, newPlayer)
+
+    if (self.db.global.game.mode ~= "1v1 DEATH ROLL") then
+        -- Give the first tester a default roll
+        self.session.players[1].roll = 1
+
+        -- A second tester is not added for 2-player games
+        local newPlayer2 = {
+            name = "Tester2",
+            realm = "Test",
+            roll = 2,
+            numRolls = 1,
+            pokerHand = {
+                type = "High Card",
+                cardRanks = {2}
+            }
+        }
+    
+        tinsert(self.session.players, newPlayer2)
+    end
+end
+
+function WoWGoldGambler:testTies()
+    -- Gives dummy players a default roll when they end up in a tie-breaker
+    for i = 1, #self.session.players do
+        if (self.session.players[i].realm == "Test") then
+            self.session.players[i].roll = 1
+        end
+    end
 end

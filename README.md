@@ -44,7 +44,7 @@ To set a House Cut, the Dealer must first click the 'Options' button in the bott
 
 ## Game Modes
 
-There are currently six supported Game Modes for WoWGoldGambler. More Game Modes will likely be added in the future (I am open to suggestions!).
+There are currently seven supported Game Modes for WoWGoldGambler. More Game Modes will likely be added in the future (I am open to suggestions!).
 
 ### Classic
 
@@ -142,28 +142,11 @@ The current player must then perform a /roll for the wager amount. If a 1 is rol
 
 **Payment Amount**: The wager amount
 
-### Exchange
-
-Exchage is a user-requested game mode which attempts to capture the spirit of the 'Chance Time' or 'Reversal of Fortune' events from Mario Party. Players may register for the game normally, but only two players will be selected to make an exchange. All other players are spectators to the exchange.
-
-When the rolling phase of a game session begins, WoWGoldGambler will automatically perform a /roll for the number of players. The player who's player index was rolled will be 'Player 1'. Player index is determined by the order in which players registered for the game mode.
-
-Player 1 will then be prompted to perform another /roll for the number of players to determine their opponent, 'Player 2'.
-
-Once both players are determined, Raid Icons will begin cycling rapidly over the Dealer. Player 1 must type "STOP" in the appropriate chat channel to stop the icons from cycling. Whichever icon is on the Dealer after stopping determines the outcome of the exchange.
-
-Possible Outcomes:
-- **SKULL**: Player 1 owes Player 2 the full wager amount
-- **CROSS**: Player 1 owes Player 2 a rolled amount
-- **CIRCLE**: Player 1 and Player 2 must /hug eachother
-- **DIAMOND**: Player 2 owes Player 1 a rolled amount
-- **STAR**: Player 2 owes Player 1 the full wager amount
-
-If a Cross or Diamond raid icon are selected, the losing player will be prompted to perform a /roll for the wager amount, determining how much gold they'll owe the opposing player.
-
 ## Other Features
 
 ### Stat Tracking
+
+#### Player Stats
 
 WoWGoldGambler keeps track of winnings and losses from all game sessions to see who the real winners and losers are. All-time stats can be posted to the chat channel using the **/wgg allstats** command, and session stats (winnings/losses since the Dealer last logged in) can be shared with the **/wgg stats** command. The amount of gold taken by the house (via configuring a House Cut amount) is also tracked alongside player stats. House cut stats will be tracked on a per-player basis in the session stats so players can easily see how much in total they owe the guild bank at the end of a session.
 
@@ -176,6 +159,12 @@ Stats can also be manually adjusted by using the **/wgg updatestat [player] [amo
 This allows the Dealer to make corrections to the stats in cases where the addon fails, or external factors affect the outcome (ie. a verbal agreement). This also allows you to transfer stats from some other location (ie. a ledger or another gambling addon) into WoWGoldGambler to easily pick up where you left off.
 
 Lastly, the Dealer can remove a player entirely from the stats by using the **/wgg deletestat [player]** command. Alternatively, if the Dealer wishes to delete all stats, **/wgg resetstats** can be used. **These commands should not be used lightly, as the stats will be permanently deleted!**
+
+#### Records
+
+WoWGoldGambler also keeps track of all-time records across all game sessions. A number of overall records (ie. total number of games played, or total amount of gold traded) are implemented, as well as a number of game mode specific records (ie. luckiest Classic roll, best Poker hand, longest Coinflip round, etc.). The list of all known records can be posted to the chat channel by using the **/wgg records** command.
+
+When a game is completed and a new record is broken, an announcement will automatically be made in the chat channel. This announcement can optionally be silenced using the **/wgg announceRecords** command. To toggle announcements back on, simply run the command again.
 
 ### Dealer Features
 
@@ -191,7 +180,9 @@ If a player refuses to pay their losses, or if they engage in griefing behaviour
 
 ### Realm Filtering
 
-Since players cannot trade gold between realms, WoWGoldGambler will disallow players from other realms (ie. not the Dealer's realm) from registering for games. This prevents scenarios where a losing player can't physically trade their owed amount to a winning player.
+**Note: It seems like gold can now be transfered across realms, but possibly not across factions. I've decided to leave this feature in regardless, feel free to turn it off for your cross-realm guilds and raids**
+
+~Since players cannot trade gold between realms, WoWGoldGambler will disallow players from other realms (ie. not the Dealer's realm) from registering for games. This prevents scenarios where a losing player can't physically trade their owed amount to a winning player.~
 
 However, there can be situations where the Dealer may want to allow players from other realms to participate in games. For example: players from connected realms, or players who have an alt on the Dealer's realm and can still pay their losses at a later time. The Dealer can turn off Realm Filtering using the **/wgg realmfilter** command if such a scenario were to arise.
 

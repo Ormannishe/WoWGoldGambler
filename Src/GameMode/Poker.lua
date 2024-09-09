@@ -20,7 +20,7 @@ WoWGoldGambler.POKER.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.POKER.startRolls = function(self)
     -- Informs players that the registration phase has ended.
-    SendChatMessage("Registration has ended. All players /roll 11111-99999 now!" , self.db.global.game.chatChannel)
+    self:ChatMessage("Registration has ended. All players /roll 11111-99999 now!")
     self.session.modeData.currentMinRoll = 11111
     self.session.modeData.currentRoll = 99999
 end
@@ -98,9 +98,73 @@ end
 WoWGoldGambler.POKER.detectTie = function(self)
     -- Output a message to the chat channel informing players of which tournament bracket is being resolved
     if (#self.session.result.winners > 1) then
-        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!", self.db.global.game.chatChannel)
+        self:ChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!")
     elseif (#self.session.result.losers > 1) then
-        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!", self.db.global.game.chatChannel)
+        self:ChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll 11111-99999 now!")
+    end
+end
+
+WoWGoldGambler.POKER.setRecords = function(self)
+    -- Updates records for the Poker game mode and reports when records are broken
+    self:bestPokerHand()
+    self:worstPokerHand()
+end
+
+-- Game-mode specific records
+
+function WoWGoldGambler:bestPokerHand()
+    if (self.session.result.winners ~= nil and #self.session.result.winners > 0) then
+        local bestHand
+        local winningHand = self.session.result.winners[1].pokerHand
+    
+        if (self.db.global.stats.records.POKER["Best Hand"] == nil) then
+            bestHand = {
+                type = "High Card",
+                cardRanks = {1}
+            }
+        else
+            bestHand = self.db.global.stats.records.POKER["Best Hand"].recordData
+        end
+    
+        if (self:comparePokerHands(winningHand, bestHand) == true) then
+            local _, translatedHand = self:translateHand(winningHand)
+    
+            self.db.global.stats.records.POKER["Best Hand"] = {
+                record = translatedHand,
+                holders = self:makeNameString(self.session.result.winners),
+                recordData = winningHand
+            }
+    
+            self:NewRecordMessage("New Record! That was the best Poker hand I've ever seen! (" .. translatedHand .. ")")
+        end
+    end
+end
+
+function WoWGoldGambler:worstPokerHand()
+    if (self.session.result.losers ~= nil and #self.session.result.losers > 0) then
+        local worstHand
+        local losingHand = self.session.result.losers[1].pokerHand
+
+        if (self.db.global.stats.records.POKER["Worst Hand"] == nil) then
+            worstHand = {
+                type = "Five Of A Kind",
+                cardRanks = {9}
+            }
+        else
+            worstHand = self.db.global.stats.records.POKER["Worst Hand"].recordData
+        end
+
+        if (self:comparePokerHands(losingHand, worstHand) == false) then
+            local _, translatedHand = self:translateHand(losingHand)
+
+            self.db.global.stats.records.POKER["Worst Hand"] = {
+                record = translatedHand,
+                holders = self:makeNameString(self.session.result.losers),
+                recordData = losingHand
+            }
+
+            self:NewRecordMessage("New Record! That was the worst Poker hand I've ever seen! (" .. translatedHand .. ")")
+        end
     end
 end
 
@@ -203,21 +267,46 @@ end
 
 function WoWGoldGambler:postPokerResult(playerName, hand)
     -- Inform players of the best poker hand taken from their roll
+    local exclaimation, translatedHand = self:translateHand(hand)
+    local message = exclaimation .. " " .. playerName .. " has rolled a " .. translatedHand .. "!"
+
     if (hand.type == "Five Of A Kind") then
-        SendChatMessage("JACKPOT!! " .. playerName .. " has rolled a Five Of A Kind (" .. hand.cardRanks[1] .. "'s)!!!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Four Of A Kind") then
-        SendChatMessage("Incredible! " .. playerName .. " has rolled a Four Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Full House") then
-        SendChatMessage("Awesome roll! " .. playerName .. " has rolled a Full House (" .. hand.cardRanks[1] .. "'s over " .. hand.cardRanks[2] .. "'s)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Straight") then
-        SendChatMessage("Nice Save! " .. playerName .. " has rolled a Straight (" .. hand.cardRanks[5] .. " to " .. hand.cardRanks[1] .. ")!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Three Of A Kind") then
-        SendChatMessage("Great roll! " .. playerName .. " has rolled a Three Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Two Pair") then
-        SendChatMessage("Double nice! " .. playerName .. " has rolled a Two Pair (" .. hand.cardRanks[1] .. "'s and " .. hand.cardRanks[2] .. "'s with " .. hand.cardRanks[3] .. " kicker)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "Pair") then
-        SendChatMessage("Nice pair! " .. playerName .. " has rolled a Pair (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)!", self.db.global.game.chatChannel)
-    elseif (hand.type == "High Card") then
-        SendChatMessage("Yikes! " .. playerName .. " has rolled a High Card (" .. hand.cardRanks[1] .. ")!", self.db.global.game.chatChannel)
+        message = message .. "!!"
     end
+
+    self:ChatMessage(message)
+end
+
+function WoWGoldGambler:translateHand(hand)
+    -- Given a poker hand, returns a string describing the hand and it's associated exclaimation
+    local exclaimation
+    local result
+
+    if (hand.type == "Five Of A Kind") then
+        exclaimation = "JACKPOT!!"
+        result = "Five Of A Kind (" .. hand.cardRanks[1] .. "'s)"
+    elseif (hand.type == "Four Of A Kind") then
+        exclaimation = "Incredible!"
+        result = "Four Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)"
+    elseif (hand.type == "Full House") then
+        exclaimation = "Awesome roll!"
+        result = "Full House (" .. hand.cardRanks[1] .. "'s over " .. hand.cardRanks[2] .. "'s)"
+    elseif (hand.type == "Straight") then
+        exclaimation = "Nice Save!"
+        result = "Straight (" .. hand.cardRanks[5] .. " to " .. hand.cardRanks[1] .. ")"
+    elseif (hand.type == "Three Of A Kind") then
+        exclaimation = "Great roll!"
+        result = "Three Of A Kind (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)"
+    elseif (hand.type == "Two Pair") then
+        exclaimation = "Double nice!"
+        result = "Two Pair (" .. hand.cardRanks[1] .. "'s and " .. hand.cardRanks[2] .. "'s with " .. hand.cardRanks[3] .. " kicker)"
+    elseif (hand.type == "Pair") then
+        exclaimation = "Nice pair!"
+        result = "Pair (" .. hand.cardRanks[1] .. "'s with " .. hand.cardRanks[2] .. " kicker)"
+    elseif (hand.type == "High Card") then
+        exclaimation = "Yikes!"
+        result = "High Card (" .. hand.cardRanks[1] .. ")"
+    end
+
+    return exclaimation, result
 end

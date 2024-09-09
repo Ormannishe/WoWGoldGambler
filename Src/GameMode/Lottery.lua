@@ -9,7 +9,7 @@ WoWGoldGambler.LOTTERY.register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler.LOTTERY.startRolls = function(self)
     -- Informs players that the registration phase has ended. Performs a /roll for the number of players to determine the winner
-    SendChatMessage("Registration has ended. Drawing the winning ticket...", self.db.global.game.chatChannel)
+    self:ChatMessage("Registration has ended. Drawing the winning ticket...")
     self:rollMe(#self.session.players)
 end
 
@@ -20,7 +20,7 @@ WoWGoldGambler.LOTTERY.recordRoll = function(self, playerName, actualRoll, minRo
 
         self.session.modeData.lotteryResult = winnerIndex
 
-        SendChatMessage("The winning ticket is " .. actualRoll .. "! Congratulations " .. self.session.players[winnerIndex].name .. "!", self.db.global.game.chatChannel)
+        self:ChatMessage("The winning ticket is " .. actualRoll .. "! Congratulations " .. self.session.players[winnerIndex].name .. "!")
     
         -- Since all players must have a recorded roll for the game to end, simply give players a default roll
         for i = 1, #self.session.players do
@@ -52,5 +52,37 @@ WoWGoldGambler.LOTTERY.calculateResult = function(self)
     }
 end
 
--- Default Tie Resolution
-WoWGoldGambler.LOTTERY.detectTie = WoWGoldGambler.DEFAULT.detectTie
+WoWGoldGambler.LOTTERY.setRecords = function(self)
+    -- Updates records for the Lottery game mode
+    self:luckiestLotteryNumber()
+end
+
+-- Game-mode specific records
+
+function WoWGoldGambler:luckiestLotteryNumber()
+    local counts
+    local luckiestNumber
+    local winningNumber = self.session.modeData.lotteryResult
+
+    if (self.db.global.stats.records.LOTTERY["Luckiest Number"] == nil) then
+        counts = {}
+    else
+        counts = self.db.global.stats.records.LOTTERY["Luckiest Number"].recordData
+        luckiestNumber = counts.luckiestNumber
+    end
+
+    if (counts[winningNumber] == nil) then
+        counts[winningNumber] = 1
+    else
+        counts[winningNumber] = counts[winningNumber] + 1
+    end
+
+    if (luckiestNumber == nil or counts[winningNumber] > counts[luckiestNumber]) then
+        counts.luckiestNumber = winningNumber
+    end
+
+    self.db.global.stats.records.LOTTERY["Luckiest Number"] = {
+        record = counts.luckiestNumber .. " (drawn " .. self:formatInt(counts[counts.luckiestNumber]) .. " times)",
+        recordData = counts
+    }
+end

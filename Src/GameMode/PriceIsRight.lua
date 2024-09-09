@@ -9,7 +9,7 @@ WoWGoldGambler["PRICE IS RIGHT"].register = WoWGoldGambler.DEFAULT.register
 
 WoWGoldGambler["PRICE IS RIGHT"].startRolls = function(self)
     -- Informs players that the registration phase has ended. Performs a /roll of the wager amount to set the 'price'
-    SendChatMessage("Registration has ended. All players /roll whatever amount you want now! The price is " .. self:formatInt(self.db.global.game.wager) .. ". Be careful not to go over!" , self.db.global.game.chatChannel)
+    self:ChatMessage("Registration has ended. All players /roll whatever amount you want now! The price is " .. self:formatInt(self.db.global.game.wager) .. ". Be careful not to go over!")
 end
 
 WoWGoldGambler["PRICE IS RIGHT"].recordRoll = function(self, playerName, actualRoll, minRoll, maxRoll)
@@ -77,8 +77,42 @@ end
 WoWGoldGambler["PRICE IS RIGHT"].detectTie = function(self)
     -- Output a message to the chat channel informing players of a tie (and which end the tie is on)
     if (#self.session.result.winners > 1) then
-        SendChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.db.global.game.wager) .. "!", self.db.global.game.chatChannel)
+        self:ChatMessage("High end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.db.global.game.wager) .. "!")
     elseif (#self.session.result.losers > 1) then
-        SendChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.db.global.game.wager) .. "!", self.db.global.game.chatChannel)
+        self:ChatMessage("Low end tie breaker! " .. self:makeNameString(self.session.players) .. " /roll whatever you want now! The price is still " .. self:formatInt(self.db.global.game.wager) .. "!")
+    end
+end
+
+WoWGoldGambler["PRICE IS RIGHT"].setRecords = function(self)
+    -- Updates records for the Price Is Right game mode and reports when records are broken
+    self:biggestPriceDiff()
+end
+
+-- Game-mode specific records
+
+function WoWGoldGambler:biggestPriceDiff()
+    if (self.session.result.losers ~= nil and #self.session.result.losers > 0) then
+        local loserRoll = self.session.result.losers[1].roll
+        local loserName = self.session.result.losers[1].name
+        local loserDiff = math.abs(loserRoll - self.db.global.game.wager)
+    
+        if (self.db.global.stats.records["PRICE IS RIGHT"]["Furthest From Price"] == nil or
+            loserDiff > self.db.global.stats.records["PRICE IS RIGHT"]["Furthest From Price"].recordData) then
+                local record
+    
+                if (loserRoll < self.db.global.game.wager) then
+                    record = "Under by " .. loserDiff
+                else
+                    record = "Over by " .. loserDiff
+                end
+    
+            self.db.global.stats.records["PRICE IS RIGHT"]["Furthest From Price"] = {
+                record = record,
+                holders = loserName,
+                recordData = loserDiff
+            }
+    
+            self:NewRecordMessage("New Record! That was the worst Price Is Right roll I've ever seen! " .. loserName .. ", you were off by " .. self:formatInt(loserDiff) .. "!")
+        end
     end
 end

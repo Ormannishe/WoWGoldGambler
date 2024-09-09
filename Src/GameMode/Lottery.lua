@@ -52,9 +52,6 @@ WoWGoldGambler.LOTTERY.calculateResult = function(self)
     }
 end
 
--- Default Tie Resolution
-WoWGoldGambler.LOTTERY.detectTie = WoWGoldGambler.DEFAULT.detectTie
-
 WoWGoldGambler.LOTTERY.setRecords = function(self)
     -- Updates records for the Lottery game mode
     self:luckiestLotteryNumber()

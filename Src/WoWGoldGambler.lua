@@ -559,8 +559,9 @@ function WoWGoldGambler:detectTie()
         tieBreakers = self.session.result.losers
     end
 
-    if (#tieBreakers > 0) then
-        -- If a tie is detected, set up the session for tie-breaking and continue listening for rolls.
+    if (#tieBreakers > 0 and WoWGoldGambler[self.db.global.game.mode].detectTie ~= nil) then
+        -- If a tie is detected, set up the session for tie-breaking and continue listening for rolls
+        -- Ties breaking will not occur if a game mode has not implemented its tie-breaking function
         self.session.players = tieBreakers
 
         for i = 1, #self.session.players do
@@ -575,7 +576,7 @@ function WoWGoldGambler:detectTie()
             self:testTies()
         end
     else
-         -- If a tie is not detected, the game is ended
+         -- If a tie is not detected, or if the game mode allows ties, the game is ended
         self:endGame()
     end
 end

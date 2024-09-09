@@ -132,9 +132,6 @@ WoWGoldGambler.EXCHANGE.calculateResult = function(self)
     }
 end
 
--- Default Tie Resolution
-WoWGoldGambler.EXCHANGE.detectTie = WoWGoldGambler.DEFAULT.detectTie
-
 WoWGoldGambler.EXCHANGE.setRecords = function(self)
     -- Updates records for the Lottery game mode
     self:mostFrequentExchangeResult()

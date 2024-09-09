@@ -107,9 +107,6 @@ WoWGoldGambler["1v1 DEATH ROLL"].calculateResult = function(self)
     }
 end
 
--- Default Tie Resolution
-WoWGoldGambler["1v1 DEATH ROLL"].detectTie = WoWGoldGambler.DEFAULT.detectTie
-
 WoWGoldGambler["1v1 DEATH ROLL"].setRecords = function(self)
     -- Updates records for the 1v1 Death Roll game mode and reports when records are broken
     self:mostRoundsRecord()

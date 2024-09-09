@@ -19,8 +19,3 @@ WoWGoldGambler.DEFAULT.startRolls = function(self)
     -- Informs players that the registration phase has ended
     self:ChatMessage("Registration has ended. All players /roll " .. self.db.global.game.wager .. " now!")
 end
-
-WoWGoldGambler.DEFAULT.detectTie = function(self)
-    -- Ties are assumed to be allowed unless a game mode implements its own tie resolution
-    self:endGame()
-end

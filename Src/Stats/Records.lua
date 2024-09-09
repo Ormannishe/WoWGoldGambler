@@ -1,21 +1,39 @@
 -- Slash Command Handlers --
 
-function WoWGoldGambler:reportRecords()
+function WoWGoldGambler:reportRecords(gameModes)
     -- Post all records in the db to the chat channel
+    local records = self.db.global.stats.records
     self:ChatMessage("-- WoWGoldGambler All Time Records --")
-    local records = table.sort(self.db.global.stats.records)
 
-    for category, records in pairs(self.db.global.stats.records) do
-        self:ChatMessage("-" .. category .. "-")
-
-        for subcategory, record in pairs(records) do
+    if (records.OVERALL == nil) then
+        self:ChatMessage("No records to report!")
+    else
+        self:ChatMessage("-OVERALL-")
+    
+        for subcategory, record in pairs(records.OVERALL) do
             local resultString = subcategory .. ": " .. record.record
 
             if (record.holders ~= nil) then
                 resultString = resultString .. " by " .. record.holders
             end
-    
+        
             self:ChatMessage(resultString)
+        end
+
+        for _, category in ipairs(gameModes) do
+            if (records[category] ~= nil) then
+                self:ChatMessage("-" .. category .. "-")
+
+                for subcategory, record in pairs(records[category]) do
+                    local resultString = subcategory .. ": " .. record.record
+
+                    if (record.holders ~= nil) then
+                        resultString = resultString .. " by " .. record.holders
+                    end
+            
+                    self:ChatMessage(resultString)
+                end
+            end
         end
     end
 end

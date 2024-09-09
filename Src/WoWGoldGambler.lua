@@ -90,7 +90,7 @@ local options = {
             name = "Records",
             desc = "Output all-time records to the chat channel",
             type = "execute",
-            func = "reportRecords"
+            func = "printRecords"
         },
         announceRecords = {
             name = "Toggle Record Announcements",
@@ -304,6 +304,10 @@ function WoWGoldGambler:toggleRecordAnnouncements(info)
         self.db.global.game.announceRecords = true
         self:Print("New record announcements have been turned ON.")
     end
+end
+
+function WoWGoldGambler:printRecords(info)
+    self:reportRecords(gameModes)
 end
 
 -- Implementation --

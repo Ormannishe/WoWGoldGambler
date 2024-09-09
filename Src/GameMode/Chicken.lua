@@ -113,7 +113,7 @@ WoWGoldGambler.CHICKEN.calculateResult = function(self)
         winners = {}
     end
 
-    if (#winners > 0) then 
+    if (#winners > 0 and #losers > 0) then
         if (losers[1].roll > self.db.global.game.wager) then
             -- If a player exceeded the wager amount, they owe the full amount split among all winners
             amountOwed = math.floor(self.db.global.game.wager / #winners)

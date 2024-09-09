@@ -731,7 +731,6 @@ function WoWGoldGambler:addTesters()
     local newPlayer = {
         name = "Tester",
         realm = "Test",
-        roll = 1,
         numRolls = 1,
         pokerHand = {
             type = "High Card",
@@ -741,18 +740,24 @@ function WoWGoldGambler:addTesters()
 
     tinsert(self.session.players, newPlayer)
 
-    local newPlayer2 = {
-        name = "Tester2",
-        realm = "Test",
-        roll = 2,
-        numRolls = 1,
-        pokerHand = {
-            type = "High Card",
-            cardRanks = {2}
-        }
-    }
+    if (self.db.global.game.mode ~= "1v1 DEATH ROLL") then
+        -- Give the first tester a default roll
+        self.session.players[1].roll = 1
 
-    tinsert(self.session.players, newPlayer2)
+        -- A second tester is not added for 2-player games
+        local newPlayer2 = {
+            name = "Tester2",
+            realm = "Test",
+            roll = 2,
+            numRolls = 1,
+            pokerHand = {
+                type = "High Card",
+                cardRanks = {2}
+            }
+        }
+    
+        tinsert(self.session.players, newPlayer2)
+    end
 end
 
 function WoWGoldGambler:testTies()

@@ -98,7 +98,7 @@ function WoWGoldGambler:biggestWagerRecord(category)
             holders = self:makeNameString(self.session.originalPlayers)
         }
 
-        self:NewRecordMessage("New Record! " .. self:formatInt(self.db.global.game.wager) .. "g is the most money I've ever seen wagered!")
+        self:NewRecordMessage("New Record! " .. self:formatInt(self.db.global.game.wager) .. "g is the most gold I've ever seen wagered!")
     end
 end
 
@@ -116,7 +116,7 @@ function WoWGoldGambler:biggestWinRecord(category)
                 holders = self:makeNameString(self.session.result.winners)
             }
         
-            self:NewRecordMessage("New Record! " .. self:formatInt(amountWon) .. "g is the most money I've ever seen won in a single wager!")
+            self:NewRecordMessage("New Record! " .. self:formatInt(amountWon) .. "g is the most gold I've ever seen won in a single wager!")
         end
     end
 end
@@ -130,7 +130,7 @@ function WoWGoldGambler:mostRoundsRecord()
 
             self.db.global.stats.records[category]["Most Rounds"] = {
                 record = self.session.modeData.roundNumber,
-                holders = self:makeNameString(self.session.players) -- Record holders should be just the players involved in the final round
+                holders = self:makeNameString(self.session.originalPlayers)
             }
 
             self:NewRecordMessage("New Record! That was the longest " .. self:capitalize(category) .. " game I've ever seen, lasting " .. self.session.modeData.roundNumber .. " rounds!")

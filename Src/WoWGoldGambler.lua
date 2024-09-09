@@ -1,6 +1,6 @@
 WoWGoldGambler = LibStub("AceAddon-3.0"):NewAddon("WoWGoldGambler", "AceConsole-3.0", "AceEvent-3.0")
 
-local debug = true
+local debug = false
 
 -- GLOBAL VARS --
 local gameStates = {
@@ -296,7 +296,7 @@ function WoWGoldGambler:toggleRealmFilter(info)
 end
 
 function WoWGoldGambler:toggleRecordAnnouncements(info)
-    -- Toggles the record announcements on/off, determining whether or a chat message will be sent whenever a record is broken
+    -- Toggles the record announcements on/off, determining whether or not a chat message will be sent whenever a record is broken
     if (self.db.global.game.announceRecords) then
         self.db.global.game.announceRecords = false
         self:Print("New record announcements have been turned OFF.")
@@ -561,7 +561,7 @@ function WoWGoldGambler:detectTie()
 
     if (#tieBreakers > 0 and WoWGoldGambler[self.db.global.game.mode].detectTie ~= nil) then
         -- If a tie is detected, set up the session for tie-breaking and continue listening for rolls
-        -- Ties breaking will not occur if a game mode has not implemented its tie-breaking function
+        -- Tie breaking will not occur if a game mode has not implemented its tie-breaking function
         self.session.players = tieBreakers
 
         for i = 1, #self.session.players do

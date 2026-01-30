@@ -1,4 +1,4 @@
-## Interface: 110002
+## Interface: 120000
 ## Title: WoWGoldGambler
 ## Author: Ormannishe
 ## Version: v2.1.0
